@@ -1,0 +1,129 @@
+---
+title: "Data_Import"
+output: html_document
+date: "2023-04-01"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Libraries
+library(tidyverse)
+library(dplyr)
+library(haven)
+library(ggplot2)
+```
+
+## Import data
+Read in the dataset. 
+```{r}
+Mothership <- read_sav("~/Desktop/Coding/data/Mothership_DV.sav")
+Mothership<-select(Mothership,ID1:Sexuality_1,MDD_C:Day40_CUXOS)
+```
+## Rename and Recode variables 
+We can change the current variables to make them easier to interpret. 
+```{r}
+Mothership2 <- mutate(Mothership, 
+                     DC_status_1 = as.factor(DC_status_1),
+                     DC_status_1 = recode(DC_status_1,
+                                          "1"="Complete",
+                                          "2"="Nearly Complete",
+                                          "3"="Insurance",
+                                          "4"="Nonatteneance",
+                                          "5"="Inappropriate",
+                                          "6"="Inpatient",
+                                          "7"="Withdrew",
+                                          "8"="Dissatisfaction",
+                                          "9"="Other"),
+                     Education_1 = as.factor(Education_1),
+                     Education_1 = recode(Education_1,
+                                          "1"="<Grade 12",
+                                          "2"="HS Diploma",
+                                          "3"="GED",
+                                          "4"="Some College",
+                                          "5"="Associates Degree",
+                                          "6"="Bachelors Degree",
+                                          "7"="Some Grad School",
+                                          "8"="Grad Degree"),
+                     Gender_1 = as.factor(Gender_1),
+                     Gender_1 = recode(Gender_1,
+                                       "0"="Female",
+                                       "1"="Male",
+                                       "2"="Non-Binary",
+                                       "3"="Other",
+                                       "4"="Unknown"),
+                     Relationship_1 = as.factor(Relationship_1),
+                     Relationship_1 = recode(Relationship_1,
+                                             "0"="Married",
+                                             "1"="Cohabitating",
+                                             "2"="Widowed",
+                                             "3"="Separated",
+                                             "4"="Divorced",
+                                             "5"="Never Married"),
+                     Sexuality_1 = as.factor(Sexuality_1),
+                     Sexuality_1 = recode(Sexuality_1,
+                                          "1"="Straight",
+                                          "2"="Gay",
+                                          "3"="Bisexual",
+                                          "4"="Other"),
+                     IPT_track_1 = as.factor(IPT_track_1),
+                     IPT_track_1 = recode(IPT_track_1,
+                                          "0"="General",
+                                          "1"="Trauma",
+                                          "2"="Young Adult",
+                                          "3"="BPD"),
+                     Race_1 = as.factor(Race_1),
+                     Race_1 = recode(Race_1,
+                                     "0"="White",
+                                     "1"="Black",
+                                     "2"="Hispanic",
+                                     "3"="Asian",
+                                     "4"="Portugese",
+                                     "5"="Other"),
+                     Education_1 = as.factor(Education_1),
+                     Education_1 = recode(Education_1,
+                                      "0"="<Grade 6", 
+                                      "1"="Grades 7-12",
+                                      "2"="HS Diploma", 
+                                      "3"="GED",
+                                      "4"="Some College",
+                                      "5"="Associates Degree",
+                                      "6"="Bachelors Degree",
+                                      "7"="Some Grad School",
+                                      "8"="Grad Degree"))
+```
+
+## Pie Chart For Education Status 
+```{r}
+#Create Table and Data Frame
+Education<-table(Mothership$Education_1)
+Education_df<-as.data.frame(Education)
+Education_df
+
+str(Mothership$Education_1)
+
+#Rename Columns
+colnames(Education_df)[1]="Category"
+colnames(Education_df)[2]="Frequency"
+
+
+Education_df$Category=recode(Education_df$Category,
+                             "0"="<Grade 6", 
+                             "1"="Grades 7-12",
+                             "2"="HS Diploma", 
+                             "3"="GED",
+                             "4"="Some College",
+                             "5"="Associates Degree",
+                             "6"="Bachelors Degree",
+                             "7"="Some Grad School",
+                             "8"="Grad Degree")
+
+ggplot(data = Education_df, mapping = aes(x="", y=Frequency, fill=Category))+
+  geom_bar(stat="Identity",width=1,color="white")+
+  coord_polar("y",start=0)+
+  theme_void()
+```
+
+
+
+
