@@ -203,6 +203,8 @@ Mothership_Mean_CUDOS_Gender<-Mothership_Long %>%
   group_by(TxDay,Gender_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
 
+Mothership_Mean_CUDOS_Gender
+
 #Create the Depression Line Graph by Gender
 ggplot(data=subset(Mothership_Mean_CUDOS_Gender,!is.na(Gender_1)),
        aes(x=TxDay,y=mean_CUDOS,group=Gender_1,color=Gender_1))+
