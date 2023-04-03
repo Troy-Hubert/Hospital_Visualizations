@@ -1,0 +1,31 @@
+---
+title: "Anxiety_vis"
+output: html_document
+date: "2023-04-03"
+---
+
+```{r setup, include=FALSE}
+# Libraries 
+library(tidyverse)
+library(dplyr)
+library(haven)
+library(ggplot2)
+library(tidyr)
+library("lubridate")
+
+#Data
+Mothership<-read.csv("~/Desktop/Coding/data/Mothership_Vis.csv")
+Mothership<-mutate(Mothership,
+      DC_status_1 = as.factor(DC_status_1),
+      Education_1 = as.factor(Education_1),
+      Gender_1 = as.factor(Gender_1),
+      Relationship_1 = as.factor(Relationship_1),
+      Sexuality_1 = as.factor(Sexuality_1),
+      IPT_track_1 = as.factor(IPT_track_1),
+      Race_1 = as.factor(Race_1),
+      Education_1 = as.factor(Education_1),
+      Duration = as.factor(Duration),
+      TxYear = as.factor(TxYear)
+      )
+```
+

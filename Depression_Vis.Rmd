@@ -1,196 +1,33 @@
 ---
-title: "Data_Import"
+title: "Depression_Vis"
 output: html_document
-date: "2023-04-01"
+date: "2023-04-03"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-
-# Libraries
+# Libraries 
 library(tidyverse)
 library(dplyr)
 library(haven)
 library(ggplot2)
 library(tidyr)
-```
-
-## Import data
-Read in the dataset. 
-```{r}
-df <- read_sav("~/Desktop/Coding/data/Mothership_DV.sav")
-#view(df)
-Mothership<-select(df,ID1:Sexuality_1,MDD_C:Day40_CUXOS)
-```
-## Rename and Recode variables 
-We can change the current variables to make them easier to interpret. 
-```{r}
-#recode varaibles
-
-Mothership <- mutate(Mothership, 
-                     DC_status_1 = as.factor(DC_status_1),
-                     DC_status_1 = recode(DC_status_1,
-                                          "1"="Complete",
-                                          "2"="Nearly Complete",
-                                          "3"="Insurance",
-                                          "4"="Nonatteneance",
-                                          "5"="Inappropriate",
-                                          "6"="Inpatient",
-                                          "7"="Withdrew",
-                                          "8"="Dissatisfaction",
-                                          "9"="Other"),
-                     Education_1 = as.factor(Education_1),
-                     Education_1 = recode(Education_1,
-                                          "1"="<Grade 12",
-                                          "2"="HS Diploma",
-                                          "3"="GED",
-                                          "4"="Some College",
-                                          "5"="Associates Degree",
-                                          "6"="Bachelors Degree",
-                                          "7"="Some Grad School",
-                                          "8"="Grad Degree"),
-                     Gender_1 = as.factor(Gender_1),
-                     Gender_1 = recode(Gender_1,
-                                       "0"="Female",
-                                       "1"="Male",
-                                       "2"="Non-Binary",
-                                       "3"="Other",
-                                       "4"="Unknown"),
-                     Relationship_1 = as.factor(Relationship_1),
-                     Relationship_1 = recode(Relationship_1,
-                                             "0"="Married",
-                                             "1"="Cohabitating",
-                                             "2"="Widowed",
-                                             "3"="Separated",
-                                             "4"="Divorced",
-                                             "5"="Never Married"),
-                     Sexuality_1 = as.factor(Sexuality_1),
-                     Sexuality_1 = recode(Sexuality_1,
-                                          "1"="Straight",
-                                          "2"="Gay",
-                                          "3"="Bisexual",
-                                          "4"="Other"),
-                     IPT_track_1 = as.factor(IPT_track_1),
-                     IPT_track_1 = recode(IPT_track_1,
-                                          "0"="General",
-                                          "1"="Trauma",
-                                          "2"="Young Adult",
-                                          "3"="BPD"),
-                     Race_1 = as.factor(Race_1),
-                     Race_1 = recode(Race_1,
-                                     "0"="White",
-                                     "1"="Black",
-                                     "2"="Hispanic",
-                                     "3"="Asian",
-                                     "4"="Portugese",
-                                     "5"="Other"),
-                     Education_1 = as.factor(Education_1),
-                     Education_1 = recode(Education_1,
-                                      "0"="<Grade 6", 
-                                      "1"="Grades 7-12",
-                                      "2"="HS Diploma", 
-                                      "3"="GED",
-                                      "4"="Some College",
-                                      "5"="Associates Degree",
-                                      "6"="Bachelors Degree",
-                                      "7"="Some Grad School",
-                                      "8"="Grad Degree"),
-  
-       #Lets make some new variables 
-                     Duration = as.factor(
-                       ifelse(Days_complete_1>0 & Days_complete_1 <=5, "1-5",
-                       ifelse(Days_complete_1>5 & Days_complete_1 <=10, "6-10",
-                       ifelse(Days_complete_1>10 & Days_complete_1 <=15, "11-15", "16+"
-                              )))))
-# Disorder subtypes 
-# Mood Disorders
-# Anxiety Disorders
-# Obsessive Compusive Disorders
-# Personality Disorders
-# Substance Use Disorders
-# Trauma related disorders
-# Psychotic Disorders
-# Eating Disorders
-
-                      
-                     
-                     
-                     
-#Extract Year From Intake Date
-#Convert to Date
 library("lubridate")
-Mothership$Intake_1<-mdy(Mothership$Intake_1,locale = "en_US.UTF-8")
-Mothership$TxYear<-as.numeric(format(Mothership$Intake_1,"%Y"))
 
+#Data
+Mothership<-read.csv("~/Desktop/Coding/data/Mothership_Vis.csv")
 Mothership<-mutate(Mothership,
-                   TxYear = as.factor(TxYear),
-                   TxYear = recode(TxYear,
-                                   "1582"="2014",
-                                   "2021"="2020",
-                                   "2022"="2020"))
-
+      DC_status_1 = as.factor(DC_status_1),
+      Education_1 = as.factor(Education_1),
+      Gender_1 = as.factor(Gender_1),
+      Relationship_1 = as.factor(Relationship_1),
+      Sexuality_1 = as.factor(Sexuality_1),
+      IPT_track_1 = as.factor(IPT_track_1),
+      Race_1 = as.factor(Race_1),
+      Education_1 = as.factor(Education_1),
+      Duration = as.factor(Duration),
+      TxYear = as.factor(TxYear)
+      )
 ```
-
-## Export as CSV
-```{r}
-write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Vis.csv")
-```
-
-# Background Statistics
-```{r}
-### Bar Chart for Discharge Status ###
-plot(Mothership2$DC_status_1)
-
-ggplot(data = subset(Mothership, !is.na(DC_status_1)), mapping = aes(x = DC_status_1))+
-  geom_bar(color = "black",fill="darkgreen")+
-  ggtitle("Frequency of Treatment Discharge Status") +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
-  xlab("Discharge Status") +
-  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,6000))
-
-### Bar Chart for Education Status ###
-
-ggplot(data = subset(Mothership, !is.na(Education_1)),mapping = aes(x = Education_1))+
-  geom_bar(color = "black",fill="darkred")+
-  ggtitle("Frequency of Education Level") +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
-  xlab("Education Level")+
-  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,3000))
-```
-
-## Pie Chart For Education Status 
-```{r}
-#Create Table and Data Frame
-Education<-table(Mothership$Education_1)
-Education_df<-as.data.frame(Education)
-Education_df
-
-#Rename Columns
-colnames(Education_df)[1]="Category"
-colnames(Education_df)[2]="Frequency"
-
-
-Education_df$Category=recode(Education_df$Category,
-                             "0"="<Grade 6", 
-                             "1"="Grades 7-12",
-                             "2"="HS Diploma", 
-                             "3"="GED",
-                             "4"="Some College",
-                             "5"="Associates Degree",
-                             "6"="Bachelors Degree",
-                             "7"="Some Grad School",
-                             "8"="Grad Degree")
-
-ggplot(data = Education_df, mapping = aes(x="", y=Frequency, fill=Category))+
-  geom_bar(stat="Identity",width=1,color="white")+
-  coord_polar("y",start=0)+
-  theme_void()
-```
-
 
 ## Depression Treatment Progress Charts
 
@@ -247,11 +84,9 @@ ggplot(data=Mothership_Mean_CUDOS,aes(x=TxDay,y=mean_CUDOS))+
 
 ggplot(Mothership, aes(Days_complete_1))+
   geom_density()+
-  scale_x_continuous(limits=c(0,20)) +
+  scale_x_continuous(limits=c(0,20,by=1)) +
   labs(
     title="Quantity of discharges Per Treatment Day")
-
-
 ```
 
 ### plot means based upon duration group membership 
@@ -292,24 +127,19 @@ ggplot(data=Mothership_duration_CUDOS,aes(x=TxDay,y=mean_CUDOS,group=Duration,co
   annotate("text", x = 8, y = 39, label = "Mean") +
   annotate("text", x = 13, y = 39, label = "Q3") 
 ```
+
 ## Depression Treatment Progress by Characteristics
 
 #### Race
 Duration 1-5 days
 ```{r}
 
-#RACE
 #Create a New Data Set with an Average Depression Variable and Race
 Mothership_Mean_CUDOS_Race<-Mothership_Long %>%
   filter(Duration == "1-5") %>%
   group_by(TxDay,Race_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
 
-Mothership_Mean_CUDOS_Race1<-Mothership_Mean_CUDOS_Race[1:34,]
-view(Mothership_Mean_CUDOS_Race)
-#Create the Depression Line Graphs by Race
-  
-# discharge 1-5 
 RaceDF1<-Mothership_Mean_CUDOS_Race[1:34,]
 # plot
 Race1<-ggplot(data=subset(RaceDF1,!is.na(Race_1)),
@@ -380,7 +210,6 @@ Race3<-ggplot(data=subset(RaceDF3,!is.na(Race_1)),
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   theme(legend.title=element_blank())
-Race3
 ```
 
 ```{r}
@@ -409,8 +238,146 @@ Race4<-ggplot(data=subset(RaceDF4,!is.na(Race_1)),
 Race4
 ```
 
-#putting them all together
+#### putting them all together
 ```{r}
 ggpubr::ggarrange(Race1,Race2,Race3,Race4,ncol=2,nrow=2)
+```
+
+## GENDER IDENTITY
+Create a New Data Set with an Average Depression Variable and Gender
+```{r}
+#GENDER IDENTITY
+#Create a New Data Set with an Average Depression Variable and Gender
+Mothership_Mean_CUDOS_Gender<-Mothership_Long %>%
+  group_by(TxDay,Gender_1) %>%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+
+View(Mothership_Mean_CUDOS_Gender)
+
+#Create the Depression Line Graph by Gender
+ggplot(data=subset(Mothership_Mean_CUDOS_Gender,!is.na(Gender_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Gender_1,color=Gender_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Depression Severity by Gender During Partial Hospitalization")+
+    #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_x_continuous(name="Depression Severity",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Depression Severity",limits=c(10,60,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+
+Duration 1-5 days
+```{r}
+
+#Create a New Data Set with an Average Depression Variable and Gender
+Mothership_Mean_CUDOS_Gender<-Mothership_Long %>%
+  filter(Duration == "1-5") %>%
+  group_by(TxDay,Gender_1) %>%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+GenderDF1<-Mothership_Mean_CUDOS_Gender[1:30,]
+# plot
+Gender1<-ggplot(data=subset(GenderDF1,!is.na(Gender_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Gender_1,color=Gender_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(
+    title ="Depression Severity by Gender During Partial Hospitalization",
+    subtitle = "Patient discharge 1-5 days")+
+  #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_x_continuous(name="Depression Severity",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Depression Severity",limits=c(10,60,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+duration 6-10 days
+```{r}
+
+GenderDF2<-Mothership_Long %>%
+  filter(Duration == "6-10") %>%
+  group_by(TxDay,Gender_1) %>%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+
+GenderDF2<-GenderDF2[1:59,]
+
+# plot
+Gender2<-ggplot(data=subset(GenderDF2,!is.na(Gender_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Gender_1,color=Gender_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(
+    title ="Depression Severity by Gender During Partial Hospitalization",
+    subtitle = "Patient discharge 6-10 days")+
+  #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_x_continuous(name="Depression Severity",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Depression Severity",limits=c(10,60,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+Discharge 10-15
+```{r}
+GenderDF3<-Mothership_Long %>%
+  filter(Duration == "11-15") %>%
+  group_by(TxDay,Gender_1) %>%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+
+GenderDF3<-GenderDF3[1:90,]
+
+# plot
+Gender3<-ggplot(data=subset(GenderDF3,!is.na(Gender_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Gender_1,color=Gender_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(title ="Depression Severity by Gender During Partial Hospitalization",
+    subtitle = "Patient discharge 11-15 days")+
+  #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_x_continuous(name="Depression Severity",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Depression Severity",limits=c(10,60,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+```{r}
+GenderDF4<-Mothership_Long %>%
+  filter(Duration == "16+") %>%
+  group_by(TxDay,Gender_1) %>%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+View(GenderDF4)
+GenderDF4<-GenderDF4[1:120,]
+
+# plot
+Gender4<-ggplot(data=subset(GenderDF4,!is.na(Gender_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Gender_1,color=Gender_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(title ="Depression Severity by Gender During Partial Hospitalization",
+    subtitle = "Patient discharge 16+ days")+
+  #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_x_continuous(name="Depression Severity",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Depression Severity",limits=c(10,60,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+Gender4
+```
+
+```{r}
+ggpubr::ggarrange(Gender1,Gender2,Gender3,Gender4,ncol=2,nrow=2)
 ```
 
