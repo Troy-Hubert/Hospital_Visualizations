@@ -148,6 +148,34 @@ ggplot(data=Mothership_duration_CUDOS,aes(x=TxDay,y=mean_CUDOS,group=Duration,co
 ## Depression Treatment Progress by Characteristics
 
 #### Race
+```{r}
+#Overall race
+Mothership_Mean_CUDOS_Race<-Mothership_Long %>%
+  group_by(TxDay,Race_1) %>%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+# plot
+ggplot(data=subset(Mothership_Mean_CUDOS_Race,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Race_1,color=Race_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(title ="Depression Severity by Race During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())+
+   geom_vline(xintercept = 5,alpha =.25)+
+  geom_vline(xintercept = 8,alpha =.25)+
+  geom_vline(xintercept = 13,alpha =.25)+
+  annotate("text", x = 5, y = 39, label = "Q1") +
+  annotate("text", x = 8, y = 39, label = "Mean") +
+  annotate("text", x = 13, y = 39, label = "Q3") 
+```
+
+
+
 Example of plot for 1-5 days discharge
 ```{r}
 #Create a New Data Set with an Average Depression Variable and Race
