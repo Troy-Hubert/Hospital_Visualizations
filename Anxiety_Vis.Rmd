@@ -25,7 +25,741 @@ Mothership<-mutate(Mothership,
       Race_1 = as.factor(Race_1),
       Education_1 = as.factor(Education_1),
       Duration = as.factor(Duration),
-      TxYear = as.factor(TxYear)
       )
+
+Mothership$Intake_1<-mdy(Mothership$Intake_1,locale = "en_US.UTF-8")
+Mothership$TxYear<-as.numeric(format(Mothership$Intake_1,"%Y"))
+
+Mothership<-mutate(Mothership,
+                   TxYear = as.factor(TxYear),
+                   TxYear = recode(TxYear,
+                                   "1582"="2014",
+                                   "2021"="2020",
+                                   "2022"="2020"))
+
 ```
 
+# Anxiety Treatment Progress Charts
+
+```{r}
+Mothership_Long <- gather(Mothership,rm,CUXOS,Day1_CUXOS:Day40_CUXOS,factor_key = "T")
+Mothership_Long <- Mothership_Long[order(Mothership_Long$ID1),]
+
+#Create a Time Variable
+Mothership_Long$TxDay <- NA
+Mothership_Long$TxDay[Mothership_Long$rm=="Day1_CUXOS"]<-1
+Mothership_Long$TxDay[Mothership_Long$rm=="Day2_CUXOS"]<-2
+Mothership_Long$TxDay[Mothership_Long$rm=="Day3_CUXOS"]<-3
+Mothership_Long$TxDay[Mothership_Long$rm=="Day4_CUXOS"]<-4
+Mothership_Long$TxDay[Mothership_Long$rm=="Day5_CUXOS"]<-5
+Mothership_Long$TxDay[Mothership_Long$rm=="Day6_CUXOS"]<-6
+Mothership_Long$TxDay[Mothership_Long$rm=="Day7_CUXOS"]<-7
+Mothership_Long$TxDay[Mothership_Long$rm=="Day8_CUXOS"]<-8
+Mothership_Long$TxDay[Mothership_Long$rm=="Day9_CUXOS"]<-9
+Mothership_Long$TxDay[Mothership_Long$rm=="Day10_CUXOS"]<-10
+Mothership_Long$TxDay[Mothership_Long$rm=="Day11_CUXOS"]<-11
+Mothership_Long$TxDay[Mothership_Long$rm=="Day12_CUXOS"]<-12
+Mothership_Long$TxDay[Mothership_Long$rm=="Day13_CUXOS"]<-13
+Mothership_Long$TxDay[Mothership_Long$rm=="Day14_CUXOS"]<-14
+Mothership_Long$TxDay[Mothership_Long$rm=="Day15_CUXOS"]<-15
+Mothership_Long$TxDay[Mothership_Long$rm=="Day16_CUXOS"]<-16
+Mothership_Long$TxDay[Mothership_Long$rm=="Day17_CUXOS"]<-17
+Mothership_Long$TxDay[Mothership_Long$rm=="Day18_CUXOS"]<-18
+Mothership_Long$TxDay[Mothership_Long$rm=="Day19_CUXOS"]<-19
+Mothership_Long$TxDay[Mothership_Long$rm=="Day20_CUXOS"]<-20
+
+#Create a New Data Set with an Average Anxiety Variable
+Mothership_Mean_CUXOS<-Mothership_Long %>%
+  group_by(TxDay) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+```
+
+
+```{r}
+#Plot the Anxiety Mean for Full Sample
+ggplot(data=Mothership_Mean_CUXOS,aes(x=TxDay,y=mean_CUXOS))+
+  geom_line(size=1,color="#0065A3")+
+  geom_point(color="#0065A3")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  ggtitle("Mean Anxiety Severity During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(20,40,by=5))+
+  theme(panel.background=NULL) +
+  geom_vline(xintercept = 5, color = "#BB9D00",alpha =.5)+
+  geom_vline(xintercept = 8, color = "orange",alpha =.5)+
+  geom_vline(xintercept = 13, color = "red",alpha =.5)+
+  annotate("text", x = 5, y = 39, label = "Q1") +
+  annotate("text", x = 8, y = 39, label = "Mean") +
+  annotate("text", x = 13, y = 39, label = "Q3") 
+
+ggplot(Mothership, aes(Days_complete_1))+
+  geom_density()+
+  scale_x_continuous(limits=c(0,20,by=1)) +
+  labs(
+    title="Quantity of discharges Per Treatment Day")+
+  geom_vline(xintercept = 5, color = "#BB9D00",alpha =.5)+
+  geom_vline(xintercept = 8, color = "orange",alpha =.5)+
+  geom_vline(xintercept = 13, color = "red",alpha =.5)+
+  annotate("text", x = 5, y = .01, label = "Q1") +
+  annotate("text", x = 8, y = .01, label = "Mean") +
+  annotate("text", x = 13, y = .01, label = "Q3")
+
+```
+
+### plot means based upon duration group membership 
+
+```{r}
+#plot Anxiety mean with each group
+
+# New dataset for the treatment duration Anxiety plot
+Mothership_Mean_CUXOS<-Mothership_Long %>%
+  group_by(Duration,TxDay) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+Mothership_duration_CUXOS<-Mothership_Mean_CUXOS[1:83,]
+#delete weird Na values and put NA for values
+Mothership_duration_CUXOS[6:20,3] = NA
+Mothership_duration_CUXOS[37:41,3] = NA
+Mothership_duration_CUXOS[74:83,3] = NA
+Mothership_duration_CUXOS<-Mothership_duration_CUXOS[(-21),]
+Mothership_duration_CUXOS<-Mothership_duration_CUXOS[(-41),]
+Mothership_duration_CUXOS<-Mothership_duration_CUXOS[(-61),]
+Mothership_duration_CUXOS
+
+ggplot(data=Mothership_duration_CUXOS,aes(x=TxDay,y=mean_CUXOS,group=Duration,color=Duration))+
+  geom_line(size=1)+
+  geom_point()+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  ggtitle("Mean Anxiety Severity During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(5,50,by=5))+
+  scale_color_manual(values=c("#BB9D00","red",
+                              "darkred","orange"))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())+
+  geom_vline(xintercept = 5,alpha =.25)+
+  geom_vline(xintercept = 8,alpha =.25)+
+  geom_vline(xintercept = 13,alpha =.25)+
+  annotate("text", x = 5, y = 49, label = "Q1") +
+  annotate("text", x = 8, y = 49, label = "Mean") +
+  annotate("text", x = 13, y = 49, label = "Q3") 
+```
+
+## Anxiety Treatment Progress by Characteristics
+
+#### Race
+Example of plot for 1-5 days discharge
+```{r}
+#Create a New Data Set with an Average Anxiety Variable and Race
+Mothership_Mean_CUXOS_Race<-Mothership_Long %>%
+  filter(Duration == "1-5") %>%
+  group_by(TxDay,Race_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+RaceDF1<-Mothership_Mean_CUXOS_Race[1:34,]
+# plot
+Race1<-ggplot(data=subset(RaceDF1,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Race_1,color=Race_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(
+    title ="Anxiety Severity by Race During Partial Hospitalization",
+    subtitle = "Patient discharge 1-5 days")+
+  #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+We are going to make seperate plots for the other duration groups (i.e., 6-10 days,11-15 days, 16+ days)
+```{r,include=FALSE}
+
+######## 6-10 days
+RaceDF2<-Mothership_Long %>%
+  filter(Duration == "6-10") %>%
+  group_by(TxDay,Race_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+RaceDF2<-RaceDF2[1:70,]
+
+# plot
+Race2<-ggplot(data=subset(RaceDF2,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Race_1,color=Race_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(
+    title ="Anxiety Severity by Race During Partial Hospitalization",
+    subtitle = "Patient discharge 6-10 days")+
+  #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+######## 11-15 days
+RaceDF3<-Mothership_Long %>%
+  filter(Duration == "11-15") %>%
+  group_by(TxDay,Race_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+RaceDF3<-RaceDF3[1:105,]
+
+# plot
+Race3<-ggplot(data=subset(RaceDF3,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Race_1,color=Race_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(title ="Anxiety Severity by Race During Partial Hospitalization",
+    subtitle = "Patient discharge 11-15 days")+
+  #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+######## 16+ days
+RaceDF4<-Mothership_Long %>%
+  filter(Duration == "16+") %>%
+  group_by(TxDay,Race_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+RaceDF4<-RaceDF4[1:150,]
+
+# plot
+Race4<-ggplot(data=subset(RaceDF4,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Race_1,color=Race_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(title ="Anxiety Severity by Race During Partial Hospitalization",
+    subtitle = "Patient discharge 16+ days")+
+  #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+#### putting them all together
+```{r}
+ggpubr::ggarrange(Race1,Race2,Race3,Race4,ncol=2,nrow=2)
+```
+
+## GENDER IDENTITY
+Create a New Data Set with an Average Anxiety Variable and Gender, then plot it
+```{r}
+#GENDER IDENTITY
+#Create a New Data Set with an Average Anxiety Variable and Gender
+Mothership_Mean_CUXOS_Gender<-Mothership_Long %>%
+  group_by(TxDay,Gender_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+#Create the Anxiety Line Graph by Gender
+ggplot(data=subset(Mothership_Mean_CUXOS_Gender,!is.na(Gender_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Gender_1,color=Gender_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Anxiety Severity by Gender During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,60,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())+geom_vline(xintercept = 5,alpha =.25)+
+  geom_vline(xintercept = 8,alpha =.25)+
+  geom_vline(xintercept = 13,alpha =.25)+
+  annotate("text", x = 5, y = 59, label = "Q1") +
+  annotate("text", x = 8, y = 59, label = "Mean") +
+  annotate("text", x = 13, y = 59, label = "Q3") 
+```
+
+Break it up by duration group 
+```{r, include= FALSE}
+#Create a New Data Set with an Average Anxiety Variable and Gender
+Mothership_Mean_CUXOS_Gender<-Mothership_Long %>%
+  filter(Duration == "1-5") %>%
+  group_by(TxDay,Gender_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+GenderDF1<-Mothership_Mean_CUXOS_Gender[1:30,]
+# plot
+Gender1<-ggplot(data=subset(GenderDF1,!is.na(Gender_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Gender_1,color=Gender_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(
+    title ="Anxiety Severity by Gender During Partial Hospitalization",
+    subtitle = "Patient discharge 1-5 days")+
+  #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,60,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+##### 5-10 Days
+GenderDF2<-Mothership_Long %>%
+  filter(Duration == "6-10") %>%
+  group_by(TxDay,Gender_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+GenderDF2<-GenderDF2[1:59,]
+
+# plot
+Gender2<-ggplot(data=subset(GenderDF2,!is.na(Gender_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Gender_1,color=Gender_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(
+    title ="Anxiety Severity by Gender During Partial Hospitalization",
+    subtitle = "Patient discharge 6-10 days")+
+  #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,60,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+##### 10-15 Days
+GenderDF3<-Mothership_Long %>%
+  filter(Duration == "11-15") %>%
+  group_by(TxDay,Gender_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+GenderDF3<-GenderDF3[1:90,]
+
+# plot
+Gender3<-ggplot(data=subset(GenderDF3,!is.na(Gender_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Gender_1,color=Gender_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(title ="Anxiety Severity by Gender During Partial Hospitalization",
+    subtitle = "Patient discharge 11-15 days")+
+  #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,60,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+##### 16+ Days
+GenderDF4<-Mothership_Long %>%
+  filter(Duration == "16+") %>%
+  group_by(TxDay,Gender_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+GenderDF4<-GenderDF4[1:120,]
+
+# plot
+Gender4<-ggplot(data=subset(GenderDF4,!is.na(Gender_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Gender_1,color=Gender_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(title ="Anxiety Severity by Gender During Partial Hospitalization",
+    subtitle = "Patient discharge 16+ days")+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,60,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+```{r}
+ggpubr::ggarrange(Gender1,Gender2,Gender3,Gender4,ncol=2,nrow=2)
+```
+
+#### TREATMENT TRACK
+```{r}
+#Create a New Data Set with an Average Anxiety Variable and Track
+Mothership_Mean_CUXOS_Track<-Mothership_Long %>%
+  group_by(TxDay,IPT_track_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+#Create the Anxiety Line Graph by Treatment Track
+ggplot(data=subset(Mothership_Mean_CUXOS_Track,!is.na(IPT_track_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=IPT_track_1,color=IPT_track_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Anxiety Severity by Treatment Track During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(20,50,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#0065A3"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())+
+  geom_vline(xintercept = 5,alpha =.25)+
+  geom_vline(xintercept = 8,alpha =.25)+
+  geom_vline(xintercept = 13,alpha =.25)+
+  annotate("text", x = 5, y = 39, label = "Q1") +
+  annotate("text", x = 8, y = 39, label = "Mean") +
+  annotate("text", x = 13, y = 39, label = "Q3") 
+```
+
+Break it up by duration group (Treatment track)
+```{r, include= FALSE}
+#Create a New Data Set with an Average Anxiety Variable and Gender
+TrackDF1<-Mothership_Long %>%
+  filter(Duration == "1-5") %>%
+  group_by(TxDay,IPT_track_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+TrackDF1<-TrackDF1[1:20,]
+# plot
+Track1<-ggplot(data=subset(TrackDF1,!is.na(IPT_track_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=IPT_track_1,color=IPT_track_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(
+    title ="Anxiety Severity by Track During Partial Hospitalization",
+    subtitle = "Patient discharge 1-5 days")+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+##### 5-10 Days
+TrackDF2<-Mothership_Long %>%
+  filter(Duration == "6-10") %>%
+  group_by(TxDay,IPT_track_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+TrackDF2<-TrackDF2[1:50,]
+
+# plot
+Track2<-ggplot(data=subset(TrackDF2,!is.na(IPT_track_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=IPT_track_1,color=IPT_track_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(
+    title ="Anxiety Severity by Track During Partial Hospitalization",
+    subtitle = "Patient discharge 6-10 days")+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+##### 10-15 Days
+TrackDF3<-Mothership_Long %>%
+  filter(Duration == "11-15") %>%
+  group_by(TxDay,IPT_track_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+TrackDF3<-TrackDF3[1:60,]
+
+# plot
+Track3<-ggplot(data=subset(TrackDF3,!is.na(IPT_track_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=IPT_track_1,color=IPT_track_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(title ="Anxiety Severity by Track During Partial Hospitalization",
+    subtitle = "Patient discharge 11-15 days")+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+##### 16+ Days
+TrackDF4<-Mothership_Long %>%
+  filter(Duration == "16+") %>%
+  group_by(TxDay,IPT_track_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+TrackDF4<-TrackDF4[1:80,]
+
+# plot
+Track4<-ggplot(data=subset(TrackDF4,!is.na(IPT_track_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=IPT_track_1,color=IPT_track_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(title ="Anxiety Severity by Track During Partial Hospitalization",
+    subtitle = "Patient discharge 16+ days")+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+```{r}
+ggpubr::ggarrange(Track1,Track2,Track3,Track4,ncol=2,nrow=2)
+```
+### EDUCATION
+```{r}
+#Create a New Data Set with an Average Anxiety Variable and Education
+Mothership_Mean_CUXOS_Ed<-Mothership_Long %>%
+  group_by(TxDay,Education_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+#Create the Anxiety Line Graph by Education
+ggplot(data=subset(Mothership_Mean_CUXOS_Ed,!is.na(Education_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  ggtitle("Anxiety Severity by Education Level During Partial Hospitalization")+
+    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(20,38,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen",
+                              "#91A9F1","#7F8559"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())+
+  geom_vline(xintercept = 5,alpha =.25)+
+  geom_vline(xintercept = 8,alpha =.25)+
+  geom_vline(xintercept = 13,alpha =.25)+
+  annotate("text", x = 5, y = 39, label = "Q1") +
+  annotate("text", x = 8, y = 39, label = "Mean") +
+  annotate("text", x = 13, y = 39, label = "Q3") 
+```
+
+Break it up by duration group 
+```{r, include= FALSE}
+#Create a New Data Set with an Average Anxiety Variable and Gender
+EducationDF1<-Mothership_Long %>%
+  filter(Duration == "1-5") %>%
+  group_by(TxDay,Education_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+EducationDF1<-EducationDF1[1:45,]
+# plot
+Education1<-ggplot(data=subset(EducationDF1,!is.na(Education_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(title ="Anxiety Severity by Education Level During Partial Hospitalization",
+    subtitle = "Patient discharge 1-5 days")+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen",
+                              "#91A9F1","#7F8559"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+##### 5-10 Days
+EducationDF2<-Mothership_Long %>%
+  filter(Duration == "6-10") %>%
+  group_by(TxDay,Education_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+EducationDF2<-EducationDF2[1:90,]
+
+# plot
+Education2<-ggplot(data=subset(EducationDF2,!is.na(Education_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(title ="Anxiety Severity by Education Level During Partial Hospitalization",
+    subtitle = "Patient discharge 6-10 days")+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+   scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen",
+                              "#91A9F1","#7F8559"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+##### 10-15 Days
+EducationDF3<-Mothership_Long %>%
+  filter(Duration == "11-15") %>%
+  group_by(TxDay,Education_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+EducationDF3<-EducationDF3[1:135,]
+
+# plot
+Education3<-ggplot(data=subset(EducationDF3,!is.na(Education_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(title ="Anxiety Severity by Education Level During Partial Hospitalization",
+    subtitle = "Patient discharge 11-15 days")+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+   scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen",
+                              "#91A9F1","#7F8559"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+##### 16+ Days
+EducationDF4<-Mothership_Long %>%
+  filter(Duration == "16+") %>%
+  group_by(TxDay,Education_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+EducationDF4<-EducationDF4[1:180,]
+
+# plot
+Education4<-ggplot(data=subset(EducationDF4,!is.na(Education_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(title ="Anxiety Severity by Education Level During Partial Hospitalization",
+    subtitle = "Patient discharge 16+ days")+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+   scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen",
+                              "#91A9F1","#7F8559"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+```{r}
+ggpubr::ggarrange(Education1,Education2,Education3,Education4, ncol=2,nrow=2)
+```
+### TREATMENT YEAR
+```{r}
+#Create a New Data Set with an Average Anxiety Variable and Year
+Mothership_Mean_CUXOS_Year<-Mothership_Long %>%
+  group_by(TxDay,TxYear) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+str(Mothership_Long$TxYear)
+
+#Create the Anxiety Line Graph by Year
+ggplot(data=subset(Mothership_Mean_CUXOS_Year,!is.na(TxYear)),
+       aes(x=TxDay,y=mean_CUXOS,group=TxYear,color=TxYear))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Anxiety Severity by Treatment Year During Partial Hospitalization")+
+    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(20,36,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen",
+                              "#91A9F1","#7F8559","#4B5D8E"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+
+
+Break it up by duration group (Year)
+```{r, include= FALSE}
+#Create a New Data Set with an Average Anxiety Variable and Gender
+YEARTXDF1<-Mothership_Long %>%
+  filter(Duration == "1-5") %>%
+  group_by(TxDay,TxYear) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+YEARTXDF1<-YEARTXDF1[1:50,]
+# plot
+YEARTX1<-ggplot(data=subset(YEARTXDF1,!is.na(TxYear)),
+       aes(x=TxDay,y=mean_CUXOS,group=TxYear,color=TxYear))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(
+    title ="Anxiety Severity by YEARTX During Partial Hospitalization",
+    subtitle = "Patient discharge 1-5 days")+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+##### 5-10 Days
+YEARTXDF2<-Mothership_Long %>%
+  filter(Duration == "6-10") %>%
+  group_by(TxDay,TxYear) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+YEARTXDF2<-YEARTXDF2[1:100,]
+
+# plot
+YEARTX2<-ggplot(data=subset(YEARTXDF2,!is.na(TxYear)),
+       aes(x=TxDay,y=mean_CUXOS,group=TxYear,color=TxYear))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(
+    title ="Anxiety Severity by YEARTX During Partial Hospitalization",
+    subtitle = "Patient discharge 6-10 days")+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+##### 10-15 Days
+YEARTXDF3<-Mothership_Long %>%
+  filter(Duration == "11-15") %>%
+  group_by(TxDay,TxYear) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+YEARTXDF3<-YEARTXDF3[1:150,]
+
+# plot
+YEARTX3<-ggplot(data=subset(YEARTXDF3,!is.na(TxYear)),
+       aes(x=TxDay,y=mean_CUXOS,group=TxYear,color=TxYear))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(title ="Anxiety Severity by YEARTX During Partial Hospitalization",
+    subtitle = "Patient discharge 11-15 days")+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+##### 16+ Days
+YEARTXDF4<-Mothership_Long %>%
+  filter(Duration == "16+") %>%
+  group_by(TxDay,TxYear) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+YEARTXDF4<-YEARTXDF4[1:200,]
+
+# plot
+YEARTX4<-ggplot(data=subset(YEARTXDF4,!is.na(TxYear)),
+       aes(x=TxDay,y=mean_CUXOS,group=TxYear,color=TxYear))+
+  geom_line(size=.5)+
+  geom_point(size=.5)+
+  labs(title ="Anxiety Severity by YEARTX During Partial Hospitalization",
+    subtitle = "Patient discharge 16+ days")+
+    scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+```{r}
+ggpubr::ggarrange(YEARTX1,YEARTX2,YEARTX3,YEARTX4,ncol=2,nrow=2)
+```
