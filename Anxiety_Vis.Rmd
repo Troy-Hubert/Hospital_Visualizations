@@ -148,6 +148,33 @@ ggplot(data=Mothership_duration_CUXOS,aes(x=TxDay,y=mean_CUXOS,group=Duration,co
 ## Anxiety Treatment Progress by Characteristics
 
 #### Race
+```{r}
+#Overall race
+Mothership_Mean_CUXOS_Race<-Mothership_Long %>%
+  group_by(TxDay,Race_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+# plot
+ggplot(data=subset(Mothership_Mean_CUDOS_Race,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Race_1,color=Race_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(title ="Depression Severity by Race During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())+
+   geom_vline(xintercept = 5,alpha =.25)+
+  geom_vline(xintercept = 8,alpha =.25)+
+  geom_vline(xintercept = 13,alpha =.25)+
+  annotate("text", x = 5, y = 39, label = "Q1") +
+  annotate("text", x = 8, y = 39, label = "Mean") +
+  annotate("text", x = 13, y = 39, label = "Q3") 
+```
+
+
 Example of plot for 1-5 days discharge
 ```{r}
 #Create a New Data Set with an Average Anxiety Variable and Race
@@ -401,7 +428,7 @@ ggplot(data=subset(Mothership_Mean_CUXOS_Track,!is.na(IPT_track_1)),
   geom_point()+
   ggtitle("Anxiety Severity by Treatment Track During Partial Hospitalization")+
   scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
-  scale_y_continuous(name="Anxiety Severity",limits=c(20,50,by=5))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(20,46,by=5))+
   scale_color_manual(values=c("#209845","#3D4A3E","#0065A3"))+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
@@ -409,9 +436,9 @@ ggplot(data=subset(Mothership_Mean_CUXOS_Track,!is.na(IPT_track_1)),
   geom_vline(xintercept = 5,alpha =.25)+
   geom_vline(xintercept = 8,alpha =.25)+
   geom_vline(xintercept = 13,alpha =.25)+
-  annotate("text", x = 5, y = 39, label = "Q1") +
-  annotate("text", x = 8, y = 39, label = "Mean") +
-  annotate("text", x = 13, y = 39, label = "Q3") 
+  annotate("text", x = 5, y = 45, label = "Q1") +
+  annotate("text", x = 8, y = 45, label = "Mean") +
+  annotate("text", x = 13, y = 45, label = "Q3") 
 ```
 
 Break it up by duration group (Treatment track)
@@ -444,7 +471,7 @@ TrackDF2<-Mothership_Long %>%
   group_by(TxDay,IPT_track_1) %>%
   summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
 
-TrackDF2<-TrackDF2[1:50,]
+TrackDF2<-TrackDF2[1:40,]
 
 # plot
 Track2<-ggplot(data=subset(TrackDF2,!is.na(IPT_track_1)),
@@ -521,11 +548,11 @@ Mothership_Mean_CUXOS_Ed<-Mothership_Long %>%
 #Create the Anxiety Line Graph by Education
 ggplot(data=subset(Mothership_Mean_CUXOS_Ed,!is.na(Education_1)),
        aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
-  geom_line(size=.5)+
-  geom_point(size=.5)+
+  geom_line(size=1)+
+  geom_point()+
   ggtitle("Anxiety Severity by Education Level During Partial Hospitalization")+
     scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
-  scale_y_continuous(name="Anxiety Severity",limits=c(20,38,by=5))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(20,50,by=5))+
   scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
                               "#0098DB","#0065A3","darkgreen",
                               "#91A9F1","#7F8559"))+
@@ -535,9 +562,9 @@ ggplot(data=subset(Mothership_Mean_CUXOS_Ed,!is.na(Education_1)),
   geom_vline(xintercept = 5,alpha =.25)+
   geom_vline(xintercept = 8,alpha =.25)+
   geom_vline(xintercept = 13,alpha =.25)+
-  annotate("text", x = 5, y = 39, label = "Q1") +
-  annotate("text", x = 8, y = 39, label = "Mean") +
-  annotate("text", x = 13, y = 39, label = "Q3") 
+  annotate("text", x = 5, y = 49, label = "Q1") +
+  annotate("text", x = 8, y = 49, label = "Mean") +
+  annotate("text", x = 13, y = 49, label = "Q3") 
 ```
 
 Break it up by duration group 
@@ -663,8 +690,6 @@ ggplot(data=subset(Mothership_Mean_CUXOS_Year,!is.na(TxYear)),
   theme(panel.background=NULL)+
   theme(legend.title=element_blank())
 ```
-
-
 
 Break it up by duration group (Year)
 ```{r, include= FALSE}
