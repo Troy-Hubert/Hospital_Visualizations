@@ -132,12 +132,41 @@ Mothership <- mutate(Mothership,
             # Eating Disorders
                     Eating_D = as.factor(
                       ifelse(
-                        AnyEating_C ==1 | Anorex_C == 1 | Bulim_C == 1 | Binge_C == 1, 1,0))
-                    )
+                        AnyEating_C ==1 | Anorex_C == 1 | Bulim_C == 1 | Binge_C == 1, 1,0)),
                     Disorder_Type = as.factor(
-                      
-                    )
-                     
+                      ifelse(Anxiety_D == 1, "Anxiety",
+                      ifelse(Mood_D == 1, "Mood",
+                      ifelse(OCD_C ==1, "OCD",
+                      ifelse(BPD_C == 1, "Personality",
+                      ifelse(Substance_D == 1, "Substance Use",
+                      ifelse(Trauma_D == 1, "Trauma or Stressor",
+                      ifelse(Eating_D ==1, "Eating",
+                      ifelse(
+                        #Comorbid stuff
+                        Anxiety_D == 1 & Mood_D == 1 |
+                        Anxiety_D == 1 & OCD_C == 1 |
+                        Anxiety_D == 1 & BPD_C == 1 |
+                        Anxiety_D == 1 & Substance_D == 1 |
+                        Anxiety_D == 1 & Trauma_D == 1 | 
+                        Anxiety_D == 1 & Eating_D ==1 |
+                        Mood_D == 1 & OCD_C == 1 |
+                        Mood_D == 1 & BPD_C == 1 |
+                        Mood_D == 1 & Substance_D == 1 |
+                        Mood_D == 1 & Trauma_D == 1 | 
+                        Mood_D == 1 & Eating_D ==1 |
+                        OCD_C == 1 & BPD_C == 1 |
+                        OCD_C ==1 & Substance_D == 1 |
+                        OCD_C ==1 & Trauma_D == 1 |
+                        OCD_C ==1 & Eating_D ==1 |
+                        BPD_C == 1 & Substance_D == 1 |
+                        BPD_C == 1 & Trauma_D == 1 |
+                        BPD_C == 1 & Eating_D ==1 |
+                        Substance_D == 1 & Trauma_D == 1 |
+                        Substance_D == 1 & Eating_D ==1 |
+                        Trauma_D == 1 & Eating_D ==1, "Comorbid", "Other")
+                      )))))))))
+
+
 #Extract Year From Intake Date
 #Convert to Date
 library("lubridate")
@@ -215,6 +244,13 @@ ggplot(data = Education_df, mapping = aes(x="", y=Frequency, fill=Category))+
 
 #### Amount of disorders treated
 ```{r}
-
+ggplot(data = subset(Mothership, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type))+
+  geom_bar()+
+  ggtitle("Frequency of Education Level") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Education Level")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,3000))
 ```
 
