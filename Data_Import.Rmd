@@ -19,14 +19,14 @@ library(tidyr)
 Read in the dataset. 
 ```{r}
 df <- read_sav("~/Desktop/Coding/data/Mothership_DV.sav")
-#view(df)
-Mothership<-select(df,ID1:Sexuality_1,MDD_C:Day40_CUXOS)
+view(df)
+Mothership<-select(df,ID1:Sexuality_1,MDD_C:Day40_CUXOS,SUMdep_0:SUManx_1,SUMdep_DC,SUManx_DC,BL_CUDOS, BL_CUXOS)
 ```
 ## Rename and Recode variables 
 We can change the current variables to make them easier to interpret. 
 ```{r}
 #recode varaibles
-
+view(Mothership)
 Mothership <- mutate(Mothership, 
                      DC_status_1 = as.factor(DC_status_1),
                      DC_status_1 = recode(DC_status_1,
@@ -102,71 +102,8 @@ Mothership <- mutate(Mothership,
                        ifelse(Days_complete_1>0 & Days_complete_1 <=5, "1-5",
                        ifelse(Days_complete_1>5 & Days_complete_1 <=10, "6-10",
                        ifelse(Days_complete_1>10 & Days_complete_1 <=15, "11-15", "16+"
-                              )))),
-      #Disorder subtypes 
-          # Mood Disorders
-                     Mood_D = as.factor(
-                      ifelse(
-                        MDD_C ==1 | AnyBipolar_C == 1 | Bipolar1_C == 1 | Dysthymia_C == 1 |
-                        OtherMood_C, 1, 0)),
-          # Anxiety Disorders
-                    Anxiety_D = as.factor(
-                      ifelse(
-                        GAD_C ==1 | Panic_C == 1 | PanicAgor_C == 1 | Agoraphobia_C == 1 |
-                        Social_C == 1 | Specific_C == 1 | OtherAnx_C, 1, 0)),
-          # Obsessive Compusive Disorders
-                #OCD_C is for current OCD
-          # Personality Disorders
-                #BPD_C is for current BPD
-          # Substance Use Disorders
-                    Substance_D = as.factor(
-                      ifelse(
-                        Alcohol_C == 1 | Drug_C ==1, 1, 0)),
-          # Trauma or stresor related disorders
-                    Trauma_D = as.factor(
-                      ifelse(PTSD_C == 1 | Adjustment_C ==1, 1,0)),
-          # Psychotic Disorders
-                    Psychotic_D = as.factor(
-                      ifelse(
-                        Schiz_C == 1 | Schizaff_C == 1 | AnyPsychotic_C ==1,1,0)),
-            # Eating Disorders
-                    Eating_D = as.factor(
-                      ifelse(
-                        AnyEating_C ==1 | Anorex_C == 1 | Bulim_C == 1 | Binge_C == 1, 1,0)),
-                    Disorder_Type = as.factor(
-                      ifelse(Anxiety_D == 1, "Anxiety",
-                      ifelse(Mood_D == 1, "Mood",
-                      ifelse(OCD_C ==1, "OCD",
-                      ifelse(BPD_C == 1, "Personality",
-                      ifelse(Substance_D == 1, "Substance Use",
-                      ifelse(Trauma_D == 1, "Trauma or Stressor",
-                      ifelse(Eating_D ==1, "Eating",
-                      ifelse(
-                        #Comorbid stuff
-                        Anxiety_D == 1 & Mood_D == 1 |
-                        Anxiety_D == 1 & OCD_C == 1 |
-                        Anxiety_D == 1 & BPD_C == 1 |
-                        Anxiety_D == 1 & Substance_D == 1 |
-                        Anxiety_D == 1 & Trauma_D == 1 | 
-                        Anxiety_D == 1 & Eating_D ==1 |
-                        Mood_D == 1 & OCD_C == 1 |
-                        Mood_D == 1 & BPD_C == 1 |
-                        Mood_D == 1 & Substance_D == 1 |
-                        Mood_D == 1 & Trauma_D == 1 | 
-                        Mood_D == 1 & Eating_D ==1 |
-                        OCD_C == 1 & BPD_C == 1 |
-                        OCD_C ==1 & Substance_D == 1 |
-                        OCD_C ==1 & Trauma_D == 1 |
-                        OCD_C ==1 & Eating_D ==1 |
-                        BPD_C == 1 & Substance_D == 1 |
-                        BPD_C == 1 & Trauma_D == 1 |
-                        BPD_C == 1 & Eating_D ==1 |
-                        Substance_D == 1 & Trauma_D == 1 |
-                        Substance_D == 1 & Eating_D ==1 |
-                        Trauma_D == 1 & Eating_D ==1, "Comorbid", "Other")
-                      )))))))))
-
-
+                              )))))
+    
 #Extract Year From Intake Date
 #Convert to Date
 library("lubridate")
@@ -241,16 +178,3 @@ ggplot(data = Education_df, mapping = aes(x="", y=Frequency, fill=Category))+
   coord_polar("y",start=0)+
   theme_void()
 ```
-
-#### Amount of disorders treated
-```{r}
-ggplot(data = subset(Mothership, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type))+
-  geom_bar()+
-  ggtitle("Frequency of Education Level") +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
-  xlab("Education Level")+
-  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,3000))
-```
-

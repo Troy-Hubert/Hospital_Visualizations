@@ -1,0 +1,118 @@
+---
+title: "Diagnosis_Vis"
+output: html_document
+date: "2023-04-04"
+---
+
+```{r setup, include=FALSE}
+# Libraries 
+library(tidyverse)
+library(dplyr)
+library(haven)
+library(ggplot2)
+library(tidyr)
+library("lubridate")
+
+#Data
+Mothership<-read.csv("~/Desktop/Coding/data/Mothership_Vis.csv")
+Mothership<-mutate(Mothership,
+      DC_status_1 = as.factor(DC_status_1),
+      Education_1 = as.factor(Education_1),
+      Gender_1 = as.factor(Gender_1),
+      Relationship_1 = as.factor(Relationship_1),
+      Sexuality_1 = as.factor(Sexuality_1),
+      IPT_track_1 = as.factor(IPT_track_1),
+      Race_1 = as.factor(Race_1),
+      Education_1 = as.factor(Education_1),
+      Duration = as.factor(Duration),
+      )
+```
+
+## Create Diagnosis Variables 
+```{r}
+Mothership<-Mothership %>%
+  mutate(
+          # Mood Disorders
+                     Mood_D = as.factor(
+                      ifelse(
+                        MDD_P ==1 | Bipolar1_P == 1 | Bipolar2_P == 1 | Dysthymia_P == 1, 1, 0)),
+          # Anxiety Disorders
+                    Anxiety_D = as.factor(
+                      ifelse(
+                        GAD_P ==1 | Panic_P == 1 | PanicAgor_P == 1 | Agoraphobia_P == 1 |
+                        Social_P == 1 | Specific_P == 1, 1, 0)),
+          # Obsessive Compusive Disorders
+                #OCD_P is for current OCD
+          # Personality Disorders
+                #BPD_P is for current BPD
+          # Substance Use Disorders
+                    Substance_D = as.factor(
+                      ifelse(
+                        Alcohol_P == 1 | Drug_P ==1, 1, 0)),
+          # Trauma or stresor related disorders
+                    Trauma_D = as.factor(
+                      ifelse(PTSD_P == 1 | Adjustment_P ==1, 1,0)),
+          # Psychotic Disorders
+                    Psychotic_D = as.factor(
+                      ifelse(
+                        Schiz_P == 1 | Schizaff_P == 1,1,0)),
+            # Eating Disorders
+                    Eating_D = as.factor(
+                      ifelse(
+                        Anorex_P == 1 | Bulim_P == 1 | Binge_P == 1, 1,0)),
+                    Disorder_Type = as.factor(
+                      ifelse(Anxiety_D == 1, "Anxiety",
+                      ifelse(OCD_P == 1, "OCD",
+                      ifelse(BPD_P == 1, "BPD",
+                      ifelse(Substance_D == 1, "Substance Use",
+                      ifelse(Trauma_D == 1, "Stress and Trauma",
+                      ifelse(Mood_D == 1, "Mood",
+                      ifelse(Psychotic_D == 1, "Psychotic", "Eating")
+                      ))))))))
+ 
+                      # Comorbid_Anx = as.factor(
+                      #   ifelse(Anxiety_D == 1 & Mood_D == 1 |
+                      #           Anxiety_D == 1 & OCD_C == 1 |
+                      #           Anxiety_D == 1 & BPD_C == 1 |
+                      #           Anxiety_D == 1 & Substance_D == 1 |
+                      #           Anxiety_D == 1 & Trauma_D == 1 | 
+                      #           Anxiety_D == 1 & Eating_D ==1, 1, 0)),
+                      # Comorbid_Mood = as.factor(
+                      #   ifelse(Mood_D == 1 & Anxiety_D == 1 |
+                      #           Mood_D == 1 & BPD_C == 1 |
+                      #           Mood_D == 1 & BPD_C == 1 |
+                      #           Mood_D == 1 & Substance_D == 1 |
+                      #           Mood_D == 1 & Trauma_D == 1 | 
+                      #           Mood_D == 1 & Eating_D ==1, 1, 0)),
+                      # Comorbid_OCD = as.factor(
+                      #   ifelse(OCD_C == 1 & Anxiety_D == 1 |
+                      #           OCD_C == 1 & Mood_D == 1 |
+                      #           OCD_C == 1 & BPD_C == 1 |
+                      #           OCD_C == 1 & Substance_D == 1 |
+                      #           OCD_C == 1 & Trauma_D == 1 | 
+                      #           OCD_C == 1 & Eating_D ==1, 1, 0)),
+                      # Comorbid_BPD = as.factor(
+                      #   ifelse(BPD_C == 1 & Anxiety_D == 1 |
+                      #           BPD_C == 1 & Mood_D == 1 |
+                      #           BPD_C == 1 & OCD_C == 1 |
+                      #           BPD_C == 1 & Substance_D == 1 |
+                      #           BPD_C == 1 & Trauma_D == 1 | 
+                      #           BPD_C == 1 & Eating_D ==1, 1, 0)),
+
+
+```
+
+
+#### Amount of disorders treated
+```{r}
+#overall psychiatric disorders
+ggplot(data = subset(Mothership, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type))+
+  geom_bar()+
+  ggtitle("Frequency of Psychiatric Disorder Subtypes") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Psychiatric Disorder Subtype")+
+  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6000))+
+  coord_flip()
+```
