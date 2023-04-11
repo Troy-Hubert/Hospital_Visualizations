@@ -27,7 +27,7 @@ Mothership<-mutate(Mothership,
       Duration = as.factor(Duration),
       )
 
-Mothership$Intake_1<-mdy(Mothership$Intake_1,locale = "en_US.UTF-8")
+Mothership$Intake_1<-ymd(Mothership$Intake_1,locale = "en_US.UTF-8")
 Mothership$TxYear<-as.numeric(format(Mothership$Intake_1,"%Y"))
 
 Mothership<-mutate(Mothership,

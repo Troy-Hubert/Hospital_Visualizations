@@ -26,6 +26,15 @@ Mothership<-mutate(Mothership,
       Education_1 = as.factor(Education_1),
       Duration = as.factor(Duration),
       )
+
+Mothership$Intake_1<-ymd(Mothership$Intake_1,locale = "en_US.UTF-8")
+Mothership$TxYear<-as.numeric(format(Mothership$Intake_1,"%Y"))
+Mothership<-mutate(Mothership,
+                   TxYear = as.factor(TxYear),
+                   TxYear = recode(TxYear,
+                                   "1582"="2014",
+                                   "2021"="2020",
+                                   "2022"="2020"))
 ```
 
 ## Create Diagnosis Variables 

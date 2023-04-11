@@ -106,10 +106,12 @@ Mothership <- mutate(Mothership,
     
 #Extract Year From Intake Date
 #Convert to Date
+install.packages("lubridate")
 library("lubridate")
-Mothership$Intake_1<-mdy(Mothership$Intake_1,locale = "en_US.UTF-8")
+Mothership$Intake_1
+Mothership$Intake_1<-ymd(Mothership$Intake_1)
 Mothership$TxYear<-as.numeric(format(Mothership$Intake_1,"%Y"))
-
+Mothership$TxYear
 Mothership<-mutate(Mothership,
                    TxYear = as.factor(TxYear),
                    TxYear = recode(TxYear,

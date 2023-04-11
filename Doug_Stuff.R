@@ -7,8 +7,8 @@ library(haven)
 library(ggplot2)
 
 Mothership<-read_sav("~/Desktop/Coding/data/Mothership_DV.sav")
-
-Mothership<-select(Mothership,ID1:Sexuality_1,MDD_C:Day40_CUXOS)
+view(Mothership)
+Mothership<-select(Mothership,Intake_1,Days_complete_1,ID1:Sexuality_1,MDD_C:Day40_CUXOS)
 
 ############################### Demographics ####################################
 
@@ -128,6 +128,7 @@ Mothership <- mutate(Mothership,
 #Extract Year From Intake Date
 #Convert to Date
 library("lubridate")
+
 Mothership$Intake_1<-mdy(Mothership$Intake_1,locale = "en_US.UTF-8")
 Mothership$TxYear<-as.numeric(format(Mothership$Intake_1,"%Y"))
 
