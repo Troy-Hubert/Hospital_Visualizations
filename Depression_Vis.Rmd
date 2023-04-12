@@ -677,7 +677,7 @@ str(Mothership_Long$TxYear)
 
 #Create the Depression Line Graph by Year
 ggplot(data=subset(Mothership_Mean_CUDOS_Year,!is.na(TxYear)),
-       aes(x=TxDay,y=mean_CUDOS,group=TxYear,color=TxYear))+
+       aes(x=TxDay,y=mean_CUDOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
   geom_line(size=1)+
   geom_point()+
   ggtitle("Depression Severity by Treatment Year During Partial Hospitalization")+
@@ -700,10 +700,10 @@ YEARTXDF1<-Mothership_Long %>%
   filter(Duration == "1-5") %>%
   group_by(TxDay,TxYear) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
-YEARTXDF1<-YEARTXDF1[1:50,]
+YEARTXDF1<-YEARTXDF1[1:40,]
 # plot
 YEARTX1<-ggplot(data=subset(YEARTXDF1,!is.na(TxYear)),
-       aes(x=TxDay,y=mean_CUDOS,group=TxYear,color=TxYear))+
+       aes(x=TxDay,y=mean_CUDOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
@@ -723,11 +723,11 @@ YEARTXDF2<-Mothership_Long %>%
   group_by(TxDay,TxYear) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
 
-YEARTXDF2<-YEARTXDF2[1:100,]
+YEARTXDF2<-YEARTXDF2[1:80,]
 
 # plot
 YEARTX2<-ggplot(data=subset(YEARTXDF2,!is.na(TxYear)),
-       aes(x=TxDay,y=mean_CUDOS,group=TxYear,color=TxYear))+
+       aes(x=TxDay,y=mean_CUDOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
@@ -747,11 +747,11 @@ YEARTXDF3<-Mothership_Long %>%
   group_by(TxDay,TxYear) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
 
-YEARTXDF3<-YEARTXDF3[1:150,]
+YEARTXDF3<-YEARTXDF3[1:120,]
 
 # plot
 YEARTX3<-ggplot(data=subset(YEARTXDF3,!is.na(TxYear)),
-       aes(x=TxDay,y=mean_CUDOS,group=TxYear,color=TxYear))+
+       aes(x=TxDay,y=mean_CUDOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(title ="Depression Severity by YEARTX During Partial Hospitalization",
@@ -769,11 +769,11 @@ YEARTXDF4<-Mothership_Long %>%
   filter(Duration == "16+") %>%
   group_by(TxDay,TxYear) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
-YEARTXDF4<-YEARTXDF4[1:200,]
+YEARTXDF4<-YEARTXDF4[1:180,]
 
 # plot
 YEARTX4<-ggplot(data=subset(YEARTXDF4,!is.na(TxYear)),
-       aes(x=TxDay,y=mean_CUDOS,group=TxYear,color=TxYear))+
+       aes(x=TxDay,y=mean_CUDOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(title ="Depression Severity by YEARTX During Partial Hospitalization",
