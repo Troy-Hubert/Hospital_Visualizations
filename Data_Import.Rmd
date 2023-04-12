@@ -26,7 +26,6 @@ Mothership<-select(df,ID1:Sexuality_1,MDD_C:Day40_CUXOS,SUMdep_0:SUManx_1,SUMdep
 We can change the current variables to make them easier to interpret. 
 ```{r}
 #recode varaibles
-view(Mothership)
 Mothership <- mutate(Mothership, 
                      DC_status_1 = as.factor(DC_status_1),
                      DC_status_1 = recode(DC_status_1,
@@ -106,9 +105,7 @@ Mothership <- mutate(Mothership,
     
 #Extract Year From Intake Date
 #Convert to Date
-install.packages("lubridate")
 library("lubridate")
-Mothership$Intake_1
 Mothership$Intake_1<-ymd(Mothership$Intake_1)
 Mothership$TxYear<-as.numeric(format(Mothership$Intake_1,"%Y"))
 Mothership$TxYear
