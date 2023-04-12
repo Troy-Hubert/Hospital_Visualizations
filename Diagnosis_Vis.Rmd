@@ -35,6 +35,8 @@ Mothership<-mutate(Mothership,
                                    "1582"="2014",
                                    "2021"="2020",
                                    "2022"="2020"))
+
+s
 ```
 
 ## Create Diagnosis Variables 

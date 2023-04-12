@@ -19,8 +19,8 @@ library(tidyr)
 Read in the dataset. 
 ```{r}
 df <- read_sav("~/Desktop/Coding/data/Mothership_DV.sav")
-view(df)
 Mothership<-select(df,ID1:Sexuality_1,MDD_C:Day40_CUXOS,SUMdep_0:SUManx_1,SUMdep_DC,SUManx_DC,BL_CUDOS, BL_CUXOS)
+view(Mothership)
 ```
 ## Rename and Recode variables 
 We can change the current variables to make them easier to interpret. 
@@ -94,6 +94,32 @@ Mothership <- mutate(Mothership,
                                       "6"="Bachelors Degree",
                                       "7"="Some Grad School",
                                       "8"="Grad Degree"),
+                     DC_status_1 = as.factor(DC_status_1),
+                     DC_status_1 = recode(DC_status_1,
+                                      "1"="Treatment Complete",
+                                      "2"="Treatment Near Complete",
+                                      "3"="Insurance Stopped",
+                                      "4"="Nonattendence",
+                                      "5"="Inapproparite Language",
+                                      "6"="Transfered To Impatient",
+                                      "7"="Withdrew for External factors",
+                                      "8"="Withdrew (AMA)",
+                                      "9"="Other",
+                                      "10"="Other"),
+                    Referal_1 = as.factor(Referal_1),
+                    Referal_1 = recode(Referal_1,
+                                      "1"="Inpatient",
+                                      "2"="PHP",
+                                      "3"="APS",
+                                      "4"="Psychatrist",
+                                      "5"="PCP",
+                                      "6"="Another Physican",
+                                      "7"="Therapist",
+                                      "17"="Other"
+                    ),
+                                          
+                  
+                     
   
 #Lets make some new variables 
       #Duration of treatment
