@@ -35,8 +35,6 @@ Mothership<-mutate(Mothership,
                                    "1582"="2014",
                                    "2021"="2020",
                                    "2022"="2020"))
-
-s
 ```
 
 ## Create Diagnosis Variables 
@@ -71,6 +69,11 @@ Mothership<-Mothership %>%
                     Eating_D = as.factor(
                       ifelse(
                         Anorex_P == 1 | Bulim_P == 1 | Binge_P == 1, 1,0)),
+            # Somatic Disroders
+                    Somatic_D = as.factor(
+                      ifelse(
+                        Somat_P == 1 | UndiffSoma_P == 1| Hypochondriasis_P ==1,
+                        1,0)),
                     Disorder_Type = as.factor(
                       ifelse(Anxiety_D == 1, "Anxiety",
                       ifelse(OCD_P == 1, "OCD",
@@ -78,10 +81,17 @@ Mothership<-Mothership %>%
                       ifelse(Substance_D == 1, "Substance Use",
                       ifelse(Trauma_D == 1, "Stress and Trauma",
                       ifelse(Mood_D == 1, "Mood",
-                      ifelse(Psychotic_D == 1, "Psychotic", "Eating")
-                      ))))))))
- 
-                      # Comorbid_Anx = as.factor(
+                      ifelse(Psychotic_D == 1, "Psychotic", 
+                      ifelse(Eating_D == 1, "Eating", 
+                      ifelse(Somatic_D == 1, "Somatic", NA
+                      )))))))))),
+          
+          #emotional disorders
+                  Emotional_dis = as.factor(
+                    ifelse(Anxiety_D == 1 | OCD_P == 1 | Trauma_D == 1 |
+                           Mood_D == 1, "Emotional Disorder", "Other Disorder"))
+                  )
+ # Comorbid_Anx = as.factor(
                       #   ifelse(Anxiety_D == 1 & Mood_D == 1 |
                       #           Anxiety_D == 1 & OCD_C == 1 |
                       #           Anxiety_D == 1 & BPD_C == 1 |
@@ -110,20 +120,103 @@ Mothership<-Mothership %>%
                       #           BPD_C == 1 & Trauma_D == 1 | 
                       #           BPD_C == 1 & Eating_D ==1, 1, 0)),
 
+##### df for plots 
 
+# df without NAs in date and disorder type
+Mothership_Diag <- Mothership %>%
+  filter(!is.na(Disorder_Type))%>%
+  filter(!is.na(TxYear))
+
+# df with and without depression
+No_depressy <- Mothership_Diag %>%
+  filter(Disorder_Type != "Mood")
 ```
 
 
 #### Amount of disorders treated
 ```{r}
 #overall psychiatric disorders
-ggplot(data = subset(Mothership, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type))+
+ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type, fill=Disorder_Type))+
   geom_bar()+
   ggtitle("Frequency of Psychiatric Disorder Subtypes") +
   theme(axis.text.x = element_text(angle = 45,hjust = 1))+
   xlab("Psychiatric Disorder Subtype")+
   theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,6000))+
+  scale_y_continuous(name = "Frequency",limits=c(0,3500))+
   coord_flip()
 ```
+
+
+
+#### Number of disorders over time.
+```{r}
+# Libraries
+library(ggplot2)
+#install.packages("hrbrthemes")
+library(hrbrthemes)
+library(dplyr)
+library(tidyr)
+library(viridis)
+
+
+# Stacked
+ggplot(data=subset(Mothership_Diag, !is.na(Disorder_Type)), 
+       mapping= aes(x=TxYear, y = stat(count),
+                    group=Disorder_Type, fill=Disorder_Type)) +
+    geom_density(adjust=1.5,alpha=.4,position="fill") +
+    theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+     theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+     xlab("Treatment Year") +
+  theme(panel.background=NULL) +
+    facet_wrap(~Emotional_dis)+
+  labs(
+    title = "Type of Disorders Treated at the Hospital Per Year",
+    subtitle = "Broken Up By Disorder Types") +
+    xlab("Treatment Year") +
+    ylab("Percent of Patients With Disorder")
+    
+# Broken up by disorder. 
+ggplot(data=subset(Mothership, !is.na(Disorder_Type)), 
+    mapping= aes(x=TxYear,y = stat(count),
+                 group=Disorder_Type, fill=Disorder_Type)) +
+  geom_density(adjust=1.5,alpha=.4) +
+  facet_wrap(~Disorder_Type)+
+  theme_classic()+
+    theme(
+      panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2),
+      axis.text.x = element_text(angle = 45,hjust = 1),
+      legend.position="none",
+      panel.spacing = unit(0.1, "lines"),
+      axis.ticks.x=element_blank(),
+      panel.background=NULL) +
+  labs(
+    title = "Type of Disorders Treated at the Hospital Per Year",
+    subtitle = "Broken Up By Dmotional vs Other Disorders") +
+    xlab("Treatment Year") +
+    ylab("Number of Patients With Disorder")
+
+```
+
+```{r}
+# without depression
+ggplot(data=subset(No_depressy, !is.na(Disorder_Type)), 
+    mapping= aes(x=TxYear,y = stat(count),
+                 group=Disorder_Type, fill=Disorder_Type)) +
+  geom_density(adjust=1.5,alpha=.4) +
+  facet_wrap(~Disorder_Type)+
+  theme_classic()+
+    theme(
+      panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2),
+      axis.text.x = element_text(angle = 45,hjust = 1),
+      legend.position="none",
+      panel.spacing = unit(0.1, "lines"),
+      axis.ticks.x=element_blank(),
+      panel.background=NULL) +
+  labs(
+    title = "Type of Disorders Treated at the Hospital Per Year",
+    subtitle = "Broken Up By Dmotional vs Other Disorders") +
+    xlab("Treatment Year") +
+    ylab("Number of Patients With Disorder")
+```
+

@@ -134,7 +134,6 @@ Mothership <- mutate(Mothership,
 library("lubridate")
 Mothership$Intake_1<-ymd(Mothership$Intake_1)
 Mothership$TxYear<-as.numeric(format(Mothership$Intake_1,"%Y"))
-Mothership$TxYear
 Mothership<-mutate(Mothership,
                    TxYear = as.factor(TxYear),
                    TxYear = recode(TxYear,
