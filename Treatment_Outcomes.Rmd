@@ -1,0 +1,180 @@
+---
+title: "Treatment_Outcomes"
+output: html_document
+date: "2023-04-14"
+---
+```{r setup, include=FALSE}
+# Libraries 
+library(tidyverse)
+library(dplyr)
+library(haven)
+library(ggplot2)
+library(tidyr)
+library("lubridate")
+
+#Data
+Mothership<-read.csv("~/Desktop/Coding/data/Mothership_Vis.csv")
+Mothership<-mutate(Mothership,
+      DC_status_1 = as.factor(DC_status_1),
+      Education_1 = as.factor(Education_1),
+      Gender_1 = as.factor(Gender_1),
+      Relationship_1 = as.factor(Relationship_1),
+      Sexuality_1 = as.factor(Sexuality_1),
+      IPT_track_1 = as.factor(IPT_track_1),
+      Race_1 = as.factor(Race_1),
+      Education_1 = as.factor(Education_1),
+      Duration = as.factor(Duration),
+      )
+
+Mothership$Intake_1<-ymd(Mothership$Intake_1,locale = "en_US.UTF-8")
+Mothership$TxYear<-as.numeric(format(Mothership$Intake_1,"%Y"))
+Mothership<-mutate(Mothership,
+                   TxYear = as.factor(TxYear),
+                   TxYear = recode(TxYear,
+                                   "1582"="2014",
+                                   "2021"="2020",
+                                   "2022"="2020"))
+```
+
+## RDQ stuff
+```{r}
+
+#Read in a New Data Set
+Mothership_RDQ<- read_sav("~/Desktop/Coding/data/Mothership_DV.sav")
+Mothership_RDQ<-select(Mothership,ID1:Sexuality_1,MDD_C:Day40_CUXOS)
+Mothership_RDQ<-data.frame(sapply(Mothership_RDQ,FUN=as.numeric))
+
+#Make This Data Set Long Data
+library(tidyr)
+Mothership_Long_RDQ <- gather(Mothership_RDQ,rm,RDQ,rdqPRE_coping:rdqPOST_sym,
+                              factor_key = "T")
+Mothership_Long_RDQ <- Mothership_Long_RDQ[order(Mothership_Long_RDQ$ID1),]
+
+view(Mothership_Long_RDQ)
+
+
+#Create a Time Variable
+Mothership_Long_RDQ$PrePost <- NA
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_coping"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_pmh"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_func"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_wbs"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_sym"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_coping"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_pmh"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_func"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_wbs"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_sym"]<-"Post"
+
+#Create a New Data Set with an Average Depression Variable and Race
+Mothership_Mean_RDQ<-Mothership_Long_RDQ %>%
+  group_by(rm,PrePost) %>%
+  summarise(RDQ=mean(RDQ,na.rm=TRUE))
+
+#Add a Paired Variable to the New Data Set
+Mothership_Mean_RDQ<-mutate(Mothership_Mean_RDQ,
+                            paired=case_when(rm=="rdqPRE_coping"~"1",
+                                             rm=="rdqPOST_coping"~"1",
+                                             rm=="rdqPRE_pmh"~"2",
+                                             rm=="rdqPOST_pmh"~"2",
+                                             rm=="rdqPRE_func"~"3",
+                                             rm=="rdqPOST_func"~"3",
+                                             rm=="rdqPRE_wbs"~"4",
+                                             rm=="rdqPOST_wbs"~"4",
+                                             rm=="rdqPRE_sym"~"5",
+                                             rm=="rdqPOST_sym"~"5"))
+
+
+
+#Pre Post RDQ Plot
+ggplot(data=Mothership_Mean_RDQ,
+       aes(x=factor(PrePost,level=c("Pre","Post")),y=RDQ,
+           group=rm,color=paired,!is.na(PrePost)))+
+  geom_point(size=2.5)+
+  geom_line(group=Mothership_Mean_RDQ$paired,size=1.5)+
+  scale_x_discrete(name="Time Point")+
+  scale_y_continuous(name="RDQ Subscore")+
+  ggtitle("Mean Pre and Post Scores of the Remission from Depression Questionnaire")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title = element_blank())+
+  scale_color_manual(values=c("1"="#8956BB","2"="#4C4452","3"="#B1A8B9",
+                              "4"="#00BCA3","5"="#008570"),
+                     labels=c("Coping Skills","Positive Mental Health",
+                              "Functioning","Well-Being","Symptoms"))
+
+```
+
+## CUDOS and CUXOS over time. 
+
+```{r}
+# Depression symptoms df
+CUDOS_Score <- select(Mothership,
+                      Days_complete_1,Day1_CUDOS:Day40_CUDOS)
+
+# Anxiety symptoms df
+CUXOS_Score <- select(Mothership,
+                      Days_complete_1,Day1_CUXOS:Day40_CUXOS)
+
+```
+
+
+```{r}
+#1. First adjust the their values for length of stay above 40 to 40, because the measures don't go above 40 days.
+Mothership_Pre_Post <- Mothership
+  mutate(Mothership_Pre_Post, 
+            Days_complete_W = ifelse(Days_complete_1 > 40, 40,Days_complete_1)
+         )
+
+  Mothership
+#2. Then create df with CUDOS and CUXOS scores
+  # Depression 
+  
+    CUDOS_Score <- select(Mothership,
+                      Day1_CUDOS:Day40_CUDOS)
+
+  # Anxiety
+    CUXOS_Score <- select(Mothership,
+                      Day1_CUXOS:Day40_CUXOS)
+
+
+      
+    
+#3. Extract the valeues for each patient at their last day (length of stay)
+    # mutate(Mothership_Pre_Post, 
+    #         CUDOS_post = CUDOS_Score[
+    #           cbind(seq_along(Mothership_Pre_Post$Days_complete_W),
+    #                 Mothership_Pre_Post$Days_complete_W)],
+    #         CUXOS_post = CUXOS_Score[
+    #           cbind(seq_along(Mothership_Pre_Post$Days_complete_W),
+    #                 Mothership_Pre_Post$Days_complete_W)]
+    #      )
+```
+
+
+```{r}
+CUDOS_post = CUDOS_Score[cbind(seq_along(Mothership$ Days_complete_W),Mothership$ Days_complete_W)]
+CUXOS_post = CUXOS_Score[cbind(seq_along(Mothership$ Days_complete_W),Mothership$ Days_complete_W)]
+
+#4. Extract the value for their first day 
+CUDOS_pre<-Mothership$Day1_CUDOS
+CUXOS_pre<-Mothership$Day1_CUXOS
+AnxDep_PrePost <- data.frame(cbind(Mothership$ID1,CUDOS_pre,CUDOS_post,CUXOS_pre,CUXOS_post))
+AnxDep_PrePost
+
+#5. Create long dataframe
+
+###### This is where I am. I'm trying to figure out how to create the long dataset
+AnxDep_PrePost_Long <- gather(AnxDep_PrePost,ID1:CUXOS_post)
+                              factor_key = "T")
+
+
+Mothership_Long_RDQ <- gather(Mothership_RDQ,rm,RDQ,rdqPRE_coping:rdqPOST_sym,
+                              factor_key = "T")
+Mothership_Long_RDQ <- Mothership_Long_RDQ[order(Mothership_Long_RDQ$ID1),]
+
+?gather()
+
+```
+
+
