@@ -149,9 +149,9 @@ ggplot(data=subset(Mothership_Mean_CUDOS_Race,!is.na(Race_1)),
        aes(x=TxDay,y=mean_CUDOS,group=Race_1,color=Race_1))+
   geom_line(size=1)+
   geom_point()+
-  labs(title ="Depression Severity by Race During Partial Hospitalization")+
+  labs(title ="Anxiety Severity by Race During Partial Hospitalization")+
   scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
-  scale_y_continuous(name="Depression Severity",limits=c(0,40,by=5))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(0,40,by=5))+
   scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
                               "#0098DB","#0065A3","darkgreen"))+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
@@ -577,7 +577,7 @@ Education1<-ggplot(data=subset(EducationDF1,!is.na(Education_1)),
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Education Level",
+    # title ="Education Level",
     subtitle = "Patient discharge 1-5 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
@@ -602,7 +602,7 @@ Education2<-ggplot(data=subset(EducationDF2,!is.na(Education_1)),
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Education Level",
+    # title ="Education Level",
     subtitle = "Patient discharge 6-10 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
@@ -627,7 +627,7 @@ Education3<-ggplot(data=subset(EducationDF3,!is.na(Education_1)),
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Education Level",
+    # title ="Education Level",
     subtitle = "Patient discharge 11-15 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
@@ -650,7 +650,8 @@ Education4<-ggplot(data=subset(EducationDF4,!is.na(Education_1)),
        aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Education Level",
+  labs(
+    # title ="Education Level",
     subtitle = "Patient discharge 16+ days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
@@ -702,7 +703,8 @@ YEARTX1<-ggplot(data=subset(YEARTXDF1,!is.na(TxYear)),
        aes(x=TxDay,y=mean_CUXOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Anxiety Severity by YEARTX",
+  labs(
+    # title ="Anxiety Severity by YEARTX",
     subtitle = "Patient discharge 1-5 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
@@ -726,7 +728,8 @@ YEARTX2<-ggplot(data=subset(YEARTXDF2,!is.na(TxYear)),
        aes(x=TxDay,y=mean_CUXOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-    labs(title ="Anxiety Severity by YEARTX",
+    labs(
+      # title ="Anxiety Severity by YEARTX",
     subtitle = "Patient discharge 6-10 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
@@ -750,7 +753,8 @@ YEARTX3<-ggplot(data=subset(YEARTXDF3,!is.na(TxYear)),
        aes(x=TxDay,y=mean_CUXOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Anxiety Severity by YEARTX",
+  labs(
+    # title ="Anxiety Severity by YEARTX",
     subtitle = "Patient discharge 11-15 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
@@ -773,7 +777,8 @@ YEARTX4<-ggplot(data=subset(YEARTXDF4,!is.na(TxYear)),
        aes(x=TxDay,y=mean_CUXOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Anxiety Severity by YEARTX",
+  labs(
+    # title ="",
     subtitle = "Patient discharge 16+ days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+

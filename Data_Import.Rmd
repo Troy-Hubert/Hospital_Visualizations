@@ -106,8 +106,8 @@ Mothership <- mutate(Mothership,
                                       "8"="Withdrew (AMA)",
                                       "9"="Other",
                                       "10"="Other"),
-                    Referal_1 = as.factor(Referal_1),
-                    Referal_1 = recode(Referal_1,
+                    DC_status_1 = as.factor(DC_status_1),
+                    DC_status_1 = recode(DC_status_1,
                                       "1"="Inpatient",
                                       "2"="PHP",
                                       "3"="APS",
@@ -129,6 +129,8 @@ Mothership <- mutate(Mothership,
                        ifelse(Days_complete_1>10 & Days_complete_1 <=15, "11-15", "16+"
                               )))))
     
+
+
 #Extract Year From Intake Date
 #Convert to Date
 library("lubridate")
@@ -172,6 +174,62 @@ ggplot(data = subset(Mothership, !is.na(Education_1)),mapping = aes(x = Educatio
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   scale_y_continuous(name = "Frequency",limits=c(0,3000))
+
+### Bar chart for race ###
+ggplot(data = subset(Mothership, !is.na(Race_1)),mapping = aes(x = Race_1))+
+  geom_bar(color = "black",fill="darkblue")+
+  ggtitle("Frequency of Race/Ethnicity") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Race")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+
+### Bar chart for gender###
+ggplot(data = subset(Mothership, !is.na(Gender_1)),mapping = aes(x = Gender_1))+
+  geom_bar(color = "black",fill="darkorange")+
+  ggtitle("Frequency of Gender") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Gender")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+
+### Treatment Track ###
+
+ggplot(data = subset(Mothership, !is.na(IPT_track_1)),mapping = aes(x = IPT_track_1))+
+  geom_bar(color = "black",fill="skyblue")+
+  ggtitle("Frequency of Treatment Type") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Treatment Type")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+
+### Treatment Year ###
+
+Mothership$TxYear
+
+ggplot(data = subset(Mothership, !is.na(TxYear)),mapping = aes(x = TxYear))+
+  geom_bar(color = "black",fill="#9350C7")+
+  ggtitle("Frequency of Patients per Year") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Treatment Year")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+
+
+### Duration of Treatment ###
+ggplot(data = subset(Mothership, !is.na(Duration)),mapping = aes(x = Duration))+
+  geom_bar(color = "black",fill="lightgreen")+
+  ggtitle("Frequency of Patients per Duration of Treatment") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Treatment Duration")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+
 ```
 
 ## Pie Chart For Education Status 
@@ -199,6 +257,7 @@ Education_df$Category=recode(Education_df$Category,
 
 ggplot(data = Education_df, mapping = aes(x="", y=Frequency, fill=Category))+
   geom_bar(stat="Identity",width=1,color="white")+
+  ggtitle("Education Level of Patients") +
   coord_polar("y",start=0)+
   theme_void()
 ```
