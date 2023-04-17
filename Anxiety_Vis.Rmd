@@ -69,8 +69,8 @@ Mothership_Mean_CUXOS<-Mothership_Long %>%
 ```{r}
 #Plot the Anxiety Mean for Full Sample
 ggplot(data=Mothership_Mean_CUXOS,aes(x=TxDay,y=mean_CUXOS))+
-  geom_line(size=1,color="#0065A3")+
-  geom_point(color="#0065A3")+
+  geom_line(size=1,color="red")+
+  geom_point(color="red")+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   ggtitle("Mean Anxiety Severity During Partial Hospitalization")+
   scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
@@ -127,7 +127,7 @@ ggplot(data=Mothership_duration_CUXOS,aes(x=TxDay,y=mean_CUXOS,group=Duration,co
   scale_color_manual(values=c("#BB9D00","red",
                               "darkred","orange"))+
   theme(panel.background=NULL)+
-  theme(legend.title=element_blank())+
+  labs(subtitle = "Broken up by Discharge Date")+
   geom_vline(xintercept = 5,alpha =.25)+
   geom_vline(xintercept = 8,alpha =.25)+
   geom_vline(xintercept = 13,alpha =.25)+
@@ -151,7 +151,7 @@ ggplot(data=subset(Mothership_Mean_CUDOS_Race,!is.na(Race_1)),
   geom_point()+
   labs(title ="Depression Severity by Race During Partial Hospitalization")+
   scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
-  scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
+  scale_y_continuous(name="Depression Severity",limits=c(0,40,by=5))+
   scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
                               "#0098DB","#0065A3","darkgreen"))+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
@@ -181,7 +181,7 @@ Race1<-ggplot(data=subset(RaceDF1,!is.na(Race_1)),
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Anxiety Severity by Race During Partial Hospitalization",
+    #title ="Anxiety Severity by Race During Partial Hospitalization",
     subtitle = "Patient discharge 1-5 days")+
   #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
@@ -210,7 +210,7 @@ Race2<-ggplot(data=subset(RaceDF2,!is.na(Race_1)),
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Anxiety Severity by Race During Partial Hospitalization",
+    #title ="Anxiety Severity by Race During Partial Hospitalization",
     subtitle = "Patient discharge 6-10 days")+
   #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
@@ -234,7 +234,8 @@ Race3<-ggplot(data=subset(RaceDF3,!is.na(Race_1)),
        aes(x=TxDay,y=mean_CUXOS,group=Race_1,color=Race_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Anxiety Severity by Race During Partial Hospitalization",
+  labs(
+    #title ="Anxiety Severity by Race During Partial Hospitalization",
     subtitle = "Patient discharge 11-15 days")+
   #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
@@ -258,7 +259,8 @@ Race4<-ggplot(data=subset(RaceDF4,!is.na(Race_1)),
        aes(x=TxDay,y=mean_CUXOS,group=Race_1,color=Race_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Anxiety Severity by Race During Partial Hospitalization",
+  labs(
+    #title ="Anxiety Severity by Race During Partial Hospitalization",
     subtitle = "Patient discharge 16+ days")+
   #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
@@ -273,6 +275,7 @@ Race4<-ggplot(data=subset(RaceDF4,!is.na(Race_1)),
 #### putting them all together
 ```{r}
 ggpubr::ggarrange(Race1,Race2,Race3,Race4,ncol=2,nrow=2)
+
 ```
 
 ## GENDER IDENTITY
@@ -440,13 +443,15 @@ TrackDF1<-Mothership_Long %>%
   group_by(TxDay,IPT_track_1) %>%
   summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
 TrackDF1<-TrackDF1[1:20,]
+
+
 # plot
 Track1<-ggplot(data=subset(TrackDF1,!is.na(IPT_track_1)),
        aes(x=TxDay,y=mean_CUXOS,group=IPT_track_1,color=IPT_track_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Anxiety Severity by Track During Partial Hospitalization",
+    title ="Treatment Track",
     subtitle = "Patient discharge 1-5 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
@@ -470,7 +475,7 @@ Track2<-ggplot(data=subset(TrackDF2,!is.na(IPT_track_1)),
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Anxiety Severity by Track During Partial Hospitalization",
+    title ="Treatment Track",
     subtitle = "Patient discharge 6-10 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
@@ -493,7 +498,7 @@ Track3<-ggplot(data=subset(TrackDF3,!is.na(IPT_track_1)),
        aes(x=TxDay,y=mean_CUXOS,group=IPT_track_1,color=IPT_track_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Anxiety Severity by Track During Partial Hospitalization",
+  labs(title ="Treatment Track",
     subtitle = "Patient discharge 11-15 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
@@ -515,7 +520,7 @@ Track4<-ggplot(data=subset(TrackDF4,!is.na(IPT_track_1)),
        aes(x=TxDay,y=mean_CUXOS,group=IPT_track_1,color=IPT_track_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Anxiety Severity by Track During Partial Hospitalization",
+  labs(title ="Treatment Track",
     subtitle = "Patient discharge 16+ days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
@@ -571,7 +576,8 @@ Education1<-ggplot(data=subset(EducationDF1,!is.na(Education_1)),
        aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Anxiety Severity by Education Level During Partial Hospitalization",
+  labs(
+    title ="Education Level",
     subtitle = "Patient discharge 1-5 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
@@ -595,7 +601,8 @@ Education2<-ggplot(data=subset(EducationDF2,!is.na(Education_1)),
        aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Anxiety Severity by Education Level During Partial Hospitalization",
+  labs(
+    title ="Education Level",
     subtitle = "Patient discharge 6-10 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
@@ -619,7 +626,8 @@ Education3<-ggplot(data=subset(EducationDF3,!is.na(Education_1)),
        aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Anxiety Severity by Education Level During Partial Hospitalization",
+  labs(
+    title ="Education Level",
     subtitle = "Patient discharge 11-15 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+
@@ -642,7 +650,7 @@ Education4<-ggplot(data=subset(EducationDF4,!is.na(Education_1)),
        aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Anxiety Severity by Education Level During Partial Hospitalization",
+  labs(title ="Education Level",
     subtitle = "Patient discharge 16+ days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Anxiety Severity",limits=c(10,50,by=5))+

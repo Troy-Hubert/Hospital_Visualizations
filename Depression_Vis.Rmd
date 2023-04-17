@@ -130,12 +130,12 @@ ggplot(data=Mothership_duration_CUDOS,aes(x=TxDay,y=mean_CUDOS,group=Duration,co
   geom_point()+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   ggtitle("Mean Depression Severity During Partial Hospitalization")+
+  labs(subtitle = "Broken up by Discharge Date")+
   scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
   scale_y_continuous(name="Depression Severity",limits=c(15,40,by=5))+
-  scale_color_manual(values=c("#BB9D00","red",
-                              "darkred","orange"))+
+  scale_color_manual(values=c("skyblue","#0065A3",
+                              "navy","blue"))+
   theme(panel.background=NULL)+
-  theme(legend.title=element_blank())+
   geom_vline(xintercept = 5,alpha =.25)+
   geom_vline(xintercept = 8,alpha =.25)+
   geom_vline(xintercept = 13,alpha =.25)+
@@ -190,7 +190,7 @@ Race1<-ggplot(data=subset(RaceDF1,!is.na(Race_1)),
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Depression Severity by Race During Partial Hospitalization",
+    # title ="Depression Severity by Race During Partial Hospitalization",
     subtitle = "Patient discharge 1-5 days")+
   #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
@@ -219,7 +219,7 @@ Race2<-ggplot(data=subset(RaceDF2,!is.na(Race_1)),
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Depression Severity by Race During Partial Hospitalization",
+    # title ="Depression Severity by Race During Partial Hospitalization",
     subtitle = "Patient discharge 6-10 days")+
   #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
@@ -243,7 +243,8 @@ Race3<-ggplot(data=subset(RaceDF3,!is.na(Race_1)),
        aes(x=TxDay,y=mean_CUDOS,group=Race_1,color=Race_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Depression Severity by Race During Partial Hospitalization",
+  labs(
+    # title ="Depression Severity by Race During Partial Hospitalization",
     subtitle = "Patient discharge 11-15 days")+
   #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
@@ -267,7 +268,8 @@ Race4<-ggplot(data=subset(RaceDF4,!is.na(Race_1)),
        aes(x=TxDay,y=mean_CUDOS,group=Race_1,color=Race_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Depression Severity by Race During Partial Hospitalization",
+  labs(
+    # title ="Depression Severity by Race During Partial Hospitalization",
     subtitle = "Patient discharge 16+ days")+
   #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
@@ -327,7 +329,7 @@ Gender1<-ggplot(data=subset(GenderDF1,!is.na(Gender_1)),
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Depression Severity by Gender During Partial Hospitalization",
+    # title ="Depression Severity by Gender During Partial Hospitalization",
     subtitle = "Patient discharge 1-5 days")+
   #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
   scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
@@ -352,7 +354,7 @@ Gender2<-ggplot(data=subset(GenderDF2,!is.na(Gender_1)),
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Depression Severity by Gender During Partial Hospitalization",
+    # title ="Depression Severity by Gender During Partial Hospitalization",
     subtitle = "Patient discharge 6-10 days")+
   #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
   scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
@@ -376,7 +378,8 @@ Gender3<-ggplot(data=subset(GenderDF3,!is.na(Gender_1)),
        aes(x=TxDay,y=mean_CUDOS,group=Gender_1,color=Gender_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Depression Severity by Gender During Partial Hospitalization",
+  labs(
+    # title ="Depression Severity by Gender During Partial Hospitalization",
     subtitle = "Patient discharge 11-15 days")+
   #scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
@@ -399,7 +402,8 @@ Gender4<-ggplot(data=subset(GenderDF4,!is.na(Gender_1)),
        aes(x=TxDay,y=mean_CUDOS,group=Gender_1,color=Gender_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Depression Severity by Gender During Partial Hospitalization",
+  labs(
+    # title ="Depression Severity by Gender During Partial Hospitalization",
     subtitle = "Patient discharge 16+ days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Depression Severity",limits=c(10,60,by=5))+
@@ -455,7 +459,7 @@ Track1<-ggplot(data=subset(TrackDF1,!is.na(IPT_track_1)),
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Depression Severity by Track During Partial Hospitalization",
+    #title ="Depression Severity by Track During Partial Hospitalization",
     subtitle = "Patient discharge 1-5 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
@@ -479,7 +483,7 @@ Track2<-ggplot(data=subset(TrackDF2,!is.na(IPT_track_1)),
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Depression Severity by Track During Partial Hospitalization",
+    #title ="Depression Severity by Track During Partial Hospitalization",
     subtitle = "Patient discharge 6-10 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
@@ -502,7 +506,8 @@ Track3<-ggplot(data=subset(TrackDF3,!is.na(IPT_track_1)),
        aes(x=TxDay,y=mean_CUDOS,group=IPT_track_1,color=IPT_track_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Depression Severity by Track During Partial Hospitalization",
+  labs(
+    #title ="Depression Severity by Track During Partial Hospitalization",
     subtitle = "Patient discharge 11-15 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
@@ -524,7 +529,8 @@ Track4<-ggplot(data=subset(TrackDF4,!is.na(IPT_track_1)),
        aes(x=TxDay,y=mean_CUDOS,group=IPT_track_1,color=IPT_track_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Depression Severity by Track During Partial Hospitalization",
+  labs(
+    #title ="Depression Severity by Track During Partial Hospitalization",
     subtitle = "Patient discharge 16+ days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
@@ -548,8 +554,8 @@ Mothership_Mean_CUDOS_Ed<-Mothership_Long %>%
 #Create the Depression Line Graph by Education
 ggplot(data=subset(Mothership_Mean_CUDOS_Ed,!is.na(Education_1)),
        aes(x=TxDay,y=mean_CUDOS,group=Education_1,color=Education_1))+
-  geom_line(size=.5)+
-  geom_point(size=.5)+
+  geom_line(size=.75)+
+  geom_point(size=.75)+
   ggtitle("Depression Severity by Education Level During Partial Hospitalization")+
     scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
   scale_y_continuous(name="Depression Severity",limits=c(20,38,by=5))+
@@ -580,7 +586,8 @@ Education1<-ggplot(data=subset(EducationDF1,!is.na(Education_1)),
        aes(x=TxDay,y=mean_CUDOS,group=Education_1,color=Education_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Depression Severity by Education Level During Partial Hospitalization",
+  labs(
+    # title ="Depression Severity by Education Level During Partial Hospitalization",
     subtitle = "Patient discharge 1-5 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
@@ -604,7 +611,8 @@ Education2<-ggplot(data=subset(EducationDF2,!is.na(Education_1)),
        aes(x=TxDay,y=mean_CUDOS,group=Education_1,color=Education_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Depression Severity by Education Level During Partial Hospitalization",
+  labs(
+    # title ="Depression Severity by Education Level During Partial Hospitalization",
     subtitle = "Patient discharge 6-10 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
@@ -628,7 +636,8 @@ Education3<-ggplot(data=subset(EducationDF3,!is.na(Education_1)),
        aes(x=TxDay,y=mean_CUDOS,group=Education_1,color=Education_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Depression Severity by Education Level During Partial Hospitalization",
+  labs(
+    # title ="Depression Severity by Education Level During Partial Hospitalization",
     subtitle = "Patient discharge 11-15 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
@@ -651,7 +660,8 @@ Education4<-ggplot(data=subset(EducationDF4,!is.na(Education_1)),
        aes(x=TxDay,y=mean_CUDOS,group=Education_1,color=Education_1))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Depression Severity by Education Level During Partial Hospitalization",
+  labs(
+    # title ="Depression Severity by Education Level During Partial Hospitalization",
     subtitle = "Patient discharge 16+ days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Depression Severity",limits=c(10,50,by=5))+
@@ -682,7 +692,7 @@ ggplot(data=subset(Mothership_Mean_CUDOS_Year,!is.na(TxYear)),
   geom_point()+
   ggtitle("Depression Severity by Treatment Year During Partial Hospitalization")+
     scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
-  scale_y_continuous(name="Depression Severity",limits=c(20,36,by=5))+
+  scale_y_continuous(name="Depression Severity",limits=c(20,40,by=5))+
   scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
                               "#0098DB","#0065A3","darkgreen",
                               "#91A9F1","#7F8559","#4B5D8E"))+
@@ -707,12 +717,13 @@ YEARTX1<-ggplot(data=subset(YEARTXDF1,!is.na(TxYear)),
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Depression Severity by YEARTX During Partial Hospitalization",
+    # title ="Depression Severity by YEARTX During Partial Hospitalization",
     subtitle = "Patient discharge 1-5 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
   scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
-                              "#0098DB","#0065A3","darkgreen"))+
+                              "#0098DB","#0065A3","darkgreen",
+                              "#91A9F1","#7F8559","#4B5D8E"))+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   theme(legend.title=element_blank())
@@ -731,12 +742,13 @@ YEARTX2<-ggplot(data=subset(YEARTXDF2,!is.na(TxYear)),
   geom_line(size=.5)+
   geom_point(size=.5)+
   labs(
-    title ="Depression Severity by YEARTX During Partial Hospitalization",
+    # title ="Depression Severity by YEARTX During Partial Hospitalization",
     subtitle = "Patient discharge 6-10 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
   scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
-                              "#0098DB","#0065A3","darkgreen"))+
+                              "#0098DB","#0065A3","darkgreen",
+                              "#91A9F1","#7F8559","#4B5D8E"))+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   theme(legend.title=element_blank())
@@ -754,12 +766,14 @@ YEARTX3<-ggplot(data=subset(YEARTXDF3,!is.na(TxYear)),
        aes(x=TxDay,y=mean_CUDOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Depression Severity by YEARTX During Partial Hospitalization",
+  labs(
+    #title ="Depression Severity by TX",
     subtitle = "Patient discharge 11-15 days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
   scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
-                              "#0098DB","#0065A3","darkgreen"))+
+                              "#0098DB","#0065A3","darkgreen",
+                              "#91A9F1","#7F8559","#4B5D8E"))+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   theme(legend.title=element_blank())
@@ -776,12 +790,14 @@ YEARTX4<-ggplot(data=subset(YEARTXDF4,!is.na(TxYear)),
        aes(x=TxDay,y=mean_CUDOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
   geom_line(size=.5)+
   geom_point(size=.5)+
-  labs(title ="Depression Severity by YEARTX During Partial Hospitalization",
+  labs(
+    # title ="Depression Severity by YEARTX During Partial Hospitalization",
     subtitle = "Patient discharge 16+ days")+
     scale_x_continuous(name="Treatment Day",limits=c(0,20,by=1))+
   scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
   scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
-                              "#0098DB","#0065A3","darkgreen"))+
+                              "#0098DB","#0065A3","darkgreen",
+                              "#91A9F1","#7F8559","#4B5D8E"))+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   theme(legend.title=element_blank())
