@@ -177,10 +177,10 @@ ggplot(data=subset(Mothership_Diag, !is.na(Disorder_Type)),
     ylab("Percent of Patients With Disorder")
     
 # Broken up by disorder. 
-ggplot(data=subset(Mothership, !is.na(Disorder_Type)), 
+ggplot(data=subset(Mothership_Diag, !is.na(Disorder_Type)), 
     mapping= aes(x=TxYear,y = stat(count),
                  group=Disorder_Type, fill=Disorder_Type)) +
-  geom_density(adjust=1.5,alpha=.4) +
+  geom_density(adjust=1.5,alpha=.6) +
   facet_wrap(~Disorder_Type)+
   theme_classic()+
     theme(
@@ -203,7 +203,7 @@ ggplot(data=subset(Mothership, !is.na(Disorder_Type)),
 ggplot(data=subset(No_depressy, !is.na(Disorder_Type)), 
     mapping= aes(x=TxYear,y = stat(count),
                  group=Disorder_Type, fill=Disorder_Type)) +
-  geom_density(adjust=1.5,alpha=.4) +
+  geom_density(adjust=1.5,alpha=.6) +
   facet_wrap(~Disorder_Type)+
   theme_classic()+
     theme(
