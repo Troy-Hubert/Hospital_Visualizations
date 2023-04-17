@@ -66,6 +66,8 @@ Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_func"]<-"Post"
 Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_wbs"]<-"Post"
 Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_sym"]<-"Post"
 
+
+
 #Create a New Data Set with an Average Depression Variable and Race
 Mothership_Mean_RDQ<-Mothership_Long_RDQ %>%
   group_by(rm,PrePost) %>%
@@ -121,12 +123,13 @@ CUXOS_Score <- select(Mothership,
 
 ```{r}
 #1. First adjust the their values for length of stay above 40 to 40, because the measures don't go above 40 days.
-Mothership_Pre_Post <- Mothership
+Mothership_Pre_Post <- Mothership %>%
   mutate(Mothership_Pre_Post, 
             Days_complete_W = ifelse(Days_complete_1 > 40, 40,Days_complete_1)
          )
 
-  Mothership
+Mothership_Pre_Post$Days_complete_W
+
 #2. Then create df with CUDOS and CUXOS scores
   # Depression 
   
@@ -137,43 +140,41 @@ Mothership_Pre_Post <- Mothership
     CUXOS_Score <- select(Mothership,
                       Day1_CUXOS:Day40_CUXOS)
 
-
-      
-    
 #3. Extract the valeues for each patient at their last day (length of stay)
-    # mutate(Mothership_Pre_Post, 
-    #         CUDOS_post = CUDOS_Score[
-    #           cbind(seq_along(Mothership_Pre_Post$Days_complete_W),
-    #                 Mothership_Pre_Post$Days_complete_W)],
-    #         CUXOS_post = CUXOS_Score[
-    #           cbind(seq_along(Mothership_Pre_Post$Days_complete_W),
-    #                 Mothership_Pre_Post$Days_complete_W)]
-    #      )
-```
+# Mothership_Pre_Post <- mutate(Mothership_Pre_Post,
+#             CUDOS_post = CUDOS_post,
+#             CUXOS_post = CUXOS_post)
+    ##### Why is it not includeing NAs.
 
-
-```{r}
 CUDOS_post = CUDOS_Score[cbind(seq_along(Mothership$ Days_complete_W),Mothership$ Days_complete_W)]
 CUXOS_post = CUXOS_Score[cbind(seq_along(Mothership$ Days_complete_W),Mothership$ Days_complete_W)]
+
 
 #4. Extract the value for their first day 
 CUDOS_pre<-Mothership$Day1_CUDOS
 CUXOS_pre<-Mothership$Day1_CUXOS
-AnxDep_PrePost <- data.frame(cbind(Mothership$ID1,CUDOS_pre,CUDOS_post,CUXOS_pre,CUXOS_post))
-AnxDep_PrePost
+AnxDep_PrePost_test <- data.frame(cbind(Mothership$ID1,CUDOS_pre,CUDOS_post,CUXOS_pre,CUXOS_post))
+AnxDep_PrePost_test
+colnames(AnxDep_PrePost)[1] = "ID1"
 
+
+## This is where I am Figure out where to go from here *******************
 #5. Create long dataframe
 
-###### This is where I am. I'm trying to figure out how to create the long dataset
-AnxDep_PrePost_Long <- gather(AnxDep_PrePost,ID1:CUXOS_post)
-                              factor_key = "T")
+AnxDep_PrePost_Lon <- gather(AnxDep_PrePost,ID1:CUXOS_post,factor_key = "T")
 
+AnxDep_PrePost_Long <- pivot_longer(AnxDep_PrePost,ID1:CUXOS_post)
+
+
+AnxDep_PrePost_Long
+?pivot_longer()
+
+AnxDep_PrePost_Long <- AnxDep_PrePost_Long[order(AnxDep_PrePost_Long$ID1),]
 
 Mothership_Long_RDQ <- gather(Mothership_RDQ,rm,RDQ,rdqPRE_coping:rdqPOST_sym,
                               factor_key = "T")
-Mothership_Long_RDQ <- Mothership_Long_RDQ[order(Mothership_Long_RDQ$ID1),]
+Mothership_Long_RDQ
 
-?gather()
 
 ```
 
