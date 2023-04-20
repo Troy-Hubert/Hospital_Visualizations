@@ -41,21 +41,6 @@ Mothership<-mutate(Mothership,
 ## Depression Treatment Progress Charts
 
 ```{r}
-Mothership_Long <- gather(Mothership,rm,CUDOS,Day1_CUDOS:Day40_CUDOS,factor_key = "T")
-Mothership_Long <- Mothership_Long[order(Mothership_Long$ID1),]
-
-#Create a Time Variable
-Mothership_Long$TxDay <- NA
-Mothership_Long$TxDay[Mothership_Long$rm=="Day1_CUDOS"]<-1
-Mothership_Long$TxDay[Mothership_Long$rm=="Day2_CUDOS"]<-2
-Mothership_Long$TxDay[Mothership_Long$rm=="Day3_CUDOS"]<-3
-Mothership_Long$TxDay[Mothership_Long$rm=="Day4_CUDOS"]<-4
-Mothership_Long$TxDay[Mothership_Long$rm=="Day5_CUDOS"]<-5
-Mothership_Long$TxDay[Mothership_Long$rm=="Day6_CUDOS"]<-6
-Mothership_Long$TxDay[Mothership_Long$rm=="Day7_CUDOS"]<-7
-Mothership_Long$TxDay[Mothership_Long$rm=="Day8_CUDOS"]<-8
-Mothership_Long$TxDay[Mothership_Long$rm=="Day9_CUDOS"]<-9
-Mothership_Long$TxDay[Mothership_Long$rm=="Day10_CUDOS"]<-10
 Mothership_Long$TxDay[Mothership_Long$rm=="Day11_CUDOS"]<-11
 Mothership_Long$TxDay[Mothership_Long$rm=="Day12_CUDOS"]<-12
 Mothership_Long$TxDay[Mothership_Long$rm=="Day13_CUDOS"]<-13
@@ -148,8 +133,25 @@ ggplot(data=Mothership_duration_CUDOS,aes(x=TxDay,y=mean_CUDOS,group=Duration,co
 
 #### Race
 ```{r}
+Mothership_Long_dep <- gather(Mothership,rm,CUDOS,Day1_CUDOS:Day40_CUDOS,factor_key = "T")
+Mothership_Long_dep <- Mothership_Long_dep[order(Mothership_Long_dep$ID1),]
+
+#Create a Time Variable
+Mothership_Long_dep$TxDay <- NA
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day1_CUDOS"]<-1
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day2_CUDOS"]<-2
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day3_CUDOS"]<-3
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day4_CUDOS"]<-4
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day5_CUDOS"]<-5
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day6_CUDOS"]<-6
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day7_CUDOS"]<-7
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day8_CUDOS"]<-8
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day9_CUDOS"]<-9
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day10_CUDOS"]<-10
+
+
 #Overall race
-Mothership_Mean_CUDOS_Race<-Mothership_Long %>%
+Mothership_Mean_CUDOS_Race<-Mothership_Long_dep %>%
   group_by(TxDay,Race_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
 # plot
@@ -158,19 +160,39 @@ ggplot(data=subset(Mothership_Mean_CUDOS_Race,!is.na(Race_1)),
   geom_line(size=1)+
   geom_point()+
   labs(title ="Depression Severity by Race During Partial Hospitalization")+
-  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
   scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
-  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
-                              "#0098DB","#0065A3","darkgreen"))+
+  scale_color_manual(values=c("#209845","#3D4A3E","darkgreen",
+                              "#0098DB","#0065A3","#A0AFA1"))+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
-  theme(legend.title=element_blank())+
-   geom_vline(xintercept = 5,alpha =.25)+
-  geom_vline(xintercept = 8,alpha =.25)+
-  geom_vline(xintercept = 13,alpha =.25)+
-  annotate("text", x = 5, y = 39, label = "Q1") +
-  annotate("text", x = 8, y = 39, label = "Mean") +
-  annotate("text", x = 13, y = 39, label = "Q3") 
+  theme(legend.title=element_blank())
+
+ggplot(data=subset(Mothership_Mean_CUDOS_Race,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Race_1,color=Race_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(title ="Depression Severity by Race During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
+  scale_color_manual(values=c("#209845","lightgrey","lightgrey",
+                              "lightgrey","lightgrey","lightgrey"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+ggplot(data=subset(Mothership_Mean_CUDOS_Race,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Race_1,color=Race_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(title ="Depression Severity by Race During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
+  scale_color_manual(values=c("lightgrey","lightgrey","darkgreen",
+                              "lightgrey","#0065A3","lightgrey"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
 ```
 
 
@@ -291,34 +313,34 @@ Create a New Data Set with an Average Depression Variable and Gender, then plot 
 ```{r}
 #GENDER IDENTITY
 #Create a New Data Set with an Average Depression Variable and Gender
-Mothership_Mean_CUDOS_Gender<-Mothership_Long %>%
+Mothership_Mean_CUDOS_Gender<-Mothership_Long_dep %>%
   group_by(TxDay,Gender_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
 
+Mothership_Mean_CUDOS_Gender <-filter(Mothership_Mean_CUDOS_Gender,
+                                      Gender_1 != "Unknown",
+                                      Gender_1 != "Non-Binary",
+                                      Gender_1 != "Other"
+                                        )
 #Create the Depression Line Graph by Gender
 ggplot(data=subset(Mothership_Mean_CUDOS_Gender,!is.na(Gender_1)),
        aes(x=TxDay,y=mean_CUDOS,group=Gender_1,color=Gender_1))+
   geom_line(size=1)+
   geom_point()+
   ggtitle("Depression Severity by Gender During Partial Hospitalization")+
-  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
-  scale_y_continuous(name="Depression Severity",limits=c(10,60,by=5))+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Depression Severity",limits=c(15,45,by=5))+
   scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
                               "#0098DB","#0065A3"))+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
-  theme(legend.title=element_blank())+geom_vline(xintercept = 5,alpha =.25)+
-  geom_vline(xintercept = 8,alpha =.25)+
-  geom_vline(xintercept = 13,alpha =.25)+
-  annotate("text", x = 5, y = 59, label = "Q1") +
-  annotate("text", x = 8, y = 59, label = "Mean") +
-  annotate("text", x = 13, y = 59, label = "Q3") 
+  theme(legend.title=element_blank())
 ```
 
 Break it up by duration group 
 ```{r, include= FALSE}
 #Create a New Data Set with an Average Depression Variable and Gender
-Mothership_Mean_CUDOS_Gender<-Mothership_Long %>%
+Mothership_Mean_CUDOS_Gender<-Mothership_Long_dep %>%
   filter(Duration == "1-5") %>%
   group_by(TxDay,Gender_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -341,7 +363,7 @@ Gender1<-ggplot(data=subset(GenderDF1,!is.na(Gender_1)),
   theme(legend.title=element_blank())
 
 ##### 5-10 Days
-GenderDF2<-Mothership_Long %>%
+GenderDF2<-Mothership_Long_dep %>%
   filter(Duration == "6-10") %>%
   group_by(TxDay,Gender_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -366,7 +388,7 @@ Gender2<-ggplot(data=subset(GenderDF2,!is.na(Gender_1)),
   theme(legend.title=element_blank())
 
 ##### 10-15 Days
-GenderDF3<-Mothership_Long %>%
+GenderDF3<-Mothership_Long_dep %>%
   filter(Duration == "11-15") %>%
   group_by(TxDay,Gender_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -391,7 +413,7 @@ Gender3<-ggplot(data=subset(GenderDF3,!is.na(Gender_1)),
   theme(legend.title=element_blank())
 
 ##### 16+ Days
-GenderDF4<-Mothership_Long %>%
+GenderDF4<-Mothership_Long_dep %>%
   filter(Duration == "16+") %>%
   group_by(TxDay,Gender_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -421,7 +443,7 @@ ggpubr::ggarrange(Gender1,Gender2,Gender3,Gender4,ncol=2,nrow=2)
 #### TREATMENT TRACK
 ```{r}
 #Create a New Data Set with an Average Depression Variable and Track
-Mothership_Mean_CUDOS_Track<-Mothership_Long %>%
+Mothership_Mean_CUDOS_Track<-Mothership_Long_dep %>%
   group_by(TxDay,IPT_track_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
 
@@ -431,24 +453,18 @@ ggplot(data=subset(Mothership_Mean_CUDOS_Track,!is.na(IPT_track_1)),
   geom_line(size=1)+
   geom_point()+
   ggtitle("Depression Severity by Treatment Track During Partial Hospitalization")+
-  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
   scale_y_continuous(name="Depression Severity",limits=c(20,40,by=5))+
   scale_color_manual(values=c("#209845","#3D4A3E","#0065A3"))+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
-  theme(legend.title=element_blank())+
-  geom_vline(xintercept = 5,alpha =.25)+
-  geom_vline(xintercept = 8,alpha =.25)+
-  geom_vline(xintercept = 13,alpha =.25)+
-  annotate("text", x = 5, y = 39, label = "Q1") +
-  annotate("text", x = 8, y = 39, label = "Mean") +
-  annotate("text", x = 13, y = 39, label = "Q3") 
+  theme(legend.title=element_blank())
 ```
 
 Break it up by duration group (Treatment track)
 ```{r, include= FALSE}
 #Create a New Data Set with an Average Depression Variable and Gender
-TrackDF1<-Mothership_Long %>%
+TrackDF1<-Mothership_Long_dep %>%
   filter(Duration == "1-5") %>%
   group_by(TxDay,IPT_track_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -470,7 +486,7 @@ Track1<-ggplot(data=subset(TrackDF1,!is.na(IPT_track_1)),
   theme(legend.title=element_blank())
 
 ##### 5-10 Days
-TrackDF2<-Mothership_Long %>%
+TrackDF2<-Mothership_Long_dep %>%
   filter(Duration == "6-10") %>%
   group_by(TxDay,IPT_track_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -494,7 +510,7 @@ Track2<-ggplot(data=subset(TrackDF2,!is.na(IPT_track_1)),
   theme(legend.title=element_blank())
 
 ##### 10-15 Days
-TrackDF3<-Mothership_Long %>%
+TrackDF3<-Mothership_Long_dep %>%
   filter(Duration == "11-15") %>%
   group_by(TxDay,IPT_track_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -518,7 +534,7 @@ Track3<-ggplot(data=subset(TrackDF3,!is.na(IPT_track_1)),
   theme(legend.title=element_blank())
 
 ##### 16+ Days
-TrackDF4<-Mothership_Long %>%
+TrackDF4<-Mothership_Long_dep %>%
   filter(Duration == "16+") %>%
   group_by(TxDay,IPT_track_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -547,7 +563,7 @@ ggpubr::ggarrange(Track1,Track2,Track3,Track4,ncol=2,nrow=2)
 ### EDUCATION
 ```{r}
 #Create a New Data Set with an Average Depression Variable and Education
-Mothership_Mean_CUDOS_Ed<-Mothership_Long %>%
+Mothership_Mean_CUDOS_Ed<-Mothership_Long_dep %>%
   group_by(TxDay,Education_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
 
@@ -557,26 +573,34 @@ ggplot(data=subset(Mothership_Mean_CUDOS_Ed,!is.na(Education_1)),
   geom_line(size=.75)+
   geom_point(size=.75)+
   ggtitle("Depression Severity by Education Level During Partial Hospitalization")+
-    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
   scale_y_continuous(name="Depression Severity",limits=c(20,38,by=5))+
   scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
                               "#0098DB","#0065A3","darkgreen",
                               "#91A9F1","#7F8559"))+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
-  theme(legend.title=element_blank())+
-  geom_vline(xintercept = 5,alpha =.25)+
-  geom_vline(xintercept = 8,alpha =.25)+
-  geom_vline(xintercept = 13,alpha =.25)+
-  annotate("text", x = 5, y = 39, label = "Q1") +
-  annotate("text", x = 8, y = 39, label = "Mean") +
-  annotate("text", x = 13, y = 39, label = "Q3") 
+  theme(legend.title=element_blank())
+
+ggplot(data=subset(Mothership_Mean_CUDOS_Ed,!is.na(Education_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Education_1,color=Education_1))+
+  geom_line(size=.75)+
+  geom_point(size=.75)+
+  ggtitle("Depression Severity by Education Level During Partial Hospitalization")+
+    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Depression Severity",limits=c(20,38,by=5))+
+  scale_color_manual(values=c("#209845","lightgrey","lightgrey",
+                              "#0098DB","lightgrey","lightgrey",
+                              "lightgrey","lightgrey"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
 ```
 
 Break it up by duration group 
 ```{r, include= FALSE}
 #Create a New Data Set with an Average Depression Variable and Gender
-EducationDF1<-Mothership_Long %>%
+EducationDF1<-Mothership_Long_dep %>%
   filter(Duration == "1-5") %>%
   group_by(TxDay,Education_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -599,7 +623,7 @@ Education1<-ggplot(data=subset(EducationDF1,!is.na(Education_1)),
   theme(legend.title=element_blank())
 
 ##### 5-10 Days
-EducationDF2<-Mothership_Long %>%
+EducationDF2<-Mothership_Long_dep %>%
   filter(Duration == "6-10") %>%
   group_by(TxDay,Education_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -624,7 +648,7 @@ Education2<-ggplot(data=subset(EducationDF2,!is.na(Education_1)),
   theme(legend.title=element_blank())
 
 ##### 10-15 Days
-EducationDF3<-Mothership_Long %>%
+EducationDF3<-Mothership_Long_dep %>%
   filter(Duration == "11-15") %>%
   group_by(TxDay,Education_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -649,7 +673,7 @@ Education3<-ggplot(data=subset(EducationDF3,!is.na(Education_1)),
   theme(legend.title=element_blank())
 
 ##### 16+ Days
-EducationDF4<-Mothership_Long %>%
+EducationDF4<-Mothership_Long_dep %>%
   filter(Duration == "16+") %>%
   group_by(TxDay,Education_1) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -679,11 +703,11 @@ ggpubr::ggarrange(Education1,Education2,Education3,Education4, ncol=2,nrow=2)
 ### TREATMENT YEAR
 ```{r}
 #Create a New Data Set with an Average Depression Variable and Year
-Mothership_Mean_CUDOS_Year<-Mothership_Long %>%
+Mothership_Mean_CUDOS_Year<-Mothership_Long_dep %>%
   group_by(TxDay,TxYear) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
 
-str(Mothership_Long$TxYear)
+str(Mothership_Long_dep$TxYear)
 
 #Create the Depression Line Graph by Year
 ggplot(data=subset(Mothership_Mean_CUDOS_Year,!is.na(TxYear)),
@@ -691,14 +715,31 @@ ggplot(data=subset(Mothership_Mean_CUDOS_Year,!is.na(TxYear)),
   geom_line(size=1)+
   geom_point()+
   ggtitle("Depression Severity by Treatment Year During Partial Hospitalization")+
-    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
   scale_y_continuous(name="Depression Severity",limits=c(20,40,by=5))+
   scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
-                              "#0098DB","#0065A3","darkgreen",
-                              "#91A9F1","#7F8559","#4B5D8E"))+
+                              "#0098DB","#91A9F1","darkgreen",
+                              "#0065A3","#7F8559","#4B5D8E"))+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   theme(legend.title=element_blank())
+
+#Create the Depression Line Graph by Year
+ggplot(data=subset(Mothership_Mean_CUDOS_Year,!is.na(TxYear)),
+       aes(x=TxDay,y=mean_CUDOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Depression Severity by Treatment Year During Partial Hospitalization")+
+    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Depression Severity",limits=c(20,40,by=5))+
+  scale_color_manual(values=c("lightgrey","lightgrey","lightgrey",
+                              "lightgrey","lightgrey","lightgrey",
+                              "#0065A3","lightgrey","lightgrey"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+```
 ```
 
 
@@ -706,7 +747,7 @@ ggplot(data=subset(Mothership_Mean_CUDOS_Year,!is.na(TxYear)),
 Break it up by duration group (Year)
 ```{r, include= FALSE}
 #Create a New Data Set with an Average Depression Variable and Gender
-YEARTXDF1<-Mothership_Long %>%
+YEARTXDF1<-Mothership_Long_dep %>%
   filter(Duration == "1-5") %>%
   group_by(TxDay,TxYear) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -729,7 +770,7 @@ YEARTX1<-ggplot(data=subset(YEARTXDF1,!is.na(TxYear)),
   theme(legend.title=element_blank())
 
 ##### 5-10 Days
-YEARTXDF2<-Mothership_Long %>%
+YEARTXDF2<-Mothership_Long_dep %>%
   filter(Duration == "6-10") %>%
   group_by(TxDay,TxYear) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -754,7 +795,7 @@ YEARTX2<-ggplot(data=subset(YEARTXDF2,!is.na(TxYear)),
   theme(legend.title=element_blank())
 
 ##### 10-15 Days
-YEARTXDF3<-Mothership_Long %>%
+YEARTXDF3<-Mothership_Long_dep %>%
   filter(Duration == "11-15") %>%
   group_by(TxDay,TxYear) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
@@ -779,7 +820,7 @@ YEARTX3<-ggplot(data=subset(YEARTXDF3,!is.na(TxYear)),
   theme(legend.title=element_blank())
 
 ##### 16+ Days
-YEARTXDF4<-Mothership_Long %>%
+YEARTXDF4<-Mothership_Long_dep %>%
   filter(Duration == "16+") %>%
   group_by(TxDay,TxYear) %>%
   summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
