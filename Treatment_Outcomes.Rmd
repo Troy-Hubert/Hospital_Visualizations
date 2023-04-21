@@ -123,12 +123,12 @@ CUXOS_Score <- select(Mothership,
 
 ```{r}
 #1. First adjust the their values for length of stay above 40 to 40, because the measures don't go above 40 days.
-Mothership_Pre_Post <- Mothership %>%
+Mothership <- Mothership %>%
   mutate(Mothership_Pre_Post, 
             Days_complete_W = ifelse(Days_complete_1 > 40, 40,Days_complete_1)
          )
 
-Mothership_Pre_Post$Days_complete_W
+Mothership$Days_complete_W
 
 #2. Then create df with CUDOS and CUXOS scores
   # Depression 
@@ -139,17 +139,29 @@ Mothership_Pre_Post$Days_complete_W
   # Anxiety
     CUXOS_Score <- select(Mothership,
                       Day1_CUXOS:Day40_CUXOS)
-
+    
+#### Figure out how to:
+    #1. write a for /while loop to get a final value. 
+    #2. get values for NAs for days attended, 
+    #3. get values so this can go into the whole mothership dataset. 
+    
+    
+    
+    
 #3. Extract the valeues for each patient at their last day (length of stay)
-# Mothership_Pre_Post <- mutate(Mothership_Pre_Post,
-#             CUDOS_post = CUDOS_post,
-#             CUXOS_post = CUXOS_post)
+ Mothership <- mutate(Mothership,
+            # CUDOS_post = CUDOS_post)
+            CUXOS_post = CUXOS_post)
     ##### Why is it not includeing NAs.
 
-CUDOS_post = CUDOS_Score[cbind(seq_along(Mothership$ Days_complete_W),Mothership$ Days_complete_W)]
-CUXOS_post = CUXOS_Score[cbind(seq_along(Mothership$ Days_complete_W),Mothership$ Days_complete_W)]
+CUDOS_post = CUDOS_Score[cbind(seq_along(Mothership$Days_complete_W),Mothership$Days_complete_W)]
+CUXOS_post = CUXOS_Score[cbind(seq_along(Mothership$Days_complete_W),Mothership$Days_complete_W)]
 
+CUDOS_post
+Mothership %>%
+  mutate(Dep_post = CUDOS_post)
 
+CUDOS_post
 #4. Extract the value for their first day 
 CUDOS_pre<-Mothership$Day1_CUDOS
 CUXOS_pre<-Mothership$Day1_CUXOS
@@ -157,7 +169,7 @@ AnxDep_PrePost_test <- data.frame(cbind(Mothership$ID1,CUDOS_pre,CUDOS_post,CUXO
 AnxDep_PrePost_test
 colnames(AnxDep_PrePost)[1] = "ID1"
 
-
+AnxDep_PrePost_test
 ## This is where I am Figure out where to go from here *******************
 #5. Create long dataframe
 

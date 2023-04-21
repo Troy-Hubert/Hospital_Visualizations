@@ -85,40 +85,89 @@ Mothership<-Mothership %>%
                       ifelse(Eating_D == 1, "Eating", 
                       ifelse(Somatic_D == 1, "Somatic", NA
                       )))))))))),
-          
+                  Anxiety_C =  as.factor(
+                    ifelse(  GAD_C ==1 | Panic_C == 1 | PanicAgor_C == 1 | Agoraphobia_C == 1 |
+                        Social_C == 1 | Specific_C == 1, 1, 0)),
+                  Mood_C =  as.factor(
+                    ifelse(MDD_C ==1 | Bipolar1_C == 1 | Bipolar2_C == 1 | Dysthymia_C == 1, 1, 0)),
+                  Substance_C = as.factor(
+                    ifelse(Alcohol_C == 1 | Drug_C ==1, 1, 0)),
+                  Trauma_C = as.factor(
+                    ifelse(PTSD_C == 1 | Adjustment_C ==1, 1,0)),
+                  Psychotic_C = as.factor(
+                    ifelse(Schiz_C == 1 | Schizaff_C == 1,1,0)),
+                  Eating_C = as.factor(
+                    ifelse(Anorex_C == 1 | Bulim_C == 1 | Binge_C == 1, 1,0)),
+                  Somatic_C = as.factor(
+                    ifelse(Somat_C == 1 | UndiffSoma_C == 1| Hypochondriasis_C ==1, 1,0)),
           #emotional disorders
                   Emotional_dis = as.factor(
                     ifelse(Anxiety_D == 1 | OCD_P == 1 | Trauma_D == 1 |
-                           Mood_D == 1, "Emotional Disorder", "Other Disorder"))
-                  )
- # Comorbid_Anx = as.factor(
-                      #   ifelse(Anxiety_D == 1 & Mood_D == 1 |
-                      #           Anxiety_D == 1 & OCD_C == 1 |
-                      #           Anxiety_D == 1 & BPD_C == 1 |
-                      #           Anxiety_D == 1 & Substance_D == 1 |
-                      #           Anxiety_D == 1 & Trauma_D == 1 | 
-                      #           Anxiety_D == 1 & Eating_D ==1, 1, 0)),
-                      # Comorbid_Mood = as.factor(
-                      #   ifelse(Mood_D == 1 & Anxiety_D == 1 |
-                      #           Mood_D == 1 & BPD_C == 1 |
-                      #           Mood_D == 1 & BPD_C == 1 |
-                      #           Mood_D == 1 & Substance_D == 1 |
-                      #           Mood_D == 1 & Trauma_D == 1 | 
-                      #           Mood_D == 1 & Eating_D ==1, 1, 0)),
-                      # Comorbid_OCD = as.factor(
-                      #   ifelse(OCD_C == 1 & Anxiety_D == 1 |
-                      #           OCD_C == 1 & Mood_D == 1 |
-                      #           OCD_C == 1 & BPD_C == 1 |
-                      #           OCD_C == 1 & Substance_D == 1 |
-                      #           OCD_C == 1 & Trauma_D == 1 | 
-                      #           OCD_C == 1 & Eating_D ==1, 1, 0)),
-                      # Comorbid_BPD = as.factor(
-                      #   ifelse(BPD_C == 1 & Anxiety_D == 1 |
-                      #           BPD_C == 1 & Mood_D == 1 |
-                      #           BPD_C == 1 & OCD_C == 1 |
-                      #           BPD_C == 1 & Substance_D == 1 |
-                      #           BPD_C == 1 & Trauma_D == 1 | 
-                      #           BPD_C == 1 & Eating_D ==1, 1, 0)),
+                           Mood_D == 1, "Emotional Disorder", "Other Disorder")),
+                  Co_Anx = as.factor(
+                        ifelse(Anxiety_D == 1 & Mood_C == 1 |
+                                Anxiety_D == 1 & OCD_C == 1 |
+                                Anxiety_D == 1 & BPD_C == 1 |
+                                Anxiety_D == 1 & Substance_C == 1 |
+                                Anxiety_D == 1 & Trauma_C == 1 |
+                                Anxiety_D == 1 & Eating_C ==1 |
+                                Anxiety_D == 1 & Psychotic_C ==1 |
+                                Anxiety_D == 1 & Somatic_C ==1, 1, 0)),
+                  Co_Mood = as.factor(
+                        ifelse(Mood_D == 1 & Anxiety_C == 1 |
+                                Mood_D == 1 & OCD_C == 1 |
+                                Mood_D == 1 & BPD_C == 1 |
+                                Mood_D == 1 & Substance_C == 1 |
+                                Mood_D == 1 & Trauma_C == 1 |
+                                Mood_D == 1 & Eating_C ==1 |
+                                Mood_D == 1 & Psychotic_C ==1 |
+                                Mood_D == 1 & Somatic_C ==1 , 1, 0)),
+                  Co_OCD = as.factor(
+                        ifelse(OCD_C == 1 & Anxiety_C == 1 |
+                                OCD_C == 1 & Mood_C == 1 |
+                                OCD_C == 1 & BPD_C == 1 |
+                                OCD_C == 1 & Substance_C == 1 |
+                                OCD_C == 1 & Trauma_C == 1 |
+                                OCD_C == 1 & Eating_C ==1 |
+                                OCD_C == 1 & Psychotic_C ==1 |
+                                OCD_C == 1 & Somatic_C ==1, 1, 0)),
+                  CO_BPD = as.factor(
+                        ifelse(BPD_C == 1 & Anxiety_C == 1 |
+                                BPD_C == 1 & Mood_C == 1 |
+                                BPD_C == 1 & OCD_C == 1 |
+                                BPD_C == 1 & Substance_C == 1 |
+                                BPD_C == 1 & Trauma_C == 1 |
+                                BPD_C == 1 & Eating_C ==1 |
+                                BPD_C == 1 & Psychotic_C ==1 |
+                                BPD_C == 1 & Somatic_C ==1 , 1, 0)),
+                  CO_Psychotic = as.factor(
+                       ifelse(Psychotic_D == 1 & Mood_C == 1 |
+                                Psychotic_D == 1 & OCD_C == 1 |
+                                Psychotic_D == 1 & BPD_C == 1 |
+                                Psychotic_D == 1 & Substance_C == 1 |
+                                Psychotic_D == 1 & Trauma_C == 1 |
+                                Psychotic_D == 1 & Eating_C ==1 |
+                                Psychotic_D == 1 & Anxiety_C ==1 |
+                                Psychotic_D == 1 & Somatic_C ==1, 1, 0)),
+                  CO_Eating = as.factor(
+                      ifelse(Eating_D == 1 & Mood_C == 1 |
+                                Eating_D == 1 & OCD_C == 1 |
+                                Eating_D == 1 & BPD_C == 1 |
+                                Eating_D == 1 & Substance_C == 1 |
+                                Eating_D == 1 & Trauma_C == 1 |
+                                Eating_D == 1 & Psychotic_C ==1 |
+                                Eating_D == 1 & Anxiety_C ==1 |
+                                Eating_D == 1 & Somatic_C ==1, 1, 0)),
+                  CO_Somatic =  as.factor(
+                       ifelse(Somatic_D == 1 & Mood_C == 1 |
+                                Somatic_D == 1 & OCD_C == 1 |
+                                Somatic_D == 1 & BPD_C == 1 |
+                                Somatic_D == 1 & Substance_C == 1 |
+                                Somatic_D == 1 & Trauma_C == 1 |
+                                Somatic_D == 1 & Eating_C ==1 |
+                                Somatic_D == 1 & Anxiety_C ==1 |
+                                Somatic_D == 1 & Psychotic_C ==1, 1, 0)))
+                      
 
 ##### df for plots 
 
