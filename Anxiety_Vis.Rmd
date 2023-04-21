@@ -81,13 +81,7 @@ ggplot(data=Mothership_Mean_CUXOS,aes(x=TxDay,y=mean_CUXOS))+
   ggtitle("Mean Anxiety Severity During Partial Hospitalization")+
   scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
   scale_y_continuous(name="Anxiety Severity",limits=c(20,40,by=5))+
-  theme(panel.background=NULL) +
-  geom_vline(xintercept = 5, color = "#BB9D00",alpha =.5)+
-  geom_vline(xintercept = 8, color = "orange",alpha =.5)+
-  geom_vline(xintercept = 13, color = "red",alpha =.5)+
-  annotate("text", x = 5, y = 39, label = "Q1") +
-  annotate("text", x = 8, y = 39, label = "Mean") +
-  annotate("text", x = 13, y = 39, label = "Q3") 
+  theme(panel.background=NULL) 
 
 ggplot(Mothership, aes(Days_complete_1))+
   geom_density()+
