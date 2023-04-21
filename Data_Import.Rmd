@@ -264,6 +264,7 @@ Education_df$Category=recode(Education_df$Category,
 ggplot(data = Education_df, mapping = aes(x="", y=Frequency, fill=Category))+
   geom_bar(stat="Identity",width=1,color="white")+
   ggtitle("Education Level of Patients") +
+  scale_fill_discrete(name = "Education") +
   coord_polar("y",start=0)+
   theme_void()
 ```
