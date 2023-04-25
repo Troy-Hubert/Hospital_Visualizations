@@ -5,7 +5,7 @@ date: "2023-04-01"
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message=FALSE,warning = FALSE)
 
 # Libraries
 library(tidyverse)
@@ -159,7 +159,6 @@ write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Vis.csv")
 # Background Statistics
 ```{r}
 ### Bar Chart for Discharge Status ###
-plot(Mothership2$DC_status_1)
 
 ggplot(data = subset(Mothership, !is.na(DC_status_1)), mapping = aes(x = DC_status_1))+
   geom_bar(color = "black",fill="darkgreen")+
