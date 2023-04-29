@@ -270,3 +270,72 @@ ggplot(data=subset(No_depressy, !is.na(Disorder_Type)),
     ylab("Number of Patients With Disorder")
 ```
 
+```{r}
+ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type, fill=Disorder_Type))+
+  geom_bar()+
+  ggtitle("Frequency of Psychiatric Disorder Subtypes") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Psychiatric Disorder Subtype")+
+  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,3500))+
+  coord_flip()
+```
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+
+Mothership_Current_Long <- Mothership_Diag %>%
+  pivot_longer(
+    cols=c(Anxiety_C, Mood_C, Substance_C, Trauma_C, Psychotic_C, Eating_C,  Somatic_C),
+    names_to = 'disorder_present'
+  ) %>%
+  filter(value != 0) %>%
+  select(!value) %>%
+  pivot_longer(
+    cols=c(Co_Anx, Co_Mood, Co_OCD, CO_BPD, CO_Psychotic, CO_Eating, CO_Somatic),
+    names_to = 'Co_Occuring'
+  )%>%
+  filter(value != 0) %>%
+  select(!value) 
+  ## pick back up here!!
+    #filter out disorders that are co occuring the same (e.g. anxiety and anxiety)
+    #maybe figure out to make a variable that is co-occuring for primary and secondary same thing (e.g. GAD and panic)
+  # mutate(
+    
+  
+
+view(Mothership_Current_Long)    
+
+```
+
+        
+        
+                     Mood_D 
+                    Anxiety_D 
+                #OCD_P is for current OCD
+                #BPD_P is for current BPD
+                    Substance_D 
+                    Trauma_D 
+                    Psychotic_D 
+                    Eating_D 
+                    Somatic_D 
+                    Disorder_Type = primary diag 
+                  Anxiety_C 
+                  Mood_C 
+                  Substance_C
+                  Trauma_C 
+                  Psychotic_C
+                  Eating_C 
+                  Somatic_C 
+                  Emotional_dis 
+                  Co_Anx 
+                  Co_Mood 
+                  Co_OCD
+                  CO_BPD 
+                  CO_Psychotic
+                  CO_Eating 
+                  CO_Somatic 
+                   
