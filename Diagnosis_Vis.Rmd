@@ -80,27 +80,45 @@ Mothership<-Mothership %>%
                       ifelse(OCD_P == 1, "OCD",
                       ifelse(BPD_P == 1, "BPD",
                       ifelse(Substance_D == 1, "Substance Use",
-                      ifelse(Trauma_D == 1, "Stress and Trauma",
+                      ifelse(Trauma_D == 1, "Trauma",
                       ifelse(Mood_D == 1, "Mood",
                       ifelse(Psychotic_D == 1, "Psychotic", 
                       ifelse(Eating_D == 1, "Eating", 
                       ifelse(Somatic_D == 1, "Somatic", NA
                       )))))))))),
                   Anxiety_C =  as.factor(
-                    ifelse(  GAD_C ==1 | Panic_C == 1 | PanicAgor_C == 1 | Agoraphobia_C == 1 |
-                        Social_C == 1 | Specific_C == 1, 1, 0)),
+                    ifelse( GAD_P !=1 & GAD_C ==1 | 
+                        Panic_P != 1 & Panic_C == 1 | 
+                        PanicAgor_P != 1 & PanicAgor_C == 1 | 
+                        Agoraphobia_P != 1 & Agoraphobia_C == 1 |
+                        Social_P != 1 & Social_C == 1 | 
+                        Specific_P != 1 & Specific_C == 1, 1, 0)),
                   Mood_C =  as.factor(
-                    ifelse(MDD_C ==1 | Bipolar1_C == 1 | Bipolar2_C == 1 | Dysthymia_C == 1, 1, 0)),
+                    ifelse( MDD_P != 1 & MDD_C == 1 |
+                        Bipolar1_P != 1 & Bipolar1_C == 1 | 
+                        Bipolar2_P != 1 &  Bipolar2_C == 1 | 
+                        Dysthymia_P != 1 & Dysthymia_C == 1 , 1, 0)),
                   Substance_C = as.factor(
-                    ifelse(Alcohol_C == 1 | Drug_C ==1, 1, 0)),
+                    ifelse(Alcohol_P != 1 & Alcohol_C == 1 | 
+                        Drug_P != 1 & Drug_C ==1, 1, 0)),
                   Trauma_C = as.factor(
-                    ifelse(PTSD_C == 1 | Adjustment_C ==1, 1,0)),
+                    ifelse(PTSD_P != 1 & PTSD_C == 1 | 
+                        Adjustment_P != 1 & Adjustment_C ==1, 1,0)),
                   Psychotic_C = as.factor(
-                    ifelse(Schiz_C == 1 | Schizaff_C == 1,1,0)),
+                    ifelse(Schiz_P != 1 & Schiz_C == 1 | 
+                        Schizaff_P != 1 & Schizaff_C == 1,1,0)),
                   Eating_C = as.factor(
-                    ifelse(Anorex_C == 1 | Bulim_C == 1 | Binge_C == 1, 1,0)),
+                    ifelse(Anorex_P != 1 & Anorex_C == 1 | 
+                        Bulim_P != 1 & Bulim_C == 1 | 
+                        Binge_P != 1 & Binge_C == 1, 1,0)),
                   Somatic_C = as.factor(
-                    ifelse(Somat_C == 1 | UndiffSoma_C == 1| Hypochondriasis_C ==1, 1,0)),
+                    ifelse(Somat_P != 1 & Somat_C == 1 | 
+                        UndiffSoma_P != 1 & UndiffSoma_C == 1 | 
+                        Hypochondriasis_P != 1 &  Hypochondriasis_C == 1, 1,0)),
+                  OCD_Co_C = as.factor(
+                    ifelse(OCD_P != 1 & OCD_C == 1,1,0)),
+                  BPD_Co_C = as.factor(
+                    ifelse(BPD_P != 1 & BPD_C ==1,1,0)),
           #emotional disorders
                   Emotional_dis = as.factor(
                     ifelse(Anxiety_D == 1 | OCD_P == 1 | Trauma_D == 1 |
@@ -168,7 +186,10 @@ Mothership<-Mothership %>%
                                 Somatic_D == 1 & Eating_C ==1 |
                                 Somatic_D == 1 & Anxiety_C ==1 |
                                 Somatic_D == 1 & Psychotic_C ==1, 1, 0)))
-                      
+                
+view(Mothership)
+
+
 
 ##### df for plots 
 
@@ -287,55 +308,44 @@ ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping = aes(x = D
 library(dplyr)
 library(tidyr)
 
-Mothership_Current_Long <- Mothership_Diag %>%
+Mothership_Current_Long <- Mothership %>%
   pivot_longer(
-    cols=c(Anxiety_C, Mood_C, Substance_C, Trauma_C, Psychotic_C, Eating_C,  Somatic_C),
-    names_to = 'disorder_present'
+    cols=c(Anxiety_C, Mood_C, Substance_C, Trauma_C, Psychotic_C, Eating_C,  Somatic_C, OCD_Co_C, BPD_Co_C),
+    names_to = 'Disorder_Present'
   ) %>%
   filter(value != 0) %>%
-  select(!value) %>%
-  pivot_longer(
-    cols=c(Co_Anx, Co_Mood, Co_OCD, CO_BPD, CO_Psychotic, CO_Eating, CO_Somatic),
-    names_to = 'Co_Occuring'
-  )%>%
-  filter(value != 0) %>%
-  select(!value) 
-  ## pick back up here!!
-    #filter out disorders that are co occuring the same (e.g. anxiety and anxiety)
-    #maybe figure out to make a variable that is co-occuring for primary and secondary same thing (e.g. GAD and panic)
-  # mutate(
-    
-  
+  select(!value)  %>%
+  filter(!is.na(Disorder_Present))%>%
+  filter(!is.na(Disorder_Type))
 
-view(Mothership_Current_Long)    
+## Figure out how to plot these two 
+
+Mothership_Current_Long %>%
+  ggplot(aes(x = Disorder_Type, y = Disorder_Present, color = Disorder_Type)) +
+  geom_count(alpha = .5)+
+  scale_size_area(max_size = 20) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1),
+    legend.position = "none") +
+  scale_y_discrete(labels=c("Trauma_C" = "Co Trauma", 
+                            "Substance_C" = "Co Substance Use",
+                            "Somatic_C" = "Co Somatic",
+                            "Psychotic_C" = "Co Psychotic",
+                            "OCD_Co_C" = "Co OCD",
+                            "Mood_C" = "Co Mood",
+                            "Eating_C" = "Co Eating",
+                            "BPD_Co_C" = "Co BPD",
+                            "Anxiety_C" = "Co Anxiety")) +
+  labs(
+    title = "Number of Co Occuring Psychiatric Diosrders per Primary Diagnosis",
+    subtitle = "Grouped into subtypes of DSM diagonsis",
+    y = "Co-Occuring Psychiatric Disorder",
+    x = "Primary Psychiatric Diagnosis"
+  ) 
+
+
 
 ```
 
-        
-        
-                     Mood_D 
-                    Anxiety_D 
-                #OCD_P is for current OCD
-                #BPD_P is for current BPD
-                    Substance_D 
-                    Trauma_D 
-                    Psychotic_D 
-                    Eating_D 
-                    Somatic_D 
-                    Disorder_Type = primary diag 
-                  Anxiety_C 
-                  Mood_C 
-                  Substance_C
-                  Trauma_C 
-                  Psychotic_C
-                  Eating_C 
-                  Somatic_C 
-                  Emotional_dis 
-                  Co_Anx 
-                  Co_Mood 
-                  Co_OCD
-                  CO_BPD 
-                  CO_Psychotic
-                  CO_Eating 
-                  CO_Somatic 
+      
                    
