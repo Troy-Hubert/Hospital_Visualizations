@@ -37,13 +37,13 @@ This is a series of R Markdowns dipicting code used for a final project in a Des
 - Data comes from the Methods to Improve Diagnostic Assessment and Services (MIDAS) project – a longitudinal project that collects psychiatric patient data from outpatient and partial hospital settings.
 - Patients at the partial hospital program attend multiple group therapies each day, as well as individual meeting with a therapist and psychiatrist. 
 - Treatment is based in Acceptance and Commitment Therapy (ACT), an empirically-supported psychotherapy (Hayes et al., 2006).
----
-The following visualizations are broken up into 4 sections:
-1. [Sociodemographic and Treatment Characteristics]
-2. [Diagnosis Visualizations]
-3. [Treatment Progression Visualizations]
-4. [Treatment Outcome Visualization]
 
+#### The following visualizations are broken up into 4 sections:
+
+1. [Sociodemographic and Treatment Characteristics](https://troy-hubert.github.io/Hospital_Visualizations/Data_Import.html)
+2. [Diagnosis Visualizations](https://troy-hubert.github.io/Hospital_Visualizations/Diagnosis_Vis.html)
+3. [Treatment Progression Visualizations](https://troy-hubert.github.io/Hospital_Visualizations/Anxiety_Vis.html)
+4. [Treatment Outcome Visualization](https://troy-hubert.github.io/Hospital_Visualizations/Treatment_Outcomes.html)
 
 ---
 ### References
