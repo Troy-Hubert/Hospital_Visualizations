@@ -1,0 +1,15 @@
+name: "PHP Psychiatric Treatment"
+navbar:
+  title: "PHP Psychiatric Treatment"
+  left:
+    - text: "Home"
+    - href: index.html
+    - text: "Background on Patients"
+    - href: Data_Import.html
+    - text: "Diagnosis Visualizations"
+    - href: Diagnosis_Vis.html
+    - text: "Treatment Progression Visualizations"
+    - href: Anxiety_Vis.html
+    - test: "Treatment Outcome Visualization"
+    - href: Treatment_Outcomes.html
+output_dir: "docs"

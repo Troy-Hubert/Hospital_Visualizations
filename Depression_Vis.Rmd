@@ -88,7 +88,7 @@ ggplot(data=Mothership_Mean_CUDOS,aes(x=TxDay,y=mean_CUDOS))+
   theme(panel.background=NULL) 
 ```
 
-### plot means based upon duration group membership 
+### Plot means based upon duration of treatment 
 
 ```{r}
 #plot depression mean with each group
@@ -190,7 +190,6 @@ ggplot(data=subset(Mothership_Mean_CUDOS_Race,!is.na(Race_1)),
 ## GENDER IDENTITY
 Create a New Data Set with an Average Depression Variable and Gender, then plot it
 ```{r}
-#GENDER IDENTITY
 #Create a New Data Set with an Average Depression Variable and Gender
 Mothership_Mean_CUDOS_Gender<-Mothership_Long_dep %>%
   group_by(TxDay,Gender_1) %>%

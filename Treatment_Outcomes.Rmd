@@ -1,7 +1,13 @@
 ---
-title: "Treatment_Outcomes"
-output: html_document
-date: "2023-04-14"
+title: "Treatment Outcome Visualization"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    collapsed: false
+    number_sections: false
+    toc_depth: 1
+    #code_folding: hide
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message=FALSE,warning = FALSE)
@@ -37,9 +43,17 @@ Mothership<-mutate(Mothership,
                                    "2022"="2020"))
 ```
 
-## RDQ stuff
-```{r}
+# Remission from Depression Questionnaire (RDQ)
 
+The following code visualizes the outcomes from the RDQ. The RDQ is broken up into the following categories:
+
+1. Coping Skills: (higher score = more coping skills)
+2. Positive Mental Health: (higher score = more positive mental health)
+3. Functioning: (higher score = better functioning)
+4. Well Being: (higher score = better overall well being)
+5. Symptoms: (higher score = more severe depression symptoms)
+
+```{r}
 #Read in a New Data Set
 Mothership_RDQ<- read_sav("~/Desktop/Coding/data/Mothership_DV.sav")
 Mothership_RDQ<-select(Mothership,ID1:Sexuality_1,MDD_C:Day40_CUXOS)
@@ -50,9 +64,6 @@ library(tidyr)
 Mothership_Long_RDQ <- gather(Mothership_RDQ,rm,RDQ,rdqPRE_coping:rdqPOST_sym,
                               factor_key = "T")
 Mothership_Long_RDQ <- Mothership_Long_RDQ[order(Mothership_Long_RDQ$ID1),]
-
-view(Mothership_Long_RDQ)
-
 
 #Create a Time Variable
 Mothership_Long_RDQ$PrePost <- NA
@@ -110,7 +121,7 @@ ggplot(data=Mothership_Mean_RDQ,
 
 
 ```{r, include=FALSE}
-# # Depression symptoms df
+# Depression symptoms df
 # CUDOS_Score <- select(Mothership,
 #                       Days_complete_1,Day1_CUDOS:Day40_CUDOS)
 # 
@@ -123,46 +134,53 @@ ggplot(data=Mothership_Mean_RDQ,
 
 ```{r, include=FALSE}
 #1. First adjust the their values for length of stay above 40 to 40, because the measures don't go above 40 days.
-# Mothership <- Mothership %>%
-#   mutate(Mothership_Pre_Post, 
-#             Days_complete_W = ifelse(Days_complete_1 > 40, 40,Days_complete_1)
-#          )
 # 
+# 
+# Mothership_post <- Mothership %>%
+#   mutate(Days_complete_W = ifelse(Days_complete_1 > 40, 40,Days_complete_1))
+# 
+# 
+# 
+# Mothership <- Mothership %>%
+#   mutate(Days_complete_W = ifelse(Days_complete_1 > 40, 40,Days_complete_1))
+#          
+# 
+# Mothership$Day1_CUDOS
+# Mothership$Days_complete_1
 # Mothership$Days_complete_W
 # 
+# view(Mothership)
 # #2. Then create df with CUDOS and CUXOS scores
-#   # Depression 
-#   
+#   # Depression
+# 
 #     CUDOS_Score <- select(Mothership,
 #                       Day1_CUDOS:Day40_CUDOS)
 # 
 #   # Anxiety
 #     CUXOS_Score <- select(Mothership,
 #                       Day1_CUXOS:Day40_CUXOS)
-#     
-# #### Figure out how to:
-#     #1. write a for /while loop to get a final value. 
-#     #2. get values for NAs for days attended, 
-#     #3. get values so this can go into the whole mothership dataset. 
-#     
-#     
-#     
-#     
+# 
+# 
 # #3. Extract the valeues for each patient at their last day (length of stay)
-#  Mothership <- mutate(Mothership,
-#             # CUDOS_post = CUDOS_post)
-#             CUXOS_post = CUXOS_post)
 #     ##### Why is it not includeing NAs.
+#     
 # 
 # CUDOS_post = CUDOS_Score[cbind(seq_along(Mothership$Days_complete_W),Mothership$Days_complete_W)]
-# CUXOS_post = CUXOS_Score[cbind(seq_along(Mothership$Days_complete_W),Mothership$Days_complete_W)]
+# CUXOS_post = CUXOS_Score[cbind(1:length(Mothership$Days_complete_W),Mothership$Days_complete_W)]
 # 
+# seq_along(Mothership$Days_complete_W)
+# Mothership$Days_complete_W
 # CUDOS_post
+# 
+# Mothership %>%
+#   mutate(Dep_post = CUDOS_post)
+# 
+# 
 # Mothership %>%
 #   mutate(Dep_post = CUDOS_post)
 # 
 # CUDOS_post
-# #4. Extract the value for their first day 
+# #4. Extract the value for their first day
 # CUDOS_pre<-Mothership$Day1_CUDOS
 # CUXOS_pre<-Mothership$Day1_CUXOS
 # AnxDep_PrePost_test <- data.frame(cbind(Mothership$ID1,CUDOS_pre,CUDOS_post,CUXOS_pre,CUXOS_post))
@@ -188,6 +206,42 @@ ggplot(data=Mothership_Mean_RDQ,
 # Mothership_Long_RDQ
 
 
+```
+
+```{r, include=FALSE}
+# Mothership_Post <- Mothership %>%
+#   filter(!is.na(Days_complete_1)) %>%
+#   mutate(Days_complete_W = ifelse(Days_complete_1 > 40, 40,Days_complete_1)) 
+#   
+# 
+# Mothership_Post$Days_complete_W
+# 1:length(Mothership_Post$Days_complete_W)
+# 
+# # Depression
+# CUDOS_Score <- select(Mothership_Post, Day1_CUDOS:Day40_CUDOS)
+# 
+# CUDOS_Score
+# 
+# 1:length(Mothership_Post$Days_complete_W)
+# 
+# # Anxiety
+# CUXOS_Score <- select(Mothership_Post, Day1_CUXOS:Day40_CUXOS)
+# 
+# values <- cbind(seq_along(Mothership_Post$Days_complete_W),Mothership_Post$Days_complete_W[1:8610])
+# values
+# CUDOS_post = CUDOS_Score[cbind(seq_along(Mothership_Post$Days_complete_W)[1:8610],Mothership_Post$Days_complete_W[1:8610])]
+# CUDOS_post
+# 
+# 
+# CUDOS_post = CUDOS_Score[cbind(1:length(Mothership_Post$Days_complete_W),Mothership_Post$Days_complete_W)]
+# CUXOS_post = CUXOS_Score[cbind(1:length(Mothership_Post$Days_complete_W),Mothership_Post$Days_complete_W)]
+# 
+# CUDOS_post
+# 
+# values <- cbind(1:length(Mothership_Post$Days_complete_W),Mothership_Post$Days_complete_W)
+# values
+# Mothership_Post<- Mothership_Post %>%
+#   mutate(Dep_post = CUDOS_post)
 ```
 
 

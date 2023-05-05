@@ -1,7 +1,13 @@
 ---
-title: "Diagnosis_Vis"
-output: html_document
-date: "2023-04-04"
+title: "Diagnosis Visualizations"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    collapsed: false
+    number_sections: false
+    toc_depth: 1
+    #code_folding: hide
 ---
 
 ```{r setup, include=FALSE}
@@ -38,7 +44,9 @@ Mothership<-mutate(Mothership,
                                    "2022"="2020"))
 ```
 
-## Create Diagnosis Variables 
+The following code creates visualizations for diagnostic related information. The main difficulty of these visualizations was getting diagnostic variables correctly coded so there was not overlap or double acounting for conditions.
+
+# Create Diagnosis Variables 
 ```{r}
 Mothership<-Mothership %>%
   mutate(
@@ -186,10 +194,6 @@ Mothership<-Mothership %>%
                                 Somatic_D == 1 & Eating_C ==1 |
                                 Somatic_D == 1 & Anxiety_C ==1 |
                                 Somatic_D == 1 & Psychotic_C ==1, 1, 0)))
-                
-view(Mothership)
-
-
 
 ##### df for plots 
 
@@ -203,24 +207,11 @@ No_depressy <- Mothership_Diag %>%
   filter(Disorder_Type != "Mood")
 ```
 
+# Number of Disorders Treated Over Time
 
-#### Amount of disorders treated
-```{r}
-#overall psychiatric disorders
-ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type, fill=Disorder_Type))+
-  geom_bar()+
-  ggtitle("Frequency of Psychiatric Disorder Subtypes") +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
-  xlab("Psychiatric Disorder Subtype")+
-  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,3500))+
-  coord_flip()
-```
+## {.tabset}
 
-
-
-#### Number of disorders over time.
+### All Disorders
 ```{r}
 # Libraries
 library(ggplot2)
@@ -268,6 +259,7 @@ ggplot(data=subset(Mothership_Diag, !is.na(Disorder_Type)),
     ylab("Number of Patients With Disorder")
 
 ```
+### Excluding Mood Disorders 
 
 ```{r}
 # without depression
@@ -291,11 +283,17 @@ ggplot(data=subset(No_depressy, !is.na(Disorder_Type)),
     ylab("Number of Patients With Disorder")
 ```
 
+# Amount of Disorder Type Treated 
+Grouped into DSM chapter subtypes (e.g., Mood Disorder = Major Depressive Disorder, Bipolar 1 & 2, etc.)
+
+### Amount of Primary Diagnoses
 ```{r}
+# Disorder Type 
 ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type, fill=Disorder_Type))+
   geom_bar()+
   ggtitle("Frequency of Psychiatric Disorder Subtypes") +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  theme(axis.text.x = element_text(angle = 45,hjust = 1),
+        legend.position = "none")+
   xlab("Psychiatric Disorder Subtype")+
   theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
@@ -303,22 +301,63 @@ ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping = aes(x = D
   coord_flip()
 ```
 
+As you can see, the main disorder type in the hospital is mood realted disorders. This shouldn't be supprising as many indiviudals with suicidality (A common hospitalization issue) will meet criteria for a mood disorder. 
 
+### Excluding Mood Disorders
 ```{r}
-library(dplyr)
-library(tidyr)
+# Disorder Type (Without Depression)
+ggplot(data = subset(No_depressy, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type, fill=Disorder_Type))+
+  geom_bar()+
+  ggtitle("Frequency of Psychiatric Disorder Subtypes") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1),
+        legend.position = "none")+
+  xlab("Psychiatric Disorder Subtype")+
+  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,3500))+
+  coord_flip()
+```
 
+### Number of Co-occuring Disorders
+The following visualization looks at the number of disorders people had, but wasn't the main reason they attended the hospital, or their "main" diagnosis.
+```{r}
 Mothership_Current_Long <- Mothership %>%
   pivot_longer(
     cols=c(Anxiety_C, Mood_C, Substance_C, Trauma_C, Psychotic_C, Eating_C,  Somatic_C, OCD_Co_C, BPD_Co_C),
-    names_to = 'Disorder_Present'
-  ) %>%
+    names_to = 'Disorder_Present') %>%
   filter(value != 0) %>%
   select(!value)  %>%
   filter(!is.na(Disorder_Present))%>%
   filter(!is.na(Disorder_Type))
 
-## Figure out how to plot these two 
+ggplot(data = subset(Mothership_Current_Long, !is.na(Disorder_Present)),mapping = aes(x = Disorder_Present, fill=Disorder_Present))+
+  geom_bar()+
+  theme(axis.text.x = element_text(angle = 45,hjust = 1),
+        legend.position = "none") +
+  labs(title = "Number of Co Occuring Psychiatric Diosrders",
+    subtitle = "In Addition to the Primary Diagnosis",
+    x = "Co-Occuring Psychiatric Disorder") +
+    scale_x_discrete(labels=c("Trauma_C" = "Trauma", 
+                            "Substance_C" = "Substance Use",
+                            "Somatic_C" = "Somatic",
+                            "Psychotic_C" = "Psychotic",
+                            "OCD_Co_C" = "OCD",
+                            "Mood_C" = "Mood",
+                            "Eating_C" = "Eating",
+                            "BPD_Co_C" = "BPD",
+                            "Anxiety_C" = "Anxiety")) +
+  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,3500))+
+  coord_flip()
+```
+
+# Primary and Co-occuring Disorders. 
+
+The following visualization shows which disorders are co-occurring with which types of primary diagnoses. 
+```{r}
+library(dplyr)
+library(tidyr)
 
 Mothership_Current_Long %>%
   ggplot(aes(x = Disorder_Type, y = Disorder_Present, color = Disorder_Type)) +
@@ -336,15 +375,10 @@ Mothership_Current_Long %>%
                             "Eating_C" = "Co Eating",
                             "BPD_Co_C" = "Co BPD",
                             "Anxiety_C" = "Co Anxiety")) +
-  labs(
-    title = "Number of Co Occuring Psychiatric Diosrders per Primary Diagnosis",
+  labs(title = "Number of Co Occuring Psychiatric Diosrders per Primary Diagnosis",
     subtitle = "Grouped into subtypes of DSM diagonsis",
     y = "Co-Occuring Psychiatric Disorder",
-    x = "Primary Psychiatric Diagnosis"
-  ) 
-
-
-
+    x = "Primary Psychiatric Diagnosis") 
 ```
 
       

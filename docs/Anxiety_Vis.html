@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Treatment Progression Visualizations</title>
+
+<script src="site_libs/header-attrs-2.19/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">PHP Psychiatric Treatment</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown-header">Home</li>
+<li>
+  <a href="index.html"></a>
+</li>
+<li class="dropdown-header">Background on Patients</li>
+<li>
+  <a href="Data_Import.html"></a>
+</li>
+<li class="dropdown-header">Diagnosis Visualizations</li>
+<li>
+  <a href="Diagnosis_Vis.html"></a>
+</li>
+<li class="dropdown-header">Treatment Progression Visualizations</li>
+<li>
+  <a href="Anxiety_Vis.html"></a>
+</li>
+<li>
+  <a></a>
+</li>
+<li>
+  <a href="Treatment_Outcomes.html"></a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Treatment Progression Visualizations</h1>
+
+</div>
+
+
+<p>The following code visualizes how patients scores on anxiety and
+depression measures change over the duration of treatment based upon
+sociodemographics and treatment information.</p>
+<div id="average-symptom-severity-treatment-progress-charts"
+class="section level1">
+<h1>Average Symptom Severity Treatment Progress Charts</h1>
+<div id="section" class="section level2 tabset">
+<h2 class="tabset"></h2>
+<div id="create-data-frames" class="section level3">
+<h3>Create Data Frames</h3>
+<pre class="r"><code>Mothership_Long &lt;- gather(Mothership,rm,CUXOS,Day1_CUXOS:Day40_CUXOS,factor_key = &quot;T&quot;)
+Mothership_Long &lt;- Mothership_Long[order(Mothership_Long$ID1),]
+
+#Create a Time Variable
+Mothership_Long$TxDay &lt;- NA
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day1_CUXOS&quot;]&lt;-1
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day2_CUXOS&quot;]&lt;-2
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day3_CUXOS&quot;]&lt;-3
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day4_CUXOS&quot;]&lt;-4
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day5_CUXOS&quot;]&lt;-5
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day6_CUXOS&quot;]&lt;-6
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day7_CUXOS&quot;]&lt;-7
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day8_CUXOS&quot;]&lt;-8
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day9_CUXOS&quot;]&lt;-9
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day10_CUXOS&quot;]&lt;-10
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day11_CUXOS&quot;]&lt;-11
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day12_CUXOS&quot;]&lt;-12
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day13_CUXOS&quot;]&lt;-13
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day14_CUXOS&quot;]&lt;-14
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day15_CUXOS&quot;]&lt;-15
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day16_CUXOS&quot;]&lt;-16
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day17_CUXOS&quot;]&lt;-17
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day18_CUXOS&quot;]&lt;-18
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day19_CUXOS&quot;]&lt;-19
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day20_CUXOS&quot;]&lt;-20
+
+#Create a New Data Set with an Average Anxiety Variable
+Mothership_Mean_CUXOS&lt;-Mothership_Long %&gt;%
+  group_by(TxDay) %&gt;%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+# data frame by druation
+Mothership_Mean_CUXOS_duration&lt;-Mothership_Long %&gt;%
+  group_by(Duration,TxDay) %&gt;%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+Mothership_duration_CUXOS&lt;-Mothership_Mean_CUXOS_duration[1:83,]
+
+
+Mothership_Long &lt;- gather(Mothership,rm,CUDOS,Day1_CUDOS:Day40_CUDOS,factor_key = &quot;T&quot;)
+Mothership_Long &lt;- Mothership_Long[order(Mothership_Long$ID1),]
+
+#Create a Time Variable
+Mothership_Long$TxDay &lt;- NA
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day1_CUDOS&quot;]&lt;-1
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day2_CUDOS&quot;]&lt;-2
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day3_CUDOS&quot;]&lt;-3
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day4_CUDOS&quot;]&lt;-4
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day5_CUDOS&quot;]&lt;-5
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day6_CUDOS&quot;]&lt;-6
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day7_CUDOS&quot;]&lt;-7
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day8_CUDOS&quot;]&lt;-8
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day9_CUDOS&quot;]&lt;-9
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day10_CUDOS&quot;]&lt;-10
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day11_CUDOS&quot;]&lt;-11
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day12_CUDOS&quot;]&lt;-12
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day13_CUDOS&quot;]&lt;-13
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day14_CUDOS&quot;]&lt;-14
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day15_CUDOS&quot;]&lt;-15
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day16_CUDOS&quot;]&lt;-16
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day17_CUDOS&quot;]&lt;-17
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day18_CUDOS&quot;]&lt;-18
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day19_CUDOS&quot;]&lt;-19
+Mothership_Long$TxDay[Mothership_Long$rm==&quot;Day20_CUDOS&quot;]&lt;-20
+
+#Create a New Data Set with an Average Anxiety Variable
+Mothership_Mean_CUDOS&lt;-Mothership_Long %&gt;%
+  group_by(TxDay) %&gt;%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))</code></pre>
+</div>
+<div id="anxiety" class="section level3">
+<h3>Anxiety</h3>
+<pre class="r"><code>#Plot the Anxiety Mean for Full Sample
+ggplot(data=Mothership_Mean_CUXOS,aes(x=TxDay,y=mean_CUXOS))+
+  geom_line(size=1,color=&quot;red&quot;)+
+  geom_point(color=&quot;red&quot;)+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  ggtitle(&quot;Mean Anxiety Severity During Partial Hospitalization&quot;)+
+  scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name=&quot;Anxiety Severity&quot;,limits=c(20,40,by=5))+
+  theme(panel.background=NULL)</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>This visualization suggests that some patients get better quickly,
+while those that stay in treatment longer have higher anxiety.</p>
+<div id="plot-means-based-upon-duration-of-treatment"
+class="section level4">
+<h4>Plot means based upon duration of treatment</h4>
+<pre class="r"><code># New dataset for the treatment duration Anxiety plot
+# Mothership_Mean_CUXOS&lt;-Mothership_Long %&gt;%
+#   group_by(Duration,TxDay) %&gt;%
+#   summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+# 
+# Mothership_duration_CUXOS&lt;-Mothership_Mean_CUXOS[1:83,]
+#delete weird Na values and put NA for values
+Mothership_duration_CUXOS[6:20,3] = NA
+Mothership_duration_CUXOS[37:41,3] = NA
+Mothership_duration_CUXOS[74:83,3] = NA
+Mothership_duration_CUXOS&lt;-Mothership_duration_CUXOS[(-21),]
+Mothership_duration_CUXOS&lt;-Mothership_duration_CUXOS[(-41),]
+Mothership_duration_CUXOS&lt;-Mothership_duration_CUXOS[(-61),]
+Mothership_duration_CUXOS</code></pre>
+<pre><code>## # A tibble: 80 × 3
+## # Groups:   Duration [4]
+##    Duration TxDay mean_CUXOS
+##    &lt;fct&gt;    &lt;dbl&gt;      &lt;dbl&gt;
+##  1 1-5          1      35.4 
+##  2 1-5          2      27.8 
+##  3 1-5          3      24.4 
+##  4 1-5          4      20.6 
+##  5 1-5          5       9.98
+##  6 1-5          6      NA   
+##  7 1-5          7      NA   
+##  8 1-5          8      NA   
+##  9 1-5          9      NA   
+## 10 1-5         10      NA   
+## # … with 70 more rows</code></pre>
+<pre class="r"><code>ggplot(data=Mothership_duration_CUXOS,aes(x=TxDay,y=mean_CUXOS,group=Duration,color=Duration))+
+  geom_line(size=1)+
+  geom_point()+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  ggtitle(&quot;Mean Anxiety Severity During Partial Hospitalization&quot;)+
+  scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name=&quot;Anxiety Severity&quot;,limits=c(5,50,by=5))+
+  scale_color_manual(values=c(&quot;#BB9D00&quot;,&quot;red&quot;,
+                              &quot;darkred&quot;,&quot;orange&quot;))+
+  theme(panel.background=NULL)+
+  labs(subtitle = &quot;Broken up by Duration of Treatment&quot;)</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>This shows that those who are in treatment longer tend to have higher
+anxiety than those who are in treatment for less time.</p>
+</div>
+</div>
+<div id="depression" class="section level3">
+<h3>Depression</h3>
+<pre class="r"><code>#Plot the Depression Mean for Full Sample
+ggplot(data=Mothership_Mean_CUDOS,aes(x=TxDay,y=mean_CUDOS))+
+  geom_line(size=1,color=&quot;#0065A3&quot;)+
+  geom_point(color=&quot;#0065A3&quot;)+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  ggtitle(&quot;Mean Depression Severity During Partial Hospitalization&quot;)+
+  scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name=&quot;Depression Severity&quot;,limits=c(20,35,by=5))+
+  theme(panel.background=NULL) </code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<div id="plot-means-based-upon-duration-of-treatment-1"
+class="section level4">
+<h4>Plot means based upon duration of treatment</h4>
+<pre class="r"><code>#plot depression mean with each group
+
+# New dataset for the treatment duration depression plot
+Mothership_Mean_CUDOS&lt;-Mothership_Long %&gt;%
+  group_by(Duration,TxDay) %&gt;%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+
+Mothership_duration_CUDOS&lt;-Mothership_Mean_CUDOS[1:83,]
+#delete weird Na values and put NA for values
+Mothership_duration_CUDOS[6:20,3] = NA
+Mothership_duration_CUDOS[37:41,3] = NA
+Mothership_duration_CUDOS[74:83,3] = NA
+Mothership_duration_CUDOS&lt;-Mothership_duration_CUDOS[(-21),]
+Mothership_duration_CUDOS&lt;-Mothership_duration_CUDOS[(-41),]
+Mothership_duration_CUDOS&lt;-Mothership_duration_CUDOS[(-61),]
+Mothership_duration_CUDOS</code></pre>
+<pre><code>## # A tibble: 80 × 3
+## # Groups:   Duration [4]
+##    Duration TxDay mean_CUDOS
+##    &lt;fct&gt;    &lt;dbl&gt;      &lt;dbl&gt;
+##  1 1-5          1       31.1
+##  2 1-5          2       24.0
+##  3 1-5          3       21.3
+##  4 1-5          4       18.6
+##  5 1-5          5       16.1
+##  6 1-5          6       NA  
+##  7 1-5          7       NA  
+##  8 1-5          8       NA  
+##  9 1-5          9       NA  
+## 10 1-5         10       NA  
+## # … with 70 more rows</code></pre>
+<pre class="r"><code>ggplot(data=Mothership_duration_CUDOS,aes(x=TxDay,y=mean_CUDOS,group=Duration,color=Duration))+
+  geom_line(size=1)+
+  geom_point()+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  ggtitle(&quot;Mean Depression Severity During Partial Hospitalization&quot;)+
+  labs(subtitle = &quot;Broken up by Discharge Date&quot;)+
+  scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name=&quot;Depression Severity&quot;,limits=c(15,40,by=5))+
+  scale_color_manual(values=c(&quot;skyblue&quot;,&quot;#0065A3&quot;,
+                              &quot;navy&quot;,&quot;blue&quot;))+
+  theme(panel.background=NULL)</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+</div>
+</div>
+</div>
+<div id="treatment-progress-by-race" class="section level1">
+<h1>Treatment Progress by Race</h1>
+<div id="section-1" class="section level2 tabset">
+<h2 class="tabset"></h2>
+<div id="anxiety-1" class="section level3">
+<h3>Anxiety</h3>
+<pre class="r"><code>Mothership&lt;-read.csv(&quot;~/Desktop/Coding/data/Mothership_Vis.csv&quot;)
+Mothership&lt;-mutate(Mothership,
+      DC_status_1 = as.factor(DC_status_1),
+      Education_1 = as.factor(Education_1),
+      Gender_1 = as.factor(Gender_1),
+      Relationship_1 = as.factor(Relationship_1),
+      Sexuality_1 = as.factor(Sexuality_1),
+      IPT_track_1 = as.factor(IPT_track_1),
+      Race_1 = as.factor(Race_1),
+      Education_1 = as.factor(Education_1),
+      Duration = as.factor(Duration),
+      )
+
+
+Mothership$Intake_1&lt;-ymd(Mothership$Intake_1,locale = &quot;en_US.UTF-8&quot;)
+
+Mothership_Long_anx &lt;- gather(Mothership,rm,CUXOS,Day1_CUXOS:Day40_CUXOS,factor_key = &quot;T&quot;)
+Mothership_Long_anx &lt;- Mothership_Long_anx[order(Mothership_Long_anx$ID1),]
+
+#Create a Time Variable
+Mothership_Long_anx$TxDay &lt;- NA
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm==&quot;Day1_CUXOS&quot;]&lt;-1
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm==&quot;Day2_CUXOS&quot;]&lt;-2
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm==&quot;Day3_CUXOS&quot;]&lt;-3
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm==&quot;Day4_CUXOS&quot;]&lt;-4
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm==&quot;Day5_CUXOS&quot;]&lt;-5
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm==&quot;Day6_CUXOS&quot;]&lt;-6
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm==&quot;Day7_CUXOS&quot;]&lt;-7
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm==&quot;Day8_CUXOS&quot;]&lt;-8
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm==&quot;Day9_CUXOS&quot;]&lt;-9
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm==&quot;Day10_CUXOS&quot;]&lt;-10
+
+#Overall race
+Mothership_Mean_CUXOS_Race&lt;-Mothership_Long_anx %&gt;%
+  group_by(TxDay,Race_1) %&gt;%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+Mothership_Mean_CUXOS_Race&lt;-Mothership_Mean_CUXOS_Race[1:70,]
+Mothership_Mean_CUXOS_Race</code></pre>
+<pre><code>## # A tibble: 70 × 3
+## # Groups:   TxDay [10]
+##    TxDay Race_1    mean_CUXOS
+##    &lt;dbl&gt; &lt;fct&gt;          &lt;dbl&gt;
+##  1     1 Asian           31.2
+##  2     1 Black           36.3
+##  3     1 Hispanic        43.0
+##  4     1 Other           39.7
+##  5     1 Portugese       39.2
+##  6     1 White           37.5
+##  7     1 &lt;NA&gt;            40  
+##  8     2 Asian           25.7
+##  9     2 Black           29.7
+## 10     2 Hispanic        36.8
+## # … with 60 more rows</code></pre>
+<pre class="r"><code># plot
+ggplot(data=subset(Mothership_Mean_CUXOS_Race,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Race_1,color=Race_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(title =&quot;Anxiety Severity by Race During Partial Hospitalization&quot;)+
+  scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Anxiety Severity&quot;,limits=c(0,60,by=5))+
+  scale_color_manual(values=c(&quot;#DA2E2E&quot;,&quot;#57423E&quot;,
+                              &quot;gold3&quot;,&quot;#3E8300&quot;,
+                              &quot;#77B81C&quot;,&quot;darkorange2&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+<div id="depression-1" class="section level3">
+<h3>Depression</h3>
+<pre class="r"><code>Mothership_Long_dep &lt;- gather(Mothership,rm,CUDOS,Day1_CUDOS:Day40_CUDOS,factor_key = &quot;T&quot;)
+Mothership_Long_dep &lt;- Mothership_Long_dep[order(Mothership_Long_dep$ID1),]
+
+#Create a Time Variable
+Mothership_Long_dep$TxDay &lt;- NA
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm==&quot;Day1_CUDOS&quot;]&lt;-1
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm==&quot;Day2_CUDOS&quot;]&lt;-2
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm==&quot;Day3_CUDOS&quot;]&lt;-3
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm==&quot;Day4_CUDOS&quot;]&lt;-4
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm==&quot;Day5_CUDOS&quot;]&lt;-5
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm==&quot;Day6_CUDOS&quot;]&lt;-6
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm==&quot;Day7_CUDOS&quot;]&lt;-7
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm==&quot;Day8_CUDOS&quot;]&lt;-8
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm==&quot;Day9_CUDOS&quot;]&lt;-9
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm==&quot;Day10_CUDOS&quot;]&lt;-10
+
+
+#Overall race
+Mothership_Mean_CUDOS_Race&lt;-Mothership_Long_dep %&gt;%
+  group_by(TxDay,Race_1) %&gt;%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+# plot
+ggplot(data=subset(Mothership_Mean_CUDOS_Race,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Race_1,color=Race_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(title =&quot;Depression Severity by Race During Partial Hospitalization&quot;)+
+  scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Depression Severity&quot;,limits=c(10,40,by=5))+
+  scale_color_manual(values=c(&quot;#209845&quot;,&quot;#3D4A3E&quot;,&quot;darkgreen&quot;,
+                              &quot;#0098DB&quot;,&quot;#0065A3&quot;,&quot;#A0AFA1&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(data=subset(Mothership_Mean_CUDOS_Race,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Race_1,color=Race_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(title =&quot;Depression Severity by Race During Partial Hospitalization&quot;)+
+  scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Depression Severity&quot;,limits=c(10,40,by=5))+
+  scale_color_manual(values=c(&quot;#209845&quot;,&quot;lightgrey&quot;,&quot;lightgrey&quot;,
+                              &quot;lightgrey&quot;,&quot;lightgrey&quot;,&quot;lightgrey&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-8-2.png" width="672" /></p>
+<pre class="r"><code>ggplot(data=subset(Mothership_Mean_CUDOS_Race,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Race_1,color=Race_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(title =&quot;Depression Severity by Race During Partial Hospitalization&quot;)+
+  scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Depression Severity&quot;,limits=c(10,40,by=5))+
+  scale_color_manual(values=c(&quot;lightgrey&quot;,&quot;lightgrey&quot;,&quot;darkgreen&quot;,
+                              &quot;lightgrey&quot;,&quot;#0065A3&quot;,&quot;lightgrey&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-8-3.png" width="672" /></p>
+</div>
+</div>
+</div>
+<div id="treatment-progress-by-gender-idenitity" class="section level1">
+<h1>Treatment Progress by Gender Idenitity</h1>
+<div id="section-2" class="section level2 tabset">
+<h2 class="tabset"></h2>
+<div id="anxiety-2" class="section level3">
+<h3>Anxiety</h3>
+<pre class="r"><code>#GENDER IDENTITY
+#Create a New Data Set with an Average Anxiety Variable and Gender
+
+
+
+Mothership_Mean_CUXOS_Gender&lt;-Mothership_Long_anx %&gt;%
+  group_by(TxDay,Gender_1) %&gt;%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+Mothership_Mean_CUXOS_Gender &lt;-filter(Mothership_Mean_CUXOS_Gender,
+                                      Gender_1 != &quot;Unknown&quot;,
+                                      Gender_1 != &quot;Non-Binary&quot;,
+                                      Gender_1 != &quot;Other&quot;
+                                        )
+
+#Create the Anxiety Line Graph by Gender
+ggplot(data=subset(Mothership_Mean_CUXOS_Gender,!is.na(Gender_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Gender_1,color=Gender_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle(&quot;Anxiety Severity by Gender During Partial Hospitalization&quot;)+
+  scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Anxiety Severity&quot;,limits=c(15,45,by=5))+
+  scale_color_manual(values=c(&quot;#DA2E2E&quot;,&quot;#57423E&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="depression-2" class="section level3">
+<h3>Depression</h3>
+<pre class="r"><code>#Create a New Data Set with an Average Depression Variable and Gender
+Mothership_Mean_CUDOS_Gender&lt;-Mothership_Long_dep %&gt;%
+  group_by(TxDay,Gender_1) %&gt;%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+
+Mothership_Mean_CUDOS_Gender &lt;-filter(Mothership_Mean_CUDOS_Gender,
+                                      Gender_1 != &quot;Unknown&quot;,
+                                      Gender_1 != &quot;Non-Binary&quot;,
+                                      Gender_1 != &quot;Other&quot;
+                                        )
+#Create the Depression Line Graph by Gender
+ggplot(data=subset(Mothership_Mean_CUDOS_Gender,!is.na(Gender_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Gender_1,color=Gender_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle(&quot;Depression Severity by Gender During Partial Hospitalization&quot;)+
+  scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Depression Severity&quot;,limits=c(15,45,by=5))+
+  scale_color_manual(values=c(&quot;#209845&quot;,&quot;#3D4A3E&quot;,&quot;#A0AFA1&quot;,
+                              &quot;#0098DB&quot;,&quot;#0065A3&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+</div>
+</div>
+</div>
+<div id="treatment-progress-by-treatment-track" class="section level1">
+<h1>Treatment Progress by Treatment Track</h1>
+<div id="section-3" class="section level2 tabset">
+<h2 class="tabset"></h2>
+<div id="anxiety-3" class="section level3">
+<h3>Anxiety</h3>
+<pre class="r"><code>#Create a New Data Set with an Average Anxiety Variable and Track
+Mothership_Mean_CUXOS_Track&lt;-Mothership_Long_anx %&gt;%
+  group_by(TxDay,IPT_track_1) %&gt;%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+#Create the Anxiety Line Graph by Treatment Track
+ggplot(data=subset(Mothership_Mean_CUXOS_Track,!is.na(IPT_track_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=IPT_track_1,color=IPT_track_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle(&quot;Anxiety Severity by Treatment Track During Partial Hospitalization&quot;)+
+  scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Anxiety Severity&quot;,limits=c(20,46,by=5))+
+  scale_color_manual(values=c(&quot;#DA2E2E&quot;,&quot;#57423E&quot;,&quot;gold3&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+<div id="depression-3" class="section level3">
+<h3>Depression</h3>
+<pre class="r"><code>#Create a New Data Set with an Average Depression Variable and Track
+Mothership_Mean_CUDOS_Track&lt;-Mothership_Long_dep %&gt;%
+  group_by(TxDay,IPT_track_1) %&gt;%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+
+#Create the Depression Line Graph by Treatment Track
+ggplot(data=subset(Mothership_Mean_CUDOS_Track,!is.na(IPT_track_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=IPT_track_1,color=IPT_track_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle(&quot;Depression Severity by Treatment Track During Partial Hospitalization&quot;)+
+  scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Depression Severity&quot;,limits=c(20,40,by=5))+
+  scale_color_manual(values=c(&quot;#209845&quot;,&quot;#3D4A3E&quot;,&quot;#0065A3&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+</div>
+</div>
+</div>
+<div id="treatment-progress-by-education" class="section level1">
+<h1>Treatment progress by Education</h1>
+<div id="section-4" class="section level2 tabset">
+<h2 class="tabset"></h2>
+<div id="anxiety-4" class="section level3">
+<h3>Anxiety</h3>
+<pre class="r"><code>#Create a New Data Set with an Average Anxiety Variable and Education
+Mothership_Mean_CUXOS_Ed&lt;-Mothership_Long_anx %&gt;%
+  group_by(TxDay,Education_1) %&gt;%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+#Create the Anxiety Line Graph by Education
+ggplot(data=subset(Mothership_Mean_CUXOS_Ed,!is.na(Education_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle(&quot;Anxiety Severity by Education Level During Partial Hospitalization&quot;)+
+    scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Anxiety Severity&quot;,limits=c(20,50,by=5))+
+  scale_color_manual(values=c(&quot;#DA2E2E&quot;,&quot;#57423E&quot;,
+                              &quot;gold3&quot;,&quot;#3E8300&quot;,
+                              &quot;#77B81C&quot;,&quot;darkorange2&quot;,
+                              &quot;#798897&quot;,&quot;#FD85AE&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(data=subset(Mothership_Mean_CUXOS_Ed,!is.na(Education_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle(&quot;Anxiety Severity by Education Level During Partial Hospitalization&quot;)+
+    scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Anxiety Severity&quot;,limits=c(20,50,by=5))+
+  scale_color_manual(values=c(&quot;#DA2E2E&quot;,&quot;lightgrey&quot;,&quot;lightgrey&quot;,
+                              &quot;gold3&quot;,&quot;lightgrey&quot;,&quot;lightgrey&quot;,
+                              &quot;lightgrey&quot;,&quot;lightgrey&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-13-2.png" width="672" /></p>
+</div>
+<div id="depression-4" class="section level3">
+<h3>Depression</h3>
+<pre class="r"><code>#Create a New Data Set with an Average Depression Variable and Education
+Mothership_Mean_CUDOS_Ed&lt;-Mothership_Long_dep %&gt;%
+  group_by(TxDay,Education_1) %&gt;%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+
+#Create the Depression Line Graph by Education
+ggplot(data=subset(Mothership_Mean_CUDOS_Ed,!is.na(Education_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Education_1,color=Education_1))+
+  geom_line(size=.75)+
+  geom_point(size=.75)+
+  ggtitle(&quot;Depression Severity by Education Level During Partial Hospitalization&quot;)+
+    scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Depression Severity&quot;,limits=c(20,38,by=5))+
+  scale_color_manual(values=c(&quot;#209845&quot;,&quot;#3D4A3E&quot;,&quot;#A0AFA1&quot;,
+                              &quot;#0098DB&quot;,&quot;#0065A3&quot;,&quot;darkgreen&quot;,
+                              &quot;#91A9F1&quot;,&quot;#7F8559&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(data=subset(Mothership_Mean_CUDOS_Ed,!is.na(Education_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Education_1,color=Education_1))+
+  geom_line(size=.75)+
+  geom_point(size=.75)+
+  ggtitle(&quot;Depression Severity by Education Level During Partial Hospitalization&quot;)+
+    scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Depression Severity&quot;,limits=c(20,38,by=5))+
+  scale_color_manual(values=c(&quot;#209845&quot;,&quot;lightgrey&quot;,&quot;lightgrey&quot;,
+                              &quot;#0098DB&quot;,&quot;lightgrey&quot;,&quot;lightgrey&quot;,
+                              &quot;lightgrey&quot;,&quot;lightgrey&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-14-2.png" width="672" /></p>
+</div>
+</div>
+</div>
+<div id="treatment-progress-by-treatment-year" class="section level1">
+<h1>Treatment Progress by Treatment Year</h1>
+<div id="section-5" class="section level2 tabset">
+<h2 class="tabset"></h2>
+<div id="anxiety-5" class="section level3">
+<h3>Anxiety</h3>
+<pre class="r"><code>#Create a New Data Set with an Average Anxiety Variable and Year
+Mothership_Mean_CUXOS_Year&lt;-Mothership_Long_anx %&gt;%
+  group_by(TxDay,TxYear) %&gt;%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+
+#Create the Anxiety Line Graph by Year
+ggplot(data=subset(Mothership_Mean_CUXOS_Year,!is.na(TxYear)),
+       aes(x=TxDay,y=mean_CUXOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle(&quot;Anxiety Severity by Treatment Year During Partial Hospitalization&quot;)+
+    scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Anxiety Severity&quot;,limits=c(15,50,by=5))+
+  scale_color_manual(values=c(&quot;#DA2E2E&quot;,&quot;#57423E&quot;,
+                              &quot;gold3&quot;,&quot;#3E8300&quot;,
+                              &quot;#77B81C&quot;,&quot;darkorange2&quot;,
+                              &quot;firebrick4&quot;,&quot;#FD85AE&quot;,&quot;#798897&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(data=subset(Mothership_Mean_CUXOS_Year,!is.na(TxYear)),
+       aes(x=TxDay,y=mean_CUXOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle(&quot;Anxiety Severity by Treatment Year During Partial Hospitalization&quot;)+
+    scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Anxiety Severity&quot;,limits=c(15,50,by=5))+
+  scale_color_manual(values=c(&quot;lightgrey&quot;,&quot;lightgrey&quot;,
+                              &quot;lightgrey&quot;,&quot;lightgrey&quot;,
+                              &quot;lightgrey&quot;,&quot;lightgrey&quot;,
+                              &quot;firebrick4&quot;,&quot;lightgrey&quot;,&quot;lightgrey&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-15-2.png" width="672" /></p>
+</div>
+<div id="depresssion" class="section level3">
+<h3>Depresssion</h3>
+<pre class="r"><code>#Create a New Data Set with an Average Depression Variable and Year
+Mothership_Mean_CUDOS_Year&lt;-Mothership_Long_dep %&gt;%
+  group_by(TxDay,TxYear) %&gt;%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+
+str(Mothership_Long_dep$TxYear)</code></pre>
+<pre><code>##  int [1:346680] 2014 2014 2014 2014 2014 2014 2014 2014 2014 2014 ...</code></pre>
+<pre class="r"><code>#Create the Depression Line Graph by Year
+ggplot(data=subset(Mothership_Mean_CUDOS_Year,!is.na(TxYear)),
+       aes(x=TxDay,y=mean_CUDOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle(&quot;Depression Severity by Treatment Year During Partial Hospitalization&quot;)+
+    scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Depression Severity&quot;,limits=c(20,40,by=5))+
+  scale_color_manual(values=c(&quot;#209845&quot;,&quot;#3D4A3E&quot;,&quot;#A0AFA1&quot;,
+                              &quot;#0098DB&quot;,&quot;#91A9F1&quot;,&quot;darkgreen&quot;,
+                              &quot;#0065A3&quot;,&quot;#7F8559&quot;,&quot;#4B5D8E&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<pre class="r"><code>#Create the Depression Line Graph by Year
+ggplot(data=subset(Mothership_Mean_CUDOS_Year,!is.na(TxYear)),
+       aes(x=TxDay,y=mean_CUDOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle(&quot;Depression Severity by Treatment Year During Partial Hospitalization&quot;)+
+    scale_x_discrete(name=&quot;Treatment Day&quot;,limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name=&quot;Depression Severity&quot;,limits=c(20,40,by=5))+
+  scale_color_manual(values=c(&quot;lightgrey&quot;,&quot;lightgrey&quot;,&quot;lightgrey&quot;,
+                              &quot;lightgrey&quot;,&quot;lightgrey&quot;,&quot;lightgrey&quot;,
+                              &quot;#0065A3&quot;,&quot;lightgrey&quot;,&quot;lightgrey&quot;))+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())</code></pre>
+<p><img src="Anxiety_Vis_files/figure-html/unnamed-chunk-16-2.png" width="672" /></p>
+</div>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

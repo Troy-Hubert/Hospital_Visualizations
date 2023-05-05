@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Diagnosis Visualizations</title>
+
+<script src="site_libs/header-attrs-2.19/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">PHP Psychiatric Treatment</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown-header">Home</li>
+<li>
+  <a href="index.html"></a>
+</li>
+<li class="dropdown-header">Background on Patients</li>
+<li>
+  <a href="Data_Import.html"></a>
+</li>
+<li class="dropdown-header">Diagnosis Visualizations</li>
+<li>
+  <a href="Diagnosis_Vis.html"></a>
+</li>
+<li class="dropdown-header">Treatment Progression Visualizations</li>
+<li>
+  <a href="Anxiety_Vis.html"></a>
+</li>
+<li>
+  <a></a>
+</li>
+<li>
+  <a href="Treatment_Outcomes.html"></a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Diagnosis Visualizations</h1>
+
+</div>
+
+
+<p>The following code creates visualizations for diagnostic related
+information. The main difficulty of these visualizations was getting
+diagnostic variables correctly coded so there was not overlap or double
+acounting for conditions.</p>
+<div id="create-diagnosis-variables" class="section level1">
+<h1>Create Diagnosis Variables</h1>
+<pre class="r"><code>Mothership&lt;-Mothership %&gt;%
+  mutate(
+          # Mood Disorders
+                     Mood_D = as.factor(
+                      ifelse(
+                        MDD_P ==1 | Bipolar1_P == 1 | Bipolar2_P == 1 | Dysthymia_P == 1, 1, 0)),
+          # Anxiety Disorders
+                    Anxiety_D = as.factor(
+                      ifelse(
+                        GAD_P ==1 | Panic_P == 1 | PanicAgor_P == 1 | Agoraphobia_P == 1 |
+                        Social_P == 1 | Specific_P == 1, 1, 0)),
+          # Obsessive Compusive Disorders
+                #OCD_P is for current OCD
+          # Personality Disorders
+                #BPD_P is for current BPD
+          # Substance Use Disorders
+                    Substance_D = as.factor(
+                      ifelse(
+                        Alcohol_P == 1 | Drug_P ==1, 1, 0)),
+          # Trauma or stresor related disorders
+                    Trauma_D = as.factor(
+                      ifelse(PTSD_P == 1 | Adjustment_P ==1, 1,0)),
+          # Psychotic Disorders
+                    Psychotic_D = as.factor(
+                      ifelse(
+                        Schiz_P == 1 | Schizaff_P == 1,1,0)),
+            # Eating Disorders
+                    Eating_D = as.factor(
+                      ifelse(
+                        Anorex_P == 1 | Bulim_P == 1 | Binge_P == 1, 1,0)),
+            # Somatic Disroders
+                    Somatic_D = as.factor(
+                      ifelse(
+                        Somat_P == 1 | UndiffSoma_P == 1| Hypochondriasis_P ==1,
+                        1,0)),
+                    Disorder_Type = as.factor(
+                      ifelse(Anxiety_D == 1, &quot;Anxiety&quot;,
+                      ifelse(OCD_P == 1, &quot;OCD&quot;,
+                      ifelse(BPD_P == 1, &quot;BPD&quot;,
+                      ifelse(Substance_D == 1, &quot;Substance Use&quot;,
+                      ifelse(Trauma_D == 1, &quot;Trauma&quot;,
+                      ifelse(Mood_D == 1, &quot;Mood&quot;,
+                      ifelse(Psychotic_D == 1, &quot;Psychotic&quot;, 
+                      ifelse(Eating_D == 1, &quot;Eating&quot;, 
+                      ifelse(Somatic_D == 1, &quot;Somatic&quot;, NA
+                      )))))))))),
+                  Anxiety_C =  as.factor(
+                    ifelse( GAD_P !=1 &amp; GAD_C ==1 | 
+                        Panic_P != 1 &amp; Panic_C == 1 | 
+                        PanicAgor_P != 1 &amp; PanicAgor_C == 1 | 
+                        Agoraphobia_P != 1 &amp; Agoraphobia_C == 1 |
+                        Social_P != 1 &amp; Social_C == 1 | 
+                        Specific_P != 1 &amp; Specific_C == 1, 1, 0)),
+                  Mood_C =  as.factor(
+                    ifelse( MDD_P != 1 &amp; MDD_C == 1 |
+                        Bipolar1_P != 1 &amp; Bipolar1_C == 1 | 
+                        Bipolar2_P != 1 &amp;  Bipolar2_C == 1 | 
+                        Dysthymia_P != 1 &amp; Dysthymia_C == 1 , 1, 0)),
+                  Substance_C = as.factor(
+                    ifelse(Alcohol_P != 1 &amp; Alcohol_C == 1 | 
+                        Drug_P != 1 &amp; Drug_C ==1, 1, 0)),
+                  Trauma_C = as.factor(
+                    ifelse(PTSD_P != 1 &amp; PTSD_C == 1 | 
+                        Adjustment_P != 1 &amp; Adjustment_C ==1, 1,0)),
+                  Psychotic_C = as.factor(
+                    ifelse(Schiz_P != 1 &amp; Schiz_C == 1 | 
+                        Schizaff_P != 1 &amp; Schizaff_C == 1,1,0)),
+                  Eating_C = as.factor(
+                    ifelse(Anorex_P != 1 &amp; Anorex_C == 1 | 
+                        Bulim_P != 1 &amp; Bulim_C == 1 | 
+                        Binge_P != 1 &amp; Binge_C == 1, 1,0)),
+                  Somatic_C = as.factor(
+                    ifelse(Somat_P != 1 &amp; Somat_C == 1 | 
+                        UndiffSoma_P != 1 &amp; UndiffSoma_C == 1 | 
+                        Hypochondriasis_P != 1 &amp;  Hypochondriasis_C == 1, 1,0)),
+                  OCD_Co_C = as.factor(
+                    ifelse(OCD_P != 1 &amp; OCD_C == 1,1,0)),
+                  BPD_Co_C = as.factor(
+                    ifelse(BPD_P != 1 &amp; BPD_C ==1,1,0)),
+          #emotional disorders
+                  Emotional_dis = as.factor(
+                    ifelse(Anxiety_D == 1 | OCD_P == 1 | Trauma_D == 1 |
+                           Mood_D == 1, &quot;Emotional Disorder&quot;, &quot;Other Disorder&quot;)),
+                  Co_Anx = as.factor(
+                        ifelse(Anxiety_D == 1 &amp; Mood_C == 1 |
+                                Anxiety_D == 1 &amp; OCD_C == 1 |
+                                Anxiety_D == 1 &amp; BPD_C == 1 |
+                                Anxiety_D == 1 &amp; Substance_C == 1 |
+                                Anxiety_D == 1 &amp; Trauma_C == 1 |
+                                Anxiety_D == 1 &amp; Eating_C ==1 |
+                                Anxiety_D == 1 &amp; Psychotic_C ==1 |
+                                Anxiety_D == 1 &amp; Somatic_C ==1, 1, 0)),
+                  Co_Mood = as.factor(
+                        ifelse(Mood_D == 1 &amp; Anxiety_C == 1 |
+                                Mood_D == 1 &amp; OCD_C == 1 |
+                                Mood_D == 1 &amp; BPD_C == 1 |
+                                Mood_D == 1 &amp; Substance_C == 1 |
+                                Mood_D == 1 &amp; Trauma_C == 1 |
+                                Mood_D == 1 &amp; Eating_C ==1 |
+                                Mood_D == 1 &amp; Psychotic_C ==1 |
+                                Mood_D == 1 &amp; Somatic_C ==1 , 1, 0)),
+                  Co_OCD = as.factor(
+                        ifelse(OCD_C == 1 &amp; Anxiety_C == 1 |
+                                OCD_C == 1 &amp; Mood_C == 1 |
+                                OCD_C == 1 &amp; BPD_C == 1 |
+                                OCD_C == 1 &amp; Substance_C == 1 |
+                                OCD_C == 1 &amp; Trauma_C == 1 |
+                                OCD_C == 1 &amp; Eating_C ==1 |
+                                OCD_C == 1 &amp; Psychotic_C ==1 |
+                                OCD_C == 1 &amp; Somatic_C ==1, 1, 0)),
+                  CO_BPD = as.factor(
+                        ifelse(BPD_C == 1 &amp; Anxiety_C == 1 |
+                                BPD_C == 1 &amp; Mood_C == 1 |
+                                BPD_C == 1 &amp; OCD_C == 1 |
+                                BPD_C == 1 &amp; Substance_C == 1 |
+                                BPD_C == 1 &amp; Trauma_C == 1 |
+                                BPD_C == 1 &amp; Eating_C ==1 |
+                                BPD_C == 1 &amp; Psychotic_C ==1 |
+                                BPD_C == 1 &amp; Somatic_C ==1 , 1, 0)),
+                  CO_Psychotic = as.factor(
+                       ifelse(Psychotic_D == 1 &amp; Mood_C == 1 |
+                                Psychotic_D == 1 &amp; OCD_C == 1 |
+                                Psychotic_D == 1 &amp; BPD_C == 1 |
+                                Psychotic_D == 1 &amp; Substance_C == 1 |
+                                Psychotic_D == 1 &amp; Trauma_C == 1 |
+                                Psychotic_D == 1 &amp; Eating_C ==1 |
+                                Psychotic_D == 1 &amp; Anxiety_C ==1 |
+                                Psychotic_D == 1 &amp; Somatic_C ==1, 1, 0)),
+                  CO_Eating = as.factor(
+                      ifelse(Eating_D == 1 &amp; Mood_C == 1 |
+                                Eating_D == 1 &amp; OCD_C == 1 |
+                                Eating_D == 1 &amp; BPD_C == 1 |
+                                Eating_D == 1 &amp; Substance_C == 1 |
+                                Eating_D == 1 &amp; Trauma_C == 1 |
+                                Eating_D == 1 &amp; Psychotic_C ==1 |
+                                Eating_D == 1 &amp; Anxiety_C ==1 |
+                                Eating_D == 1 &amp; Somatic_C ==1, 1, 0)),
+                  CO_Somatic =  as.factor(
+                       ifelse(Somatic_D == 1 &amp; Mood_C == 1 |
+                                Somatic_D == 1 &amp; OCD_C == 1 |
+                                Somatic_D == 1 &amp; BPD_C == 1 |
+                                Somatic_D == 1 &amp; Substance_C == 1 |
+                                Somatic_D == 1 &amp; Trauma_C == 1 |
+                                Somatic_D == 1 &amp; Eating_C ==1 |
+                                Somatic_D == 1 &amp; Anxiety_C ==1 |
+                                Somatic_D == 1 &amp; Psychotic_C ==1, 1, 0)))
+
+##### df for plots 
+
+# df without NAs in date and disorder type
+Mothership_Diag &lt;- Mothership %&gt;%
+  filter(!is.na(Disorder_Type))%&gt;%
+  filter(!is.na(TxYear))
+
+# df with and without depression
+No_depressy &lt;- Mothership_Diag %&gt;%
+  filter(Disorder_Type != &quot;Mood&quot;)</code></pre>
+</div>
+<div id="number-of-disorders-treated-over-time" class="section level1">
+<h1>Number of Disorders Treated Over Time</h1>
+<div id="section" class="section level2 tabset">
+<h2 class="tabset"></h2>
+<div id="all-disorders" class="section level3">
+<h3>All Disorders</h3>
+<pre class="r"><code># Libraries
+library(ggplot2)
+#install.packages(&quot;hrbrthemes&quot;)
+library(hrbrthemes)
+library(dplyr)
+library(tidyr)
+library(viridis)
+
+
+# Stacked
+ggplot(data=subset(Mothership_Diag, !is.na(Disorder_Type)), 
+       mapping= aes(x=TxYear, y = stat(count),
+                    group=Disorder_Type, fill=Disorder_Type)) +
+    geom_density(adjust=1.5,alpha=.4,position=&quot;fill&quot;) +
+    theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+     theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+     xlab(&quot;Treatment Year&quot;) +
+  theme(panel.background=NULL) +
+    facet_wrap(~Emotional_dis)+
+  labs(
+    title = &quot;Type of Disorders Treated at the Hospital Per Year&quot;,
+    subtitle = &quot;Broken Up By Disorder Types&quot;) +
+    xlab(&quot;Treatment Year&quot;) +
+    ylab(&quot;Percent of Patients With Disorder&quot;)</code></pre>
+<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<pre class="r"><code># Broken up by disorder. 
+ggplot(data=subset(Mothership_Diag, !is.na(Disorder_Type)), 
+    mapping= aes(x=TxYear,y = stat(count),
+                 group=Disorder_Type, fill=Disorder_Type)) +
+  geom_density(adjust=1.5,alpha=.6) +
+  facet_wrap(~Disorder_Type)+
+  theme_classic()+
+    theme(
+      panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2),
+      axis.text.x = element_text(angle = 45,hjust = 1),
+      legend.position=&quot;none&quot;,
+      panel.spacing = unit(0.1, &quot;lines&quot;),
+      axis.ticks.x=element_blank(),
+      panel.background=NULL) +
+  labs(
+    title = &quot;Type of Disorders Treated at the Hospital Per Year&quot;,
+    subtitle = &quot;Broken Up By Dmotional vs Other Disorders&quot;) +
+    xlab(&quot;Treatment Year&quot;) +
+    ylab(&quot;Number of Patients With Disorder&quot;)</code></pre>
+<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-2-2.png" width="672" />
+### Excluding Mood Disorders</p>
+<pre class="r"><code># without depression
+ggplot(data=subset(No_depressy, !is.na(Disorder_Type)), 
+    mapping= aes(x=TxYear,y = stat(count),
+                 group=Disorder_Type, fill=Disorder_Type)) +
+  geom_density(adjust=1.5,alpha=.6) +
+  facet_wrap(~Disorder_Type)+
+  theme_classic()+
+    theme(
+      panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2),
+      axis.text.x = element_text(angle = 45,hjust = 1),
+      legend.position=&quot;none&quot;,
+      panel.spacing = unit(0.1, &quot;lines&quot;),
+      axis.ticks.x=element_blank(),
+      panel.background=NULL) +
+  labs(
+    title = &quot;Type of Disorders Treated at the Hospital Per Year&quot;,
+    subtitle = &quot;Broken Up By Dmotional vs Other Disorders&quot;) +
+    xlab(&quot;Treatment Year&quot;) +
+    ylab(&quot;Number of Patients With Disorder&quot;)</code></pre>
+<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+</div>
+</div>
+<div id="amount-of-disorder-type-treated" class="section level1">
+<h1>Amount of Disorder Type Treated</h1>
+<p>Grouped into DSM chapter subtypes (e.g., Mood Disorder = Major
+Depressive Disorder, Bipolar 1 &amp; 2, etc.)</p>
+<div id="amount-of-primary-diagnoses" class="section level3">
+<h3>Amount of Primary Diagnoses</h3>
+<pre class="r"><code># Disorder Type 
+ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type, fill=Disorder_Type))+
+  geom_bar()+
+  ggtitle(&quot;Frequency of Psychiatric Disorder Subtypes&quot;) +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1),
+        legend.position = &quot;none&quot;)+
+  xlab(&quot;Psychiatric Disorder Subtype&quot;)+
+  theme(panel.grid.major.x = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = &quot;Frequency&quot;,limits=c(0,3500))+
+  coord_flip()</code></pre>
+<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>As you can see, the main disorder type in the hospital is mood
+realted disorders. This shouldn’t be supprising as many indiviudals with
+suicidality (A common hospitalization issue) will meet criteria for a
+mood disorder.</p>
+</div>
+<div id="excluding-mood-disorders" class="section level3">
+<h3>Excluding Mood Disorders</h3>
+<pre class="r"><code># Disorder Type (Without Depression)
+ggplot(data = subset(No_depressy, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type, fill=Disorder_Type))+
+  geom_bar()+
+  ggtitle(&quot;Frequency of Psychiatric Disorder Subtypes&quot;) +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1),
+        legend.position = &quot;none&quot;)+
+  xlab(&quot;Psychiatric Disorder Subtype&quot;)+
+  theme(panel.grid.major.x = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = &quot;Frequency&quot;,limits=c(0,3500))+
+  coord_flip()</code></pre>
+<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+</div>
+<div id="number-of-co-occuring-disorders" class="section level3">
+<h3>Number of Co-occuring Disorders</h3>
+<p>The following visualization looks at the number of disorders people
+had, but wasn’t the main reason they attended the hospital, or their
+“main” diagnosis.</p>
+<pre class="r"><code>Mothership_Current_Long &lt;- Mothership %&gt;%
+  pivot_longer(
+    cols=c(Anxiety_C, Mood_C, Substance_C, Trauma_C, Psychotic_C, Eating_C,  Somatic_C, OCD_Co_C, BPD_Co_C),
+    names_to = &#39;Disorder_Present&#39;) %&gt;%
+  filter(value != 0) %&gt;%
+  select(!value)  %&gt;%
+  filter(!is.na(Disorder_Present))%&gt;%
+  filter(!is.na(Disorder_Type))
+
+ggplot(data = subset(Mothership_Current_Long, !is.na(Disorder_Present)),mapping = aes(x = Disorder_Present, fill=Disorder_Present))+
+  geom_bar()+
+  theme(axis.text.x = element_text(angle = 45,hjust = 1),
+        legend.position = &quot;none&quot;) +
+  labs(title = &quot;Number of Co Occuring Psychiatric Diosrders&quot;,
+    subtitle = &quot;In Addition to the Primary Diagnosis&quot;,
+    x = &quot;Co-Occuring Psychiatric Disorder&quot;) +
+    scale_x_discrete(labels=c(&quot;Trauma_C&quot; = &quot;Trauma&quot;, 
+                            &quot;Substance_C&quot; = &quot;Substance Use&quot;,
+                            &quot;Somatic_C&quot; = &quot;Somatic&quot;,
+                            &quot;Psychotic_C&quot; = &quot;Psychotic&quot;,
+                            &quot;OCD_Co_C&quot; = &quot;OCD&quot;,
+                            &quot;Mood_C&quot; = &quot;Mood&quot;,
+                            &quot;Eating_C&quot; = &quot;Eating&quot;,
+                            &quot;BPD_Co_C&quot; = &quot;BPD&quot;,
+                            &quot;Anxiety_C&quot; = &quot;Anxiety&quot;)) +
+  theme(panel.grid.major.x = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = &quot;Frequency&quot;,limits=c(0,3500))+
+  coord_flip()</code></pre>
+<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+</div>
+<div id="primary-and-co-occuring-disorders." class="section level1">
+<h1>Primary and Co-occuring Disorders.</h1>
+<p>The following visualization shows which disorders are co-occurring
+with which types of primary diagnoses.</p>
+<pre class="r"><code>library(dplyr)
+library(tidyr)
+
+Mothership_Current_Long %&gt;%
+  ggplot(aes(x = Disorder_Type, y = Disorder_Present, color = Disorder_Type)) +
+  geom_count(alpha = .5)+
+  scale_size_area(max_size = 20) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1),
+    legend.position = &quot;none&quot;) +
+  scale_y_discrete(labels=c(&quot;Trauma_C&quot; = &quot;Co Trauma&quot;, 
+                            &quot;Substance_C&quot; = &quot;Co Substance Use&quot;,
+                            &quot;Somatic_C&quot; = &quot;Co Somatic&quot;,
+                            &quot;Psychotic_C&quot; = &quot;Co Psychotic&quot;,
+                            &quot;OCD_Co_C&quot; = &quot;Co OCD&quot;,
+                            &quot;Mood_C&quot; = &quot;Co Mood&quot;,
+                            &quot;Eating_C&quot; = &quot;Co Eating&quot;,
+                            &quot;BPD_Co_C&quot; = &quot;Co BPD&quot;,
+                            &quot;Anxiety_C&quot; = &quot;Co Anxiety&quot;)) +
+  labs(title = &quot;Number of Co Occuring Psychiatric Diosrders per Primary Diagnosis&quot;,
+    subtitle = &quot;Grouped into subtypes of DSM diagonsis&quot;,
+    y = &quot;Co-Occuring Psychiatric Disorder&quot;,
+    x = &quot;Primary Psychiatric Diagnosis&quot;) </code></pre>
+<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

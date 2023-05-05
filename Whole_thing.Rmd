@@ -1,0 +1,1141 @@
+---
+title: "Whole thing"
+output: html_document
+date: "2023-04-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message=FALSE,warning = FALSE)
+```
+
+
+```{r}
+# Libraries
+library(tidyverse)
+library(dplyr)
+library(haven)
+library(ggplot2)
+library(tidyr)
+```
+
+## Import data
+Read in the dataset. 
+```{r}
+df <- read_sav("~/Desktop/Coding/data/Mothership_DV.sav")
+Mothership<-select(df,ID1:Sexuality_1,MDD_C:Day40_CUXOS,SUMdep_0:SUManx_1,SUMdep_DC,SUManx_DC,BL_CUDOS, BL_CUXOS)
+view(Mothership)
+```
+#### Rename and Recode variables 
+We can change the current variables to make them easier to interpret. 
+```{r}
+#recode varaibles
+Mothership <- mutate(Mothership, 
+                     DC_status_1 = as.factor(DC_status_1),
+                     DC_status_1 = recode(DC_status_1,
+                                          "1"="Complete",
+                                          "2"="Nearly Complete",
+                                          "3"="Insurance",
+                                          "4"="Nonatteneance",
+                                          "5"="Inappropriate",
+                                          "6"="Inpatient",
+                                          "7"="Withdrew",
+                                          "8"="Dissatisfaction",
+                                          "9"="Other"),
+                     Education_1 = as.factor(Education_1),
+                     Education_1 = recode(Education_1,
+                                          "1"="<Grade 12",
+                                          "2"="HS Diploma",
+                                          "3"="GED",
+                                          "4"="Some College",
+                                          "5"="Associates Degree",
+                                          "6"="Bachelors Degree",
+                                          "7"="Some Grad School",
+                                          "8"="Grad Degree"),
+                     Gender_1 = as.factor(Gender_1),
+                     Gender_1 = recode(Gender_1,
+                                       "0"="Female",
+                                       "1"="Male",
+                                       "2"="Non-Binary",
+                                       "3"="Other",
+                                       "4"="Unknown"),
+                     Relationship_1 = as.factor(Relationship_1),
+                     Relationship_1 = recode(Relationship_1,
+                                             "0"="Married",
+                                             "1"="Cohabitating",
+                                             "2"="Widowed",
+                                             "3"="Separated",
+                                             "4"="Divorced",
+                                             "5"="Never Married"),
+                     Sexuality_1 = as.factor(Sexuality_1),
+                     Sexuality_1 = recode(Sexuality_1,
+                                          "1"="Straight",
+                                          "2"="Gay",
+                                          "3"="Bisexual",
+                                          "4"="Other"),
+                     IPT_track_1 = as.factor(IPT_track_1),
+                     IPT_track_1 = recode(IPT_track_1,
+                                          "0"="General",
+                                          "1"="Trauma",
+                                          "2"="Young Adult",
+                                          "3"="BPD"),
+                     Race_1 = as.factor(Race_1),
+                     Race_1 = recode(Race_1,
+                                     "0"="White",
+                                     "1"="Black",
+                                     "2"="Hispanic",
+                                     "3"="Asian",
+                                     "4"="Portugese",
+                                     "5"="Other"),
+                     Education_1 = as.factor(Education_1),
+                     Education_1 = recode(Education_1,
+                                      "0"="<Grade 6", 
+                                      "1"="Grades 7-12",
+                                      "2"="HS Diploma", 
+                                      "3"="GED",
+                                      "4"="Some College",
+                                      "5"="Associates Degree",
+                                      "6"="Bachelors Degree",
+                                      "7"="Some Grad School",
+                                      "8"="Grad Degree"),
+                     DC_status_1 = as.factor(DC_status_1),
+                     DC_status_1 = recode(DC_status_1,
+                                      "1"="Treatment Complete",
+                                      "2"="Treatment Near Complete",
+                                      "3"="Insurance Stopped",
+                                      "4"="Nonattendence",
+                                      "5"="Inapproparite Language",
+                                      "6"="Transfered To Impatient",
+                                      "7"="Withdrew for External factors",
+                                      "8"="Withdrew (AMA)",
+                                      "9"="Other",
+                                      "10"="Other"),
+                    DC_status_1 = as.factor(DC_status_1),
+                    DC_status_1 = recode(DC_status_1,
+                                      "1"="Inpatient",
+                                      "2"="PHP",
+                                      "3"="APS",
+                                      "4"="Psychatrist",
+                                      "5"="PCP",
+                                      "6"="Another Physican",
+                                      "7"="Therapist",
+                                      "17"="Other"
+                    ),
+                                          
+                  
+                     
+  
+#Lets make some new variables 
+      #Duration of treatment
+                     Duration = as.factor(
+                       ifelse(Days_complete_1>0 & Days_complete_1 <=5, "1",
+                       ifelse(Days_complete_1>5 & Days_complete_1 <=10, "2",
+                       ifelse(Days_complete_1>10 & Days_complete_1 <=15, "3", "4"
+                              )))),
+                    Duration = recode(Duration,
+                                      "1"="1-5",
+                                      "2"="6-10",
+                                      "3"="11-15",
+                                      "4"="16+"
+                                      ))
+    
+        
+
+#Extract Year From Intake Date
+#Convert to Date
+library("lubridate")
+Mothership$Intake_1<-ymd(Mothership$Intake_1)
+Mothership$TxYear<-as.numeric(format(Mothership$Intake_1,"%Y"))
+Mothership<-mutate(Mothership,
+                   TxYear = as.factor(TxYear),
+                   TxYear = recode(TxYear,
+                                   "1582"="2014",
+                                   "2021"="2020",
+                                   "2022"="2020"))
+
+```
+
+### Export as CSV
+```{r}
+write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Vis.csv")
+```
+
+# Background Statistics
+```{r}
+### Bar Chart for Discharge Status ###
+
+ggplot(data = subset(Mothership, !is.na(DC_status_1)), mapping = aes(x = DC_status_1))+
+  geom_bar(color = "black",fill="darkgreen")+
+  ggtitle("Frequency of Treatment Discharge Status") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Discharge Status") +
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6000))
+
+### Bar Chart for Education Status ###
+
+ggplot(data = subset(Mothership, !is.na(Education_1)),mapping = aes(x = Education_1))+
+  geom_bar(color = "black",fill="darkred")+
+  ggtitle("Frequency of Education Level") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Education Level")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,3000))
+
+### Bar chart for race ###
+ggplot(data = subset(Mothership, !is.na(Race_1)),mapping = aes(x = Race_1))+
+  geom_bar(color = "black",fill="darkblue")+
+  ggtitle("Frequency of Race/Ethnicity") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Race")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+
+### Bar chart for gender###
+ggplot(data = subset(Mothership, !is.na(Gender_1)),mapping = aes(x = Gender_1))+
+  geom_bar(color = "black",fill="darkorange")+
+  ggtitle("Frequency of Gender") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Gender")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+
+### Treatment Track ###
+
+ggplot(data = subset(Mothership, !is.na(IPT_track_1)),mapping = aes(x = IPT_track_1))+
+  geom_bar(color = "black",fill="skyblue")+
+  ggtitle("Frequency of Treatment Type") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Treatment Type")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+
+### Treatment Year ###
+
+ggplot(data = subset(Mothership, !is.na(TxYear)),mapping = aes(x = TxYear))+
+  geom_bar(color = "black",fill="#9350C7")+
+  ggtitle("Frequency of Patients per Year") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Treatment Year")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,1500))
+
+
+### Duration of Treatment ###
+ggplot(data = subset(Mothership, !is.na(Duration)),mapping = aes(x = Duration))+
+  geom_bar(color = "black",fill="lightgreen")+
+  ggtitle("Frequency of Patients per Duration of Treatment") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Treatment Duration")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+
+```
+
+## Pie Chart For Education Status 
+```{r}
+#Create Table and Data Frame
+Education<-table(Mothership$Education_1)
+Education_df<-as.data.frame(Education)
+Education_df
+
+#Rename Columns
+colnames(Education_df)[1]="Category"
+colnames(Education_df)[2]="Frequency"
+
+
+Education_df$Category=recode(Education_df$Category,
+                             "0"="<Grade 6", 
+                             "1"="Grades 7-12",
+                             "2"="HS Diploma", 
+                             "3"="GED",
+                             "4"="Some College",
+                             "5"="Associates Degree",
+                             "6"="Bachelors Degree",
+                             "7"="Some Grad School",
+                             "8"="Grad Degree")
+
+ggplot(data = Education_df, mapping = aes(x="", y=Frequency, fill=Category))+
+  geom_bar(stat="Identity",width=1,color="white")+
+  ggtitle("Education Level of Patients") +
+  scale_fill_discrete(name = "Education") +
+  coord_polar("y",start=0)+
+  theme_void()
+```
+
+## Visualizing disorders
+
+#### Create Diagnosis Variables 
+```{r}
+Mothership<-Mothership %>%
+  mutate(
+          # Mood Disorders
+                     Mood_D = as.factor(
+                      ifelse(
+                        MDD_P ==1 | Bipolar1_P == 1 | Bipolar2_P == 1 | Dysthymia_P == 1, 1, 0)),
+          # Anxiety Disorders
+                    Anxiety_D = as.factor(
+                      ifelse(
+                        GAD_P ==1 | Panic_P == 1 | PanicAgor_P == 1 | Agoraphobia_P == 1 |
+                        Social_P == 1 | Specific_P == 1, 1, 0)),
+          # Obsessive Compusive Disorders
+                #OCD_P is for current OCD
+          # Personality Disorders
+                #BPD_P is for current BPD
+          # Substance Use Disorders
+                    Substance_D = as.factor(
+                      ifelse(
+                        Alcohol_P == 1 | Drug_P ==1, 1, 0)),
+          # Trauma or stresor related disorders
+                    Trauma_D = as.factor(
+                      ifelse(PTSD_P == 1 | Adjustment_P ==1, 1,0)),
+          # Psychotic Disorders
+                    Psychotic_D = as.factor(
+                      ifelse(
+                        Schiz_P == 1 | Schizaff_P == 1,1,0)),
+            # Eating Disorders
+                    Eating_D = as.factor(
+                      ifelse(
+                        Anorex_P == 1 | Bulim_P == 1 | Binge_P == 1, 1,0)),
+            # Somatic Disroders
+                    Somatic_D = as.factor(
+                      ifelse(
+                        Somat_P == 1 | UndiffSoma_P == 1| Hypochondriasis_P ==1,
+                        1,0)),
+                    Disorder_Type = as.factor(
+                      ifelse(Anxiety_D == 1, "Anxiety",
+                      ifelse(OCD_P == 1, "OCD",
+                      ifelse(BPD_P == 1, "BPD",
+                      ifelse(Substance_D == 1, "Substance Use",
+                      ifelse(Trauma_D == 1, "Stress and Trauma",
+                      ifelse(Mood_D == 1, "Mood",
+                      ifelse(Psychotic_D == 1, "Psychotic", 
+                      ifelse(Eating_D == 1, "Eating", 
+                      ifelse(Somatic_D == 1, "Somatic", NA
+                      )))))))))),
+                  Anxiety_C =  as.factor(
+                    ifelse(  GAD_C ==1 | Panic_C == 1 | PanicAgor_C == 1 | Agoraphobia_C == 1 |
+                        Social_C == 1 | Specific_C == 1, 1, 0)),
+                  Mood_C =  as.factor(
+                    ifelse(MDD_C ==1 | Bipolar1_C == 1 | Bipolar2_C == 1 | Dysthymia_C == 1, 1, 0)),
+                  Substance_C = as.factor(
+                    ifelse(Alcohol_C == 1 | Drug_C ==1, 1, 0)),
+                  Trauma_C = as.factor(
+                    ifelse(PTSD_C == 1 | Adjustment_C ==1, 1,0)),
+                  Psychotic_C = as.factor(
+                    ifelse(Schiz_C == 1 | Schizaff_C == 1,1,0)),
+                  Eating_C = as.factor(
+                    ifelse(Anorex_C == 1 | Bulim_C == 1 | Binge_C == 1, 1,0)),
+                  Somatic_C = as.factor(
+                    ifelse(Somat_C == 1 | UndiffSoma_C == 1| Hypochondriasis_C ==1, 1,0)),
+          #emotional disorders
+                  Emotional_dis = as.factor(
+                    ifelse(Anxiety_D == 1 | OCD_P == 1 | Trauma_D == 1 |
+                           Mood_D == 1, "Emotional Disorder", "Other Disorder")),
+                  Co_Anx = as.factor(
+                        ifelse(Anxiety_D == 1 & Mood_C == 1 |
+                                Anxiety_D == 1 & OCD_C == 1 |
+                                Anxiety_D == 1 & BPD_C == 1 |
+                                Anxiety_D == 1 & Substance_C == 1 |
+                                Anxiety_D == 1 & Trauma_C == 1 |
+                                Anxiety_D == 1 & Eating_C ==1 |
+                                Anxiety_D == 1 & Psychotic_C ==1 |
+                                Anxiety_D == 1 & Somatic_C ==1, 1, 0)),
+                  Co_Mood = as.factor(
+                        ifelse(Mood_D == 1 & Anxiety_C == 1 |
+                                Mood_D == 1 & OCD_C == 1 |
+                                Mood_D == 1 & BPD_C == 1 |
+                                Mood_D == 1 & Substance_C == 1 |
+                                Mood_D == 1 & Trauma_C == 1 |
+                                Mood_D == 1 & Eating_C ==1 |
+                                Mood_D == 1 & Psychotic_C ==1 |
+                                Mood_D == 1 & Somatic_C ==1 , 1, 0)),
+                  Co_OCD = as.factor(
+                        ifelse(OCD_C == 1 & Anxiety_C == 1 |
+                                OCD_C == 1 & Mood_C == 1 |
+                                OCD_C == 1 & BPD_C == 1 |
+                                OCD_C == 1 & Substance_C == 1 |
+                                OCD_C == 1 & Trauma_C == 1 |
+                                OCD_C == 1 & Eating_C ==1 |
+                                OCD_C == 1 & Psychotic_C ==1 |
+                                OCD_C == 1 & Somatic_C ==1, 1, 0)),
+                  CO_BPD = as.factor(
+                        ifelse(BPD_C == 1 & Anxiety_C == 1 |
+                                BPD_C == 1 & Mood_C == 1 |
+                                BPD_C == 1 & OCD_C == 1 |
+                                BPD_C == 1 & Substance_C == 1 |
+                                BPD_C == 1 & Trauma_C == 1 |
+                                BPD_C == 1 & Eating_C ==1 |
+                                BPD_C == 1 & Psychotic_C ==1 |
+                                BPD_C == 1 & Somatic_C ==1 , 1, 0)),
+                  CO_Psychotic = as.factor(
+                       ifelse(Psychotic_D == 1 & Mood_C == 1 |
+                                Psychotic_D == 1 & OCD_C == 1 |
+                                Psychotic_D == 1 & BPD_C == 1 |
+                                Psychotic_D == 1 & Substance_C == 1 |
+                                Psychotic_D == 1 & Trauma_C == 1 |
+                                Psychotic_D == 1 & Eating_C ==1 |
+                                Psychotic_D == 1 & Anxiety_C ==1 |
+                                Psychotic_D == 1 & Somatic_C ==1, 1, 0)),
+                  CO_Eating = as.factor(
+                      ifelse(Eating_D == 1 & Mood_C == 1 |
+                                Eating_D == 1 & OCD_C == 1 |
+                                Eating_D == 1 & BPD_C == 1 |
+                                Eating_D == 1 & Substance_C == 1 |
+                                Eating_D == 1 & Trauma_C == 1 |
+                                Eating_D == 1 & Psychotic_C ==1 |
+                                Eating_D == 1 & Anxiety_C ==1 |
+                                Eating_D == 1 & Somatic_C ==1, 1, 0)),
+                  CO_Somatic =  as.factor(
+                       ifelse(Somatic_D == 1 & Mood_C == 1 |
+                                Somatic_D == 1 & OCD_C == 1 |
+                                Somatic_D == 1 & BPD_C == 1 |
+                                Somatic_D == 1 & Substance_C == 1 |
+                                Somatic_D == 1 & Trauma_C == 1 |
+                                Somatic_D == 1 & Eating_C ==1 |
+                                Somatic_D == 1 & Anxiety_C ==1 |
+                                Somatic_D == 1 & Psychotic_C ==1, 1, 0)))
+                      
+
+##### df for plots 
+
+# df without NAs in date and disorder type
+Mothership_Diag <- Mothership %>%
+  filter(!is.na(Disorder_Type))%>%
+  filter(!is.na(TxYear))
+
+# df with and without depression
+No_depressy <- Mothership_Diag %>%
+  filter(Disorder_Type != "Mood")
+```
+
+
+#### Amount of disorders treated
+```{r}
+#overall psychiatric disorders
+ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type, fill=Disorder_Type))+
+  geom_bar()+
+  ggtitle("Frequency of Psychiatric Disorder Subtypes") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Psychiatric Disorder Subtype")+
+  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,3500))+
+  coord_flip()
+```
+
+#### Number of disorders over time.
+```{r}
+# Libraries
+library(ggplot2)
+#install.packages("hrbrthemes")
+library(hrbrthemes)
+library(dplyr)
+library(tidyr)
+library(viridis)
+
+
+# Stacked
+ggplot(data=subset(Mothership_Diag, !is.na(Disorder_Type)), 
+       mapping= aes(x=TxYear, y = stat(count),
+                    group=Disorder_Type, fill=Disorder_Type)) +
+    geom_density(adjust=1.5,alpha=.4,position="fill") +
+    theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+     theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+     xlab("Treatment Year") +
+  theme(panel.background=NULL) +
+    facet_wrap(~Emotional_dis)+
+  labs(
+    title = "Type of Disorders Treated at the Hospital Per Year",
+    subtitle = "Broken Up By Disorder Types") +
+    xlab("Treatment Year") +
+    ylab("Percent of Patients With Disorder")
+    
+# Broken up by disorder. 
+ggplot(data=subset(Mothership_Diag, !is.na(Disorder_Type)), 
+    mapping= aes(x=TxYear,y = stat(count),
+                 group=Disorder_Type, fill=Disorder_Type)) +
+  geom_density(adjust=1.5,alpha=.6) +
+  facet_wrap(~Disorder_Type)+
+  theme_classic()+
+    theme(
+      panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2),
+      axis.text.x = element_text(angle = 45,hjust = 1),
+      legend.position="none",
+      panel.spacing = unit(0.1, "lines"),
+      axis.ticks.x=element_blank(),
+      panel.background=NULL) +
+  labs(
+    title = "Type of Disorders Treated at the Hospital Per Year",
+    subtitle = "Broken Up By Dmotional vs Other Disorders") +
+    xlab("Treatment Year") +
+    ylab("Number of Patients With Disorder")
+
+```
+
+```{r}
+# without depression
+ggplot(data=subset(No_depressy, !is.na(Disorder_Type)), 
+    mapping= aes(x=TxYear,y = stat(count),
+                 group=Disorder_Type, fill=Disorder_Type)) +
+  geom_density(adjust=1.5,alpha=.6) +
+  facet_wrap(~Disorder_Type)+
+  theme_classic()+
+    theme(
+      panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2),
+      axis.text.x = element_text(angle = 45,hjust = 1),
+      legend.position="none",
+      panel.spacing = unit(0.1, "lines"),
+      axis.ticks.x=element_blank(),
+      panel.background=NULL) +
+  labs(
+    title = "Type of Disorders Treated at the Hospital Per Year",
+    subtitle = "Broken Up By Dmotional vs Other Disorders") +
+    xlab("Treatment Year") +
+    ylab("Number of Patients With Disorder")
+```
+
+
+## Depression Treatment Progress Charts
+
+```{r}
+Mothership_Long <- gather(Mothership,rm,CUDOS,Day1_CUDOS:Day40_CUDOS,factor_key = "T")
+Mothership_Long <- Mothership_Long[order(Mothership_Long$ID1),]
+
+#Create a Time Variable
+Mothership_Long$TxDay <- NA
+Mothership_Long$TxDay[Mothership_Long$rm=="Day1_CUDOS"]<-1
+Mothership_Long$TxDay[Mothership_Long$rm=="Day2_CUDOS"]<-2
+Mothership_Long$TxDay[Mothership_Long$rm=="Day3_CUDOS"]<-3
+Mothership_Long$TxDay[Mothership_Long$rm=="Day4_CUDOS"]<-4
+Mothership_Long$TxDay[Mothership_Long$rm=="Day5_CUDOS"]<-5
+Mothership_Long$TxDay[Mothership_Long$rm=="Day6_CUDOS"]<-6
+Mothership_Long$TxDay[Mothership_Long$rm=="Day7_CUDOS"]<-7
+Mothership_Long$TxDay[Mothership_Long$rm=="Day8_CUDOS"]<-8
+Mothership_Long$TxDay[Mothership_Long$rm=="Day9_CUDOS"]<-9
+Mothership_Long$TxDay[Mothership_Long$rm=="Day10_CUDOS"]<-10
+Mothership_Long$TxDay[Mothership_Long$rm=="Day11_CUDOS"]<-11
+Mothership_Long$TxDay[Mothership_Long$rm=="Day12_CUDOS"]<-12
+Mothership_Long$TxDay[Mothership_Long$rm=="Day13_CUDOS"]<-13
+Mothership_Long$TxDay[Mothership_Long$rm=="Day14_CUDOS"]<-14
+Mothership_Long$TxDay[Mothership_Long$rm=="Day15_CUDOS"]<-15
+Mothership_Long$TxDay[Mothership_Long$rm=="Day16_CUDOS"]<-16
+Mothership_Long$TxDay[Mothership_Long$rm=="Day17_CUDOS"]<-17
+Mothership_Long$TxDay[Mothership_Long$rm=="Day18_CUDOS"]<-18
+Mothership_Long$TxDay[Mothership_Long$rm=="Day19_CUDOS"]<-19
+Mothership_Long$TxDay[Mothership_Long$rm=="Day20_CUDOS"]<-20
+
+#Create a New Data Set with an Average Anxiety Variable
+Mothership_Mean_CUDOS<-Mothership_Long %>%
+  group_by(TxDay) %>%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+```
+
+
+```{r}
+#Plot the Depression Mean for Full Sample
+ggplot(data=Mothership_Mean_CUDOS,aes(x=TxDay,y=mean_CUDOS))+
+  geom_line(size=1,color="#0065A3")+
+  geom_point(color="#0065A3")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  ggtitle("Mean Depression Severity During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name="Depression Severity",limits=c(20,35,by=5))+
+  theme(panel.background=NULL) 
+
+ggplot(Mothership, aes(Days_complete_1))+
+  geom_density()+
+  scale_x_continuous(limits=c(0,20,by=1)) +
+  labs(
+    title="Quantity of discharges Per Treatment Day")
+
+```
+
+### plot means based upon duration group membership 
+
+```{r}
+#plot depression mean with each group
+
+# New dataset for the treatment duration depression plot
+Mothership_Mean_CUDOS<-Mothership_Long %>%
+  group_by(Duration,TxDay) %>%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+
+Mothership_duration_CUDOS<-Mothership_Mean_CUDOS[1:83,]
+#delete weird Na values and put NA for values
+Mothership_duration_CUDOS[6:20,3] = NA
+Mothership_duration_CUDOS[37:41,3] = NA
+Mothership_duration_CUDOS[74:83,3] = NA
+Mothership_duration_CUDOS<-Mothership_duration_CUDOS[(-21),]
+Mothership_duration_CUDOS<-Mothership_duration_CUDOS[(-41),]
+Mothership_duration_CUDOS<-Mothership_duration_CUDOS[(-61),]
+Mothership_duration_CUDOS
+
+ggplot(data=Mothership_duration_CUDOS,aes(x=TxDay,y=mean_CUDOS,group=Duration,color=Duration))+
+  geom_line(size=1)+
+  geom_point()+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  ggtitle("Mean Depression Severity During Partial Hospitalization")+
+  labs(subtitle = "Broken up by Discharge Date")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name="Depression Severity",limits=c(15,40,by=5))+
+  scale_color_manual(values=c("skyblue","#0065A3",
+                              "navy","blue"))+
+  theme(panel.background=NULL)
+```
+
+## Depression Treatment Progress by Characteristics
+
+#### Race
+```{r}
+Mothership_Long_dep <- gather(Mothership,rm,CUDOS,Day1_CUDOS:Day40_CUDOS,factor_key = "T")
+Mothership_Long_dep <- Mothership_Long_dep[order(Mothership_Long_dep$ID1),]
+
+#Create a Time Variable
+Mothership_Long_dep$TxDay <- NA
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day1_CUDOS"]<-1
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day2_CUDOS"]<-2
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day3_CUDOS"]<-3
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day4_CUDOS"]<-4
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day5_CUDOS"]<-5
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day6_CUDOS"]<-6
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day7_CUDOS"]<-7
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day8_CUDOS"]<-8
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day9_CUDOS"]<-9
+Mothership_Long_dep$TxDay[Mothership_Long_dep$rm=="Day10_CUDOS"]<-10
+
+
+#Overall race
+Mothership_Mean_CUDOS_Race<-Mothership_Long_dep %>%
+  group_by(TxDay,Race_1) %>%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+# plot
+ggplot(data=subset(Mothership_Mean_CUDOS_Race,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Race_1,color=Race_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(title ="Depression Severity by Race During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","darkgreen",
+                              "#0098DB","#0065A3","#A0AFA1"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+ggplot(data=subset(Mothership_Mean_CUDOS_Race,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Race_1,color=Race_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(title ="Depression Severity by Race During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
+  scale_color_manual(values=c("#209845","lightgrey","lightgrey",
+                              "lightgrey","lightgrey","lightgrey"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+ggplot(data=subset(Mothership_Mean_CUDOS_Race,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Race_1,color=Race_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(title ="Depression Severity by Race During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Depression Severity",limits=c(10,40,by=5))+
+  scale_color_manual(values=c("lightgrey","lightgrey","darkgreen",
+                              "lightgrey","#0065A3","lightgrey"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+## GENDER IDENTITY
+Create a New Data Set with an Average Depression Variable and Gender, then plot it
+```{r}
+#GENDER IDENTITY
+#Create a New Data Set with an Average Depression Variable and Gender
+Mothership_Mean_CUDOS_Gender<-Mothership_Long_dep %>%
+  group_by(TxDay,Gender_1) %>%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+
+Mothership_Mean_CUDOS_Gender <-filter(Mothership_Mean_CUDOS_Gender,
+                                      Gender_1 != "Unknown",
+                                      Gender_1 != "Non-Binary",
+                                      Gender_1 != "Other"
+                                        )
+#Create the Depression Line Graph by Gender
+ggplot(data=subset(Mothership_Mean_CUDOS_Gender,!is.na(Gender_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Gender_1,color=Gender_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Depression Severity by Gender During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Depression Severity",limits=c(15,45,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+#### TREATMENT TRACK
+```{r}
+#Create a New Data Set with an Average Depression Variable and Track
+Mothership_Mean_CUDOS_Track<-Mothership_Long_dep %>%
+  group_by(TxDay,IPT_track_1) %>%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+
+#Create the Depression Line Graph by Treatment Track
+ggplot(data=subset(Mothership_Mean_CUDOS_Track,!is.na(IPT_track_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=IPT_track_1,color=IPT_track_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Depression Severity by Treatment Track During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Depression Severity",limits=c(20,40,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#0065A3"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+### EDUCATION
+```{r}
+#Create a New Data Set with an Average Depression Variable and Education
+Mothership_Mean_CUDOS_Ed<-Mothership_Long_dep %>%
+  group_by(TxDay,Education_1) %>%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+
+#Create the Depression Line Graph by Education
+ggplot(data=subset(Mothership_Mean_CUDOS_Ed,!is.na(Education_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Education_1,color=Education_1))+
+  geom_line(size=.75)+
+  geom_point(size=.75)+
+  ggtitle("Depression Severity by Education Level During Partial Hospitalization")+
+    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Depression Severity",limits=c(20,38,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#0065A3","darkgreen",
+                              "#91A9F1","#7F8559"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+ggplot(data=subset(Mothership_Mean_CUDOS_Ed,!is.na(Education_1)),
+       aes(x=TxDay,y=mean_CUDOS,group=Education_1,color=Education_1))+
+  geom_line(size=.75)+
+  geom_point(size=.75)+
+  ggtitle("Depression Severity by Education Level During Partial Hospitalization")+
+    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Depression Severity",limits=c(20,38,by=5))+
+  scale_color_manual(values=c("#209845","lightgrey","lightgrey",
+                              "#0098DB","lightgrey","lightgrey",
+                              "lightgrey","lightgrey"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+
+### TREATMENT YEAR
+```{r}
+#Create a New Data Set with an Average Depression Variable and Year
+Mothership_Mean_CUDOS_Year<-Mothership_Long_dep %>%
+  group_by(TxDay,TxYear) %>%
+  summarise(mean_CUDOS=mean(CUDOS,na.rm=TRUE))
+
+str(Mothership_Long_dep$TxYear)
+
+#Create the Depression Line Graph by Year
+ggplot(data=subset(Mothership_Mean_CUDOS_Year,!is.na(TxYear)),
+       aes(x=TxDay,y=mean_CUDOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Depression Severity by Treatment Year During Partial Hospitalization")+
+    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Depression Severity",limits=c(20,40,by=5))+
+  scale_color_manual(values=c("#209845","#3D4A3E","#A0AFA1",
+                              "#0098DB","#91A9F1","darkgreen",
+                              "#0065A3","#7F8559","#4B5D8E"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+#Create the Depression Line Graph by Year
+ggplot(data=subset(Mothership_Mean_CUDOS_Year,!is.na(TxYear)),
+       aes(x=TxDay,y=mean_CUDOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Depression Severity by Treatment Year During Partial Hospitalization")+
+    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Depression Severity",limits=c(20,40,by=5))+
+  scale_color_manual(values=c("lightgrey","lightgrey","lightgrey",
+                              "lightgrey","lightgrey","lightgrey",
+                              "#0065A3","lightgrey","lightgrey"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+```
+
+## Anxiety Treatment Progress Charts
+
+```{r}
+Mothership_Long <- gather(Mothership,rm,CUXOS,Day1_CUXOS:Day40_CUXOS,factor_key = "T")
+Mothership_Long <- Mothership_Long[order(Mothership_Long$ID1),]
+
+#Create a Time Variable
+Mothership_Long$TxDay <- NA
+Mothership_Long$TxDay[Mothership_Long$rm=="Day1_CUXOS"]<-1
+Mothership_Long$TxDay[Mothership_Long$rm=="Day2_CUXOS"]<-2
+Mothership_Long$TxDay[Mothership_Long$rm=="Day3_CUXOS"]<-3
+Mothership_Long$TxDay[Mothership_Long$rm=="Day4_CUXOS"]<-4
+Mothership_Long$TxDay[Mothership_Long$rm=="Day5_CUXOS"]<-5
+Mothership_Long$TxDay[Mothership_Long$rm=="Day6_CUXOS"]<-6
+Mothership_Long$TxDay[Mothership_Long$rm=="Day7_CUXOS"]<-7
+Mothership_Long$TxDay[Mothership_Long$rm=="Day8_CUXOS"]<-8
+Mothership_Long$TxDay[Mothership_Long$rm=="Day9_CUXOS"]<-9
+Mothership_Long$TxDay[Mothership_Long$rm=="Day10_CUXOS"]<-10
+Mothership_Long$TxDay[Mothership_Long$rm=="Day11_CUXOS"]<-11
+Mothership_Long$TxDay[Mothership_Long$rm=="Day12_CUXOS"]<-12
+Mothership_Long$TxDay[Mothership_Long$rm=="Day13_CUXOS"]<-13
+Mothership_Long$TxDay[Mothership_Long$rm=="Day14_CUXOS"]<-14
+Mothership_Long$TxDay[Mothership_Long$rm=="Day15_CUXOS"]<-15
+Mothership_Long$TxDay[Mothership_Long$rm=="Day16_CUXOS"]<-16
+Mothership_Long$TxDay[Mothership_Long$rm=="Day17_CUXOS"]<-17
+Mothership_Long$TxDay[Mothership_Long$rm=="Day18_CUXOS"]<-18
+Mothership_Long$TxDay[Mothership_Long$rm=="Day19_CUXOS"]<-19
+Mothership_Long$TxDay[Mothership_Long$rm=="Day20_CUXOS"]<-20
+
+#Create a New Data Set with an Average Anxiety Variable
+Mothership_Mean_CUXOS<-Mothership_Long %>%
+  group_by(TxDay) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+# Mothership_Mean_CUXOS20<-Mothership_Long20 %>%
+#   group_by(TxDay) %>%
+#   summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+```
+
+
+```{r}
+#Plot the Anxiety Mean for Full Sample
+ggplot(data=Mothership_Mean_CUXOS,aes(x=TxDay,y=mean_CUXOS))+
+  geom_line(size=1,color="red")+
+  geom_point(color="red")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  ggtitle("Mean Anxiety Severity During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(20,40,by=5))+
+  theme(panel.background=NULL) 
+
+ggplot(Mothership, aes(Days_complete_1))+
+  geom_density()+
+  scale_x_continuous(limits=c(0,20,by=1)) +
+  labs(
+    title="Quantity of discharges Per Treatment Day")+
+  theme_classic()
+
+
+```
+
+### plot means based upon duration group membership 
+
+```{r}
+#plot Anxiety mean with each group
+
+# New dataset for the treatment duration Anxiety plot
+Mothership_Mean_CUXOS<-Mothership_Long %>%
+  group_by(Duration,TxDay) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+Mothership_duration_CUXOS<-Mothership_Mean_CUXOS[1:83,]
+#delete weird Na values and put NA for values
+Mothership_duration_CUXOS[6:20,3] = NA
+Mothership_duration_CUXOS[37:41,3] = NA
+Mothership_duration_CUXOS[74:83,3] = NA
+Mothership_duration_CUXOS<-Mothership_duration_CUXOS[(-21),]
+Mothership_duration_CUXOS<-Mothership_duration_CUXOS[(-41),]
+Mothership_duration_CUXOS<-Mothership_duration_CUXOS[(-61),]
+Mothership_duration_CUXOS
+
+ggplot(data=Mothership_duration_CUXOS,aes(x=TxDay,y=mean_CUXOS,group=Duration,color=Duration))+
+  geom_line(size=1)+
+  geom_point()+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  ggtitle("Mean Anxiety Severity During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(5,50,by=5))+
+  scale_color_manual(values=c("#BB9D00","red",
+                              "darkred","orange"))+
+  theme(panel.background=NULL)+
+  labs(subtitle = "Broken up by Duration of Treatment")
+```
+
+## Anxiety Treatment Progress by Characteristics
+
+#### Race
+```{r}
+
+Mothership<-read.csv("~/Desktop/Coding/data/Mothership_Vis.csv")
+Mothership<-mutate(Mothership,
+      DC_status_1 = as.factor(DC_status_1),
+      Education_1 = as.factor(Education_1),
+      Gender_1 = as.factor(Gender_1),
+      Relationship_1 = as.factor(Relationship_1),
+      Sexuality_1 = as.factor(Sexuality_1),
+      IPT_track_1 = as.factor(IPT_track_1),
+      Race_1 = as.factor(Race_1),
+      Education_1 = as.factor(Education_1),
+      Duration = as.factor(Duration),
+      )
+
+
+Mothership$Intake_1<-ymd(Mothership$Intake_1,locale = "en_US.UTF-8")
+
+Mothership_Long_anx <- gather(Mothership,rm,CUXOS,Day1_CUXOS:Day40_CUXOS,factor_key = "T")
+Mothership_Long_anx <- Mothership_Long_anx[order(Mothership_Long_anx$ID1),]
+
+#Create a Time Variable
+Mothership_Long_anx$TxDay <- NA
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm=="Day1_CUXOS"]<-1
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm=="Day2_CUXOS"]<-2
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm=="Day3_CUXOS"]<-3
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm=="Day4_CUXOS"]<-4
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm=="Day5_CUXOS"]<-5
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm=="Day6_CUXOS"]<-6
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm=="Day7_CUXOS"]<-7
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm=="Day8_CUXOS"]<-8
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm=="Day9_CUXOS"]<-9
+Mothership_Long_anx$TxDay[Mothership_Long_anx$rm=="Day10_CUXOS"]<-10
+
+#Overall race
+Mothership_Mean_CUXOS_Race<-Mothership_Long_anx %>%
+  group_by(TxDay,Race_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+Mothership_Mean_CUXOS_Race<-Mothership_Mean_CUXOS_Race[1:70,]
+Mothership_Mean_CUXOS_Race
+# plot
+ggplot(data=subset(Mothership_Mean_CUXOS_Race,!is.na(Race_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Race_1,color=Race_1))+
+  geom_line(size=1)+
+  geom_point()+
+  labs(title ="Anxiety Severity by Race During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(0,60,by=5))+
+  scale_color_manual(values=c("#DA2E2E","#57423E",
+                              "gold3","#3E8300",
+                              "#77B81C","darkorange2"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+## GENDER IDENTITY
+Create a New Data Set with an Average Anxiety Variable and Gender, then plot it
+```{r}
+#GENDER IDENTITY
+#Create a New Data Set with an Average Anxiety Variable and Gender
+
+
+
+Mothership_Mean_CUXOS_Gender<-Mothership_Long_anx %>%
+  group_by(TxDay,Gender_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+Mothership_Mean_CUXOS_Gender <-filter(Mothership_Mean_CUXOS_Gender,
+                                      Gender_1 != "Unknown",
+                                      Gender_1 != "Non-Binary",
+                                      Gender_1 != "Other"
+                                        )
+
+#Create the Anxiety Line Graph by Gender
+ggplot(data=subset(Mothership_Mean_CUXOS_Gender,!is.na(Gender_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Gender_1,color=Gender_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Anxiety Severity by Gender During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(15,45,by=5))+
+  scale_color_manual(values=c("#DA2E2E","#57423E"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+#### TREATMENT TRACK
+```{r}
+#Create a New Data Set with an Average Anxiety Variable and Track
+Mothership_Mean_CUXOS_Track<-Mothership_Long_anx %>%
+  group_by(TxDay,IPT_track_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+#Create the Anxiety Line Graph by Treatment Track
+ggplot(data=subset(Mothership_Mean_CUXOS_Track,!is.na(IPT_track_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=IPT_track_1,color=IPT_track_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Anxiety Severity by Treatment Track During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(20,46,by=5))+
+  scale_color_manual(values=c("#DA2E2E","#57423E","gold3"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+### EDUCATION
+```{r}
+#Create a New Data Set with an Average Anxiety Variable and Education
+Mothership_Mean_CUXOS_Ed<-Mothership_Long_anx %>%
+  group_by(TxDay,Education_1) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+#Create the Anxiety Line Graph by Education
+ggplot(data=subset(Mothership_Mean_CUXOS_Ed,!is.na(Education_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Anxiety Severity by Education Level During Partial Hospitalization")+
+    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(20,50,by=5))+
+  scale_color_manual(values=c("#DA2E2E","#57423E",
+                              "gold3","#3E8300",
+                              "#77B81C","darkorange2",
+                              "#798897","#FD85AE"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)
+
+
+
+ggplot(data=subset(Mothership_Mean_CUXOS_Ed,!is.na(Education_1)),
+       aes(x=TxDay,y=mean_CUXOS,group=Education_1,color=Education_1))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Anxiety Severity by Education Level During Partial Hospitalization")+
+    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(20,50,by=5))+
+  scale_color_manual(values=c("#DA2E2E","lightgrey","lightgrey",
+                              "gold3","lightgrey","lightgrey",
+                              "lightgrey","lightgrey"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)
+```
+
+
+### TREATMENT YEAR
+```{r}
+#Create a New Data Set with an Average Anxiety Variable and Year
+Mothership_Mean_CUXOS_Year<-Mothership_Long_anx %>%
+  group_by(TxDay,TxYear) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+
+#Create the Anxiety Line Graph by Year
+ggplot(data=subset(Mothership_Mean_CUXOS_Year,!is.na(TxYear)),
+       aes(x=TxDay,y=mean_CUXOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Anxiety Severity by Treatment Year During Partial Hospitalization")+
+    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(15,50,by=5))+
+  scale_color_manual(values=c("#DA2E2E","#57423E",
+                              "gold3","#3E8300",
+                              "#77B81C","darkorange2",
+                              "firebrick4","#FD85AE","#798897"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+
+ggplot(data=subset(Mothership_Mean_CUXOS_Year,!is.na(TxYear)),
+       aes(x=TxDay,y=mean_CUXOS,group=as.factor(TxYear),color=as.factor(TxYear)))+
+  geom_line(size=1)+
+  geom_point()+
+  ggtitle("Anxiety Severity by Treatment Year During Partial Hospitalization")+
+    scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(15,50,by=5))+
+  scale_color_manual(values=c("lightgrey","lightgrey",
+                              "lightgrey","lightgrey",
+                              "lightgrey","lightgrey",
+                              "firebrick4","lightgrey","lightgrey"))+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title=element_blank())
+```
+
+## RDQ stuff
+```{r}
+
+#Read in a New Data Set
+Mothership_RDQ<- read_sav("~/Desktop/Coding/data/Mothership_DV.sav")
+Mothership_RDQ<-select(Mothership,ID1:Sexuality_1,MDD_C:Day40_CUXOS)
+Mothership_RDQ<-data.frame(sapply(Mothership_RDQ,FUN=as.numeric))
+
+#Make This Data Set Long Data
+library(tidyr)
+Mothership_Long_RDQ <- gather(Mothership_RDQ,rm,RDQ,rdqPRE_coping:rdqPOST_sym,
+                              factor_key = "T")
+Mothership_Long_RDQ <- Mothership_Long_RDQ[order(Mothership_Long_RDQ$ID1),]
+
+view(Mothership_Long_RDQ)
+
+
+#Create a Time Variable
+Mothership_Long_RDQ$PrePost <- NA
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_coping"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_pmh"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_func"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_wbs"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_sym"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_coping"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_pmh"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_func"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_wbs"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_sym"]<-"Post"
+
+
+
+#Create a New Data Set with an Average Depression Variable and Race
+Mothership_Mean_RDQ<-Mothership_Long_RDQ %>%
+  group_by(rm,PrePost) %>%
+  summarise(RDQ=mean(RDQ,na.rm=TRUE))
+
+#Add a Paired Variable to the New Data Set
+Mothership_Mean_RDQ<-mutate(Mothership_Mean_RDQ,
+                            paired=case_when(rm=="rdqPRE_coping"~"1",
+                                             rm=="rdqPOST_coping"~"1",
+                                             rm=="rdqPRE_pmh"~"2",
+                                             rm=="rdqPOST_pmh"~"2",
+                                             rm=="rdqPRE_func"~"3",
+                                             rm=="rdqPOST_func"~"3",
+                                             rm=="rdqPRE_wbs"~"4",
+                                             rm=="rdqPOST_wbs"~"4",
+                                             rm=="rdqPRE_sym"~"5",
+                                             rm=="rdqPOST_sym"~"5"))
+
+
+
+#Pre Post RDQ Plot
+ggplot(data=Mothership_Mean_RDQ,
+       aes(x=factor(PrePost,level=c("Pre","Post")),y=RDQ,
+           group=rm,color=paired,!is.na(PrePost)))+
+  geom_point(size=2.5)+
+  geom_line(group=Mothership_Mean_RDQ$paired,size=1.5)+
+  scale_x_discrete(name="Time Point")+
+  scale_y_continuous(name="RDQ Subscore")+
+  ggtitle("Mean Pre and Post Scores of the Remission from Depression Questionnaire")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title = element_blank())+
+  scale_color_manual(values=c("1"="#8956BB","2"="#4C4452","3"="#B1A8B9",
+                              "4"="#00BCA3","5"="#008570"),
+                     labels=c("Coping Skills","Positive Mental Health",
+                              "Functioning","Well-Being","Symptoms"))
+
+```

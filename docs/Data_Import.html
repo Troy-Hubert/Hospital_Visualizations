@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Background on Patients</title>
+
+<script src="site_libs/header-attrs-2.19/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/bootstrap.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark the anchor link active (and if it's in a dropdown, also mark that active)
+  var dropdown = menuAnchor.closest('li.dropdown');
+  if (window.bootstrap) { // Bootstrap 4+
+    menuAnchor.addClass('active');
+    dropdown.find('> .dropdown-toggle').addClass('active');
+  } else { // Bootstrap 3
+    menuAnchor.parent().addClass('active');
+    dropdown.addClass('active');
+  }
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before, .tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "\e259";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "\e258";
+  font-family: 'Glyphicons Halflings';
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">PHP Psychiatric Treatment</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown-header">Home</li>
+<li>
+  <a href="index.html"></a>
+</li>
+<li class="dropdown-header">Background on Patients</li>
+<li>
+  <a href="Data_Import.html"></a>
+</li>
+<li class="dropdown-header">Diagnosis Visualizations</li>
+<li>
+  <a href="Diagnosis_Vis.html"></a>
+</li>
+<li class="dropdown-header">Treatment Progression Visualizations</li>
+<li>
+  <a href="Anxiety_Vis.html"></a>
+</li>
+<li>
+  <a></a>
+</li>
+<li>
+  <a href="Treatment_Outcomes.html"></a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Background on Patients</h1>
+
+</div>
+
+
+<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE, message=FALSE,warning = FALSE)
+
+# Libraries
+library(tidyverse)</code></pre>
+<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+## ✔ dplyr     1.1.0     ✔ readr     2.1.4
+## ✔ forcats   1.0.0     ✔ stringr   1.5.0
+## ✔ ggplot2   3.4.1     ✔ tibble    3.1.8
+## ✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+## ✔ purrr     1.0.1     
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()
+## ℹ Use the ]8;;http://conflicted.r-lib.org/conflicted package]8;; to force all conflicts to become errors</code></pre>
+<pre class="r"><code>library(dplyr)
+library(haven)
+library(ggplot2)
+library(tidyr)</code></pre>
+<div id="import-data" class="section level1">
+<h1>Import data</h1>
+<p>Read in the dataset.</p>
+<pre class="r"><code>df &lt;- read_sav(&quot;~/Desktop/Coding/data/Mothership_DV.sav&quot;)
+Mothership&lt;-select(df,ID1:Sexuality_1,MDD_C:Day40_CUXOS,SUMdep_0:SUManx_1,SUMdep_DC,SUManx_DC,BL_CUDOS, BL_CUXOS)
+view(Mothership)</code></pre>
+<div id="rename-and-recode-variables" class="section level2">
+<h2>Rename and Recode variables</h2>
+<p>We can change the current variables to make them easier to
+interpret.</p>
+<pre class="r"><code>#recode varaibles
+Mothership &lt;- mutate(Mothership, 
+                     DC_status_1 = as.factor(DC_status_1),
+                     DC_status_1 = recode(DC_status_1,
+                                          &quot;1&quot;=&quot;Complete&quot;,
+                                          &quot;2&quot;=&quot;Nearly Complete&quot;,
+                                          &quot;3&quot;=&quot;Insurance&quot;,
+                                          &quot;4&quot;=&quot;Nonatteneance&quot;,
+                                          &quot;5&quot;=&quot;Inappropriate&quot;,
+                                          &quot;6&quot;=&quot;Inpatient&quot;,
+                                          &quot;7&quot;=&quot;Withdrew&quot;,
+                                          &quot;8&quot;=&quot;Dissatisfaction&quot;,
+                                          &quot;9&quot;=&quot;Other&quot;),
+                     Education_1 = as.factor(Education_1),
+                     Education_1 = recode(Education_1,
+                                          &quot;1&quot;=&quot;&lt;Grade 12&quot;,
+                                          &quot;2&quot;=&quot;HS Diploma&quot;,
+                                          &quot;3&quot;=&quot;GED&quot;,
+                                          &quot;4&quot;=&quot;Some College&quot;,
+                                          &quot;5&quot;=&quot;Associates Degree&quot;,
+                                          &quot;6&quot;=&quot;Bachelors Degree&quot;,
+                                          &quot;7&quot;=&quot;Some Grad School&quot;,
+                                          &quot;8&quot;=&quot;Grad Degree&quot;),
+                     Gender_1 = as.factor(Gender_1),
+                     Gender_1 = recode(Gender_1,
+                                       &quot;0&quot;=&quot;Female&quot;,
+                                       &quot;1&quot;=&quot;Male&quot;,
+                                       &quot;2&quot;=&quot;Non-Binary&quot;,
+                                       &quot;3&quot;=&quot;Other&quot;,
+                                       &quot;4&quot;=&quot;Unknown&quot;),
+                     Relationship_1 = as.factor(Relationship_1),
+                     Relationship_1 = recode(Relationship_1,
+                                             &quot;0&quot;=&quot;Married&quot;,
+                                             &quot;1&quot;=&quot;Cohabitating&quot;,
+                                             &quot;2&quot;=&quot;Widowed&quot;,
+                                             &quot;3&quot;=&quot;Separated&quot;,
+                                             &quot;4&quot;=&quot;Divorced&quot;,
+                                             &quot;5&quot;=&quot;Never Married&quot;),
+                     Sexuality_1 = as.factor(Sexuality_1),
+                     Sexuality_1 = recode(Sexuality_1,
+                                          &quot;1&quot;=&quot;Straight&quot;,
+                                          &quot;2&quot;=&quot;Gay&quot;,
+                                          &quot;3&quot;=&quot;Bisexual&quot;,
+                                          &quot;4&quot;=&quot;Other&quot;),
+                     IPT_track_1 = as.factor(IPT_track_1),
+                     IPT_track_1 = recode(IPT_track_1,
+                                          &quot;0&quot;=&quot;General&quot;,
+                                          &quot;1&quot;=&quot;Trauma&quot;,
+                                          &quot;2&quot;=&quot;Young Adult&quot;,
+                                          &quot;3&quot;=&quot;BPD&quot;),
+                     Race_1 = as.factor(Race_1),
+                     Race_1 = recode(Race_1,
+                                     &quot;0&quot;=&quot;White&quot;,
+                                     &quot;1&quot;=&quot;Black&quot;,
+                                     &quot;2&quot;=&quot;Hispanic&quot;,
+                                     &quot;3&quot;=&quot;Asian&quot;,
+                                     &quot;4&quot;=&quot;Portugese&quot;,
+                                     &quot;5&quot;=&quot;Other&quot;),
+                     Education_1 = as.factor(Education_1),
+                     Education_1 = recode(Education_1,
+                                      &quot;0&quot;=&quot;&lt;Grade 6&quot;, 
+                                      &quot;1&quot;=&quot;Grades 7-12&quot;,
+                                      &quot;2&quot;=&quot;HS Diploma&quot;, 
+                                      &quot;3&quot;=&quot;GED&quot;,
+                                      &quot;4&quot;=&quot;Some College&quot;,
+                                      &quot;5&quot;=&quot;Associates Degree&quot;,
+                                      &quot;6&quot;=&quot;Bachelors Degree&quot;,
+                                      &quot;7&quot;=&quot;Some Grad School&quot;,
+                                      &quot;8&quot;=&quot;Grad Degree&quot;),
+                     DC_status_1 = as.factor(DC_status_1),
+                     DC_status_1 = recode(DC_status_1,
+                                      &quot;1&quot;=&quot;Treatment Complete&quot;,
+                                      &quot;2&quot;=&quot;Treatment Near Complete&quot;,
+                                      &quot;3&quot;=&quot;Insurance Stopped&quot;,
+                                      &quot;4&quot;=&quot;Nonattendence&quot;,
+                                      &quot;5&quot;=&quot;Inapproparite Language&quot;,
+                                      &quot;6&quot;=&quot;Transfered To Impatient&quot;,
+                                      &quot;7&quot;=&quot;Withdrew for External factors&quot;,
+                                      &quot;8&quot;=&quot;Withdrew (AMA)&quot;,
+                                      &quot;9&quot;=&quot;Other&quot;,
+                                      &quot;10&quot;=&quot;Other&quot;),
+                    DC_status_1 = as.factor(DC_status_1),
+                    DC_status_1 = recode(DC_status_1,
+                                      &quot;1&quot;=&quot;Inpatient&quot;,
+                                      &quot;2&quot;=&quot;PHP&quot;,
+                                      &quot;3&quot;=&quot;APS&quot;,
+                                      &quot;4&quot;=&quot;Psychatrist&quot;,
+                                      &quot;5&quot;=&quot;PCP&quot;,
+                                      &quot;6&quot;=&quot;Another Physican&quot;,
+                                      &quot;7&quot;=&quot;Therapist&quot;,
+                                      &quot;17&quot;=&quot;Other&quot;
+                    ),
+                                        
+#Lets make some new variables 
+      #Duration of treatment
+                     Duration = as.factor(
+                       ifelse(Days_complete_1&gt;0 &amp; Days_complete_1 &lt;=5, &quot;1&quot;,
+                       ifelse(Days_complete_1&gt;5 &amp; Days_complete_1 &lt;=10, &quot;2&quot;,
+                       ifelse(Days_complete_1&gt;10 &amp; Days_complete_1 &lt;=15, &quot;3&quot;, &quot;4&quot;
+                              )))),
+                    Duration = recode(Duration,
+                                      &quot;1&quot;=&quot;1-5&quot;,
+                                      &quot;2&quot;=&quot;6-10&quot;,
+                                      &quot;3&quot;=&quot;11-15&quot;,
+                                      &quot;4&quot;=&quot;16+&quot;
+                                      ))
+    
+#Extract Year From Intake Date
+#Convert to Date
+library(&quot;lubridate&quot;)
+Mothership$Intake_1&lt;-ymd(Mothership$Intake_1)
+Mothership$TxYear&lt;-as.numeric(format(Mothership$Intake_1,&quot;%Y&quot;))
+Mothership&lt;-mutate(Mothership,
+                   TxYear = as.factor(TxYear),
+                   TxYear = recode(TxYear,
+                                   &quot;1582&quot;=&quot;2014&quot;,
+                                   &quot;2021&quot;=&quot;2020&quot;,
+                                   &quot;2022&quot;=&quot;2020&quot;))</code></pre>
+</div>
+<div id="export-as-csv" class="section level2">
+<h2>Export as CSV</h2>
+<pre class="r"><code>write.csv(Mothership,&quot;~/Desktop/Coding/data/Mothership_Vis.csv&quot;)</code></pre>
+</div>
+</div>
+<div id="sociodemographic-visualizations" class="section level1">
+<h1>Sociodemographic Visualizations</h1>
+<div id="section" class="section level2 tabset">
+<h2 class="tabset"></h2>
+<div id="education-status" class="section level3">
+<h3>Education Status</h3>
+<pre class="r"><code>ggplot(data = subset(Mothership, !is.na(Education_1)),mapping = aes(x = Education_1))+
+  geom_bar(color = &quot;black&quot;,fill=&quot;darkred&quot;)+
+  ggtitle(&quot;Frequency of Education Level&quot;) +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab(&quot;Education Level&quot;)+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = &quot;Frequency&quot;,limits=c(0,3000))</code></pre>
+<p><img src="Data_Import_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+</div>
+<div id="race" class="section level3">
+<h3>Race</h3>
+<pre class="r"><code>ggplot(data = subset(Mothership, !is.na(Race_1)),mapping = aes(x = Race_1))+
+  geom_bar(color = &quot;black&quot;,fill=&quot;darkblue&quot;)+
+  ggtitle(&quot;Frequency of Race/Ethnicity&quot;) +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab(&quot;Race&quot;)+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = &quot;Frequency&quot;,limits=c(0,6500))</code></pre>
+<p><img src="Data_Import_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+</div>
+<div id="gender" class="section level3">
+<h3>Gender</h3>
+<pre class="r"><code>ggplot(data = subset(Mothership, !is.na(Gender_1)),mapping = aes(x = Gender_1))+
+  geom_bar(color = &quot;black&quot;,fill=&quot;darkorange&quot;)+
+  ggtitle(&quot;Frequency of Gender&quot;) +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab(&quot;Gender&quot;)+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = &quot;Frequency&quot;,limits=c(0,6500))</code></pre>
+<p><img src="Data_Import_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+</div>
+</div>
+<div id="pie-chart-for-education-status" class="section level1">
+<h1>Pie Chart For Education Status</h1>
+<p>We wanted to learn how to make a pie chart in R so here is one!</p>
+<pre class="r"><code>#Create Table and Data Frame
+Education&lt;-table(Mothership$Education_1)
+Education_df&lt;-as.data.frame(Education)
+Education_df</code></pre>
+<pre><code>##                Var1 Freq
+## 1         &lt;Grade 12  561
+## 2        HS Diploma 1191
+## 3               GED  473
+## 4      Some College 2819
+## 5 Associates Degree  776
+## 6  Bachelors Degree 1351
+## 7  Some Grad School  440
+## 8       Grad Degree  922</code></pre>
+<pre class="r"><code>#Rename Columns
+colnames(Education_df)[1]=&quot;Category&quot;
+colnames(Education_df)[2]=&quot;Frequency&quot;
+
+
+Education_df$Category=recode(Education_df$Category,
+                             &quot;0&quot;=&quot;&lt;Grade 6&quot;, 
+                             &quot;1&quot;=&quot;Grades 7-12&quot;,
+                             &quot;2&quot;=&quot;HS Diploma&quot;, 
+                             &quot;3&quot;=&quot;GED&quot;,
+                             &quot;4&quot;=&quot;Some College&quot;,
+                             &quot;5&quot;=&quot;Associates Degree&quot;,
+                             &quot;6&quot;=&quot;Bachelors Degree&quot;,
+                             &quot;7&quot;=&quot;Some Grad School&quot;,
+                             &quot;8&quot;=&quot;Grad Degree&quot;)
+
+ggplot(data = Education_df, mapping = aes(x=&quot;&quot;, y=Frequency, fill=Category))+
+  geom_bar(stat=&quot;Identity&quot;,width=1,color=&quot;white&quot;)+
+  ggtitle(&quot;Education Level of Patients&quot;) +
+  scale_fill_discrete(name = &quot;Education&quot;) +
+  coord_polar(&quot;y&quot;,start=0)+
+  theme_void()</code></pre>
+<p><img src="Data_Import_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+<div id="treatment-related-visualizations" class="section level1">
+<h1>Treatment Related Visualizations</h1>
+<div id="section-1" class="section level2 tabset">
+<h2 class="tabset"></h2>
+<div id="discharge-status" class="section level3">
+<h3>Discharge Status</h3>
+<pre class="r"><code>### Bar Chart for Discharge Status ###
+
+ggplot(data = subset(Mothership, !is.na(DC_status_1)), mapping = aes(x = DC_status_1))+
+  geom_bar(color = &quot;black&quot;,fill=&quot;darkgreen&quot;)+
+  ggtitle(&quot;Frequency of Treatment Discharge Status&quot;) +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab(&quot;Discharge Status&quot;) +
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = &quot;Frequency&quot;,limits=c(0,6000))</code></pre>
+<p><img src="Data_Import_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+</div>
+<div id="treatment-track" class="section level3">
+<h3>Treatment Track</h3>
+<pre class="r"><code>### Treatment Track ###
+
+ggplot(data = subset(Mothership, !is.na(IPT_track_1)),mapping = aes(x = IPT_track_1))+
+  geom_bar(color = &quot;black&quot;,fill=&quot;skyblue&quot;)+
+  ggtitle(&quot;Frequency of Treatment Type&quot;) +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab(&quot;Treatment Type&quot;)+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = &quot;Frequency&quot;,limits=c(0,6500))</code></pre>
+<p><img src="Data_Import_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+</div>
+<div id="treatment-year" class="section level3">
+<h3>Treatment Year</h3>
+<pre class="r"><code>### Treatment Year ###
+
+ggplot(data = subset(Mothership, !is.na(TxYear)),mapping = aes(x = TxYear))+
+  geom_bar(color = &quot;black&quot;,fill=&quot;#9350C7&quot;)+
+  ggtitle(&quot;Frequency of Patients per Year&quot;) +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab(&quot;Treatment Year&quot;)+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = &quot;Frequency&quot;,limits=c(0,1500))</code></pre>
+<p><img src="Data_Import_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+</div>
+<div id="duration-of-treatment" class="section level3">
+<h3>Duration of Treatment</h3>
+<pre class="r"><code>### Duration of Treatment ###
+ggplot(data = subset(Mothership, !is.na(Duration)),mapping = aes(x = Duration))+
+  geom_bar(color = &quot;black&quot;,fill=&quot;lightgreen&quot;)+
+  ggtitle(&quot;Frequency of Patients per Duration of Treatment&quot;) +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab(&quot;Treatment Duration&quot;)+
+  theme(panel.grid.major.y = element_line(color = &quot;grey&quot;,size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = &quot;Frequency&quot;,limits=c(0,6500))</code></pre>
+<p><img src="Data_Import_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

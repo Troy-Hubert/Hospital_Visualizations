@@ -1,10 +1,16 @@
 ---
-title: "Data_Import"
-output: html_document
-date: "2023-04-01"
+title: "Background on Patients"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    collapsed: false
+    number_sections: false
+    toc_depth: 1
+    #code_folding: hide
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 knitr::opts_chunk$set(echo = TRUE, message=FALSE,warning = FALSE)
 
 # Libraries
@@ -15,7 +21,8 @@ library(ggplot2)
 library(tidyr)
 ```
 
-## Import data
+# Import data
+
 Read in the dataset. 
 ```{r}
 df <- read_sav("~/Desktop/Coding/data/Mothership_DV.sav")
@@ -117,10 +124,7 @@ Mothership <- mutate(Mothership,
                                       "7"="Therapist",
                                       "17"="Other"
                     ),
-                                          
-                  
-                     
-  
+                                        
 #Lets make some new variables 
       #Duration of treatment
                      Duration = as.factor(
@@ -135,8 +139,6 @@ Mothership <- mutate(Mothership,
                                       "4"="16+"
                                       ))
     
-        
-
 #Extract Year From Intake Date
 #Convert to Date
 library("lubridate")
@@ -156,21 +158,12 @@ Mothership<-mutate(Mothership,
 write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Vis.csv")
 ```
 
-# Background Statistics
+# Sociodemographic Visualizations
+
+## {.tabset}
+
+### Education Status
 ```{r}
-### Bar Chart for Discharge Status ###
-
-ggplot(data = subset(Mothership, !is.na(DC_status_1)), mapping = aes(x = DC_status_1))+
-  geom_bar(color = "black",fill="darkgreen")+
-  ggtitle("Frequency of Treatment Discharge Status") +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
-  xlab("Discharge Status") +
-  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,6000))
-
-### Bar Chart for Education Status ###
-
 ggplot(data = subset(Mothership, !is.na(Education_1)),mapping = aes(x = Education_1))+
   geom_bar(color = "black",fill="darkred")+
   ggtitle("Frequency of Education Level") +
@@ -179,8 +172,10 @@ ggplot(data = subset(Mothership, !is.na(Education_1)),mapping = aes(x = Educatio
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   scale_y_continuous(name = "Frequency",limits=c(0,3000))
+```
 
-### Bar chart for race ###
+### Race
+```{r}
 ggplot(data = subset(Mothership, !is.na(Race_1)),mapping = aes(x = Race_1))+
   geom_bar(color = "black",fill="darkblue")+
   ggtitle("Frequency of Race/Ethnicity") +
@@ -189,8 +184,10 @@ ggplot(data = subset(Mothership, !is.na(Race_1)),mapping = aes(x = Race_1))+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   scale_y_continuous(name = "Frequency",limits=c(0,6500))
+```
 
-### Bar chart for gender###
+### Gender
+```{r}
 ggplot(data = subset(Mothership, !is.na(Gender_1)),mapping = aes(x = Gender_1))+
   geom_bar(color = "black",fill="darkorange")+
   ggtitle("Frequency of Gender") +
@@ -199,45 +196,10 @@ ggplot(data = subset(Mothership, !is.na(Gender_1)),mapping = aes(x = Gender_1))+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   scale_y_continuous(name = "Frequency",limits=c(0,6500))
-
-### Treatment Track ###
-
-ggplot(data = subset(Mothership, !is.na(IPT_track_1)),mapping = aes(x = IPT_track_1))+
-  geom_bar(color = "black",fill="skyblue")+
-  ggtitle("Frequency of Treatment Type") +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
-  xlab("Treatment Type")+
-  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,6500))
-
-### Treatment Year ###
-
-Mothership$TxYear
-
-ggplot(data = subset(Mothership, !is.na(TxYear)),mapping = aes(x = TxYear))+
-  geom_bar(color = "black",fill="#9350C7")+
-  ggtitle("Frequency of Patients per Year") +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
-  xlab("Treatment Year")+
-  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,1500))
-
-
-### Duration of Treatment ###
-ggplot(data = subset(Mothership, !is.na(Duration)),mapping = aes(x = Duration))+
-  geom_bar(color = "black",fill="lightgreen")+
-  ggtitle("Frequency of Patients per Duration of Treatment") +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
-  xlab("Treatment Duration")+
-  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,6500))
-
 ```
 
-## Pie Chart For Education Status 
+# Pie Chart For Education Status 
+We wanted to learn how to make a pie chart in R so here is one!
 ```{r}
 #Create Table and Data Frame
 Education<-table(Mothership$Education_1)
@@ -266,4 +228,65 @@ ggplot(data = Education_df, mapping = aes(x="", y=Frequency, fill=Category))+
   scale_fill_discrete(name = "Education") +
   coord_polar("y",start=0)+
   theme_void()
+```
+
+
+# Treatment Related Visualizations
+
+## {.tabset}
+
+### Discharge Status
+```{r}
+### Bar Chart for Discharge Status ###
+
+ggplot(data = subset(Mothership, !is.na(DC_status_1)), mapping = aes(x = DC_status_1))+
+  geom_bar(color = "black",fill="darkgreen")+
+  ggtitle("Frequency of Treatment Discharge Status") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Discharge Status") +
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6000))
+```
+
+### Treatment Track
+```{r}
+### Treatment Track ###
+
+ggplot(data = subset(Mothership, !is.na(IPT_track_1)),mapping = aes(x = IPT_track_1))+
+  geom_bar(color = "black",fill="skyblue")+
+  ggtitle("Frequency of Treatment Type") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Treatment Type")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+```
+
+### Treatment Year
+```{r}
+### Treatment Year ###
+
+ggplot(data = subset(Mothership, !is.na(TxYear)),mapping = aes(x = TxYear))+
+  geom_bar(color = "black",fill="#9350C7")+
+  ggtitle("Frequency of Patients per Year") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Treatment Year")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,1500))
+```
+
+### Duration of Treatment
+```{r}
+### Duration of Treatment ###
+ggplot(data = subset(Mothership, !is.na(Duration)),mapping = aes(x = Duration))+
+  geom_bar(color = "black",fill="lightgreen")+
+  ggtitle("Frequency of Patients per Duration of Treatment") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Treatment Duration")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+
 ```
