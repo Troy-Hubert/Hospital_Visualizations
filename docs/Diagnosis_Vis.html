@@ -747,7 +747,7 @@ dark_col &lt;- &quot;#333333&quot;
 title = &quot;Length of Treatment for Different Disorders&quot;
 st = &quot;The partial hospitalization program at the Rhode Island Hospital consists of a variety of treatment modalities for psychiatric disorders, but mainly consists of mindfulness based psychotherapies (e.g., ACT). Patients come for treatment during the day from 9-5 and do not stay overnight in the hospital. Patient discharge is agreed between psychiatrist, therapist, and patient.&quot;
 
-cap = &quot;**Source:**: Methods to Improve Diagnostic Assessment and Services (MIDAS) project &lt;br&gt; &quot;
+cap = &quot;**Source:** Methods to Improve Diagnostic Assessment and Services (MIDAS) project &lt;br&gt; &quot;
 
 set.seed(12345)
 ggplot(
@@ -770,7 +770,7 @@ ggplot(
   scale_x_continuous(
    breaks = c(0, 15, 30, 45, 60),
     limits = c(0.00, 60)
-  ) +
+  ) + 
   labs(
     x = &quot;Number of Days In Partial Hospitalization Program&quot;,
     y = &quot;DSM-5 Disorder Subtype&quot;,
@@ -779,7 +779,7 @@ ggplot(
     caption = cap
     ) +
   theme_minimal(
-    base_size = 30,
+    base_size = 10,
     base_family = &quot;Commissioner&quot;
     ) +
   theme(
@@ -801,18 +801,18 @@ ggplot(
     plot.title = element_text(
       family = &quot;Commissioner&quot;,
         #this is the font
-      margin = margin(b = 20),
+      margin = margin(b = 10),
       colour = dark_col,
-      size = 70
+      size = 17
     ),
     plot.subtitle = element_textbox_simple(
       lineheight = 0.55,
       colour = dark_col,
       family = &quot;Commissioner&quot;,
       hjust = 0,
-      margin = margin(b = 20),
+      margin = margin(b = 10),
       halign = 0,
-      size = 28
+      size = 8
     ),
     plot.caption = element_textbox_simple(
       lineheight = 0.55,
@@ -825,6 +825,170 @@ ggplot(
     plot.margin = margin(15, 15, 10, 10)
   )</code></pre>
 <p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+</div>
+<div id="cuxos-by-diagnosis" class="section level1">
+<h1>CUXOS by Diagnosis</h1>
+<div id="section-1" class="section level2 tabset">
+<h2 class="tabset"></h2>
+<div id="code" class="section level3">
+<h3>Code</h3>
+<pre class="r"><code># install.packages(&quot;ggridges&quot;)
+library(ggridges)
+library(ggplot2)
+library(forcats)</code></pre>
+<pre class="r"><code>bg_col &lt;- &quot;#F9FBF2&quot;
+dark_col &lt;- &quot;#333333&quot;
+
+title = &quot;Baseline Anxiety for Patients By Disorder Type&quot;
+subtitle = &quot;Upon entrence of the partial hospitalization program, scores of anxiety are reported from the _Clinically Useful Anxiety Outcome Scale_ (CUXOS). The CUXOS is a 20 item measure used to assess symptoms of anxiety; a cutoff score of 20 suggests a possitive screen for a probable anxiety disorder. Mean CUXOS scores are reported for each disorder type below (i.e., _the black line_).&quot;
+cap = &quot;**Symptom severity:** 0-10 (non-anxiety), 11-20 (minimal anxiety), 21-30 (mild anxiety), 31-40 (moderate anxiety), 41+ (severe anxiety) &lt;br&gt; &lt;br&gt; **Source:**: Methods to Improve Diagnostic Assessment and Services (MIDAS) project&quot;
+
+
+p &lt;- ggplot(Mothership_Current_Long, aes(
+  x = BL_CUXOS,
+  y = Disorder_Type,
+  fill = Disorder_Type)) +
+  # geom_density_ridges(alpha=0.6,
+  #                     rel_min_height = 0.05, 
+  #                     scale = 2)+
+   stat_density_ridges(quantile_lines = TRUE, alpha = 0.6, quantiles = 2, rel_min_height = 0.05, scale = 1.5) +
+   scale_x_continuous(
+   breaks = c(0, 20, 40, 60, 80),
+   limits = c(0, 80)) +
+  #theme_ridges() + 
+  labs(
+    x = &quot;Baseline Score on CUXOS&quot;,
+    #y = &quot;DSM-5 Disorder Subtype&quot;,
+    title = title,
+    subtitle = subtitle,
+    caption = cap) +
+   theme_minimal(
+    base_size = 10,
+    base_family = &quot;Commissioner&quot;
+    ) + 
+    theme(legend.position = &quot;none&quot;,
+          axis.ticks = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(
+       linewidth = 0.4), 
+    axis.title.y= element_blank(),
+    plot.background = element_rect(
+      fill = bg_col,
+      colour = bg_col
+    ),    
+    panel.background = element_rect(
+      fill = bg_col,
+      colour = bg_col
+    ),
+    plot.title = element_text(
+      family = &quot;Commissioner&quot;,
+        #this is the font
+      margin = margin(b = 5),
+      colour = dark_col,
+      size = 15
+    ),
+    plot.subtitle = element_textbox_simple(
+      lineheight = 0.55,
+      colour = dark_col,
+      family = &quot;Commissioner&quot;,
+      hjust = 0,
+      margin = margin(b = 6),
+      halign = 0,
+      size = 8
+    ),
+     plot.caption = element_textbox_simple(
+      lineheight = 0.55,
+      colour = dark_col,
+      margin = margin(t = 10),
+      size = 7))</code></pre>
+</div>
+<div id="plot" class="section level3">
+<h3>Plot</h3>
+<pre class="r"><code>p</code></pre>
+<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+</div>
+</div>
+<div id="depression-by-disorder-type" class="section level1">
+<h1>Depression by disorder type</h1>
+<div id="section-2" class="section level2 tabset">
+<h2 class="tabset"></h2>
+<div id="code-1" class="section level3">
+<h3>Code</h3>
+<pre class="r"><code>bg_col &lt;- &quot;#F9FBF2&quot;
+dark_col &lt;- &quot;#333333&quot;
+
+title = &quot;Baseline Depression for Patients By Disorder Type&quot;
+subtitle = &quot;Upon entrence of the partial hospitalization program, scores of anxiety are reported from the _Clinically Useful Depression Outcome Scale_ (CUDOS). The CUXOS is a 18 item measure used to assess different symptoms of depression; A cut off score of 20 suggests a positive screen for probable major depression. Mean CUDOS scores are reported for each disorder type below (i.e., _the black line_).&quot;
+cap = &quot;**Symptom severity:** 0-10 (non-depression), 11-20 (minimal depression), 21-30 (mild anxiety), 31-45 (moderate depression), 41+ (severe depression) &lt;br&gt;&lt;br&gt; **Source:**: Methods to Improve Diagnostic Assessment and Services (MIDAS) project&quot;
+
+
+q &lt;- ggplot(Mothership_Current_Long, aes(
+  x = BL_CUDOS,
+  y = Disorder_Type,
+  fill = Disorder_Type)) +
+  # geom_density_ridges(alpha=0.6,
+  #                     rel_min_height = 0.05, 
+  #                     scale = 2)+
+   stat_density_ridges(quantile_lines = TRUE, alpha = 0.6, quantiles = 2, rel_min_height = 0.05, scale = 1.5) +
+   scale_x_continuous(
+   breaks = c(0, 20, 40, 60),
+   limits = c(0, 64)) +
+  #theme_ridges() + 
+  labs(
+    x = &quot;Baseline Score on CUXOS&quot;,
+    #y = &quot;DSM-5 Disorder Subtype&quot;,
+    title = title,
+    subtitle = subtitle,
+    caption = cap) +
+   theme_minimal(
+    base_size = 10,
+    base_family = &quot;Commissioner&quot;
+    ) + 
+    theme(legend.position = &quot;none&quot;,
+          axis.ticks = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(
+       linewidth = 0.4), 
+    axis.title.y= element_blank(),
+    plot.background = element_rect(
+      fill = bg_col,
+      colour = bg_col
+    ),    
+    panel.background = element_rect(
+      fill = bg_col,
+      colour = bg_col
+    ),
+    plot.title = element_text(
+      family = &quot;Commissioner&quot;,
+        #this is the font
+      margin = margin(b = 5),
+      colour = dark_col,
+      size = 15
+    ),
+    plot.subtitle = element_textbox_simple(
+      lineheight = 0.55,
+      colour = dark_col,
+      family = &quot;Commissioner&quot;,
+      hjust = 0,
+      margin = margin(b = 5),
+      halign = 0,
+      size = 8
+    ),
+     plot.caption = element_textbox_simple(
+      lineheight = 0.55,
+      colour = dark_col,
+      margin = margin(t = 10),
+      size = 8))</code></pre>
+</div>
+<div id="plot-1" class="section level3">
+<h3>plot</h3>
+<pre class="r"><code>q</code></pre>
+<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+</div>
+</div>
 </div>
 
 

@@ -428,7 +428,7 @@ dark_col <- "#333333"
 title = "Length of Treatment for Different Disorders"
 st = "The partial hospitalization program at the Rhode Island Hospital consists of a variety of treatment modalities for psychiatric disorders, but mainly consists of mindfulness based psychotherapies (e.g., ACT). Patients come for treatment during the day from 9-5 and do not stay overnight in the hospital. Patient discharge is agreed between psychiatrist, therapist, and patient."
 
-cap = "**Source:**: Methods to Improve Diagnostic Assessment and Services (MIDAS) project <br> "
+cap = "**Source:** Methods to Improve Diagnostic Assessment and Services (MIDAS) project <br> "
 
 set.seed(12345)
 ggplot(
@@ -451,7 +451,7 @@ ggplot(
   scale_x_continuous(
    breaks = c(0, 15, 30, 45, 60),
     limits = c(0.00, 60)
-  ) +
+  ) + 
   labs(
     x = "Number of Days In Partial Hospitalization Program",
     y = "DSM-5 Disorder Subtype",
@@ -460,7 +460,7 @@ ggplot(
     caption = cap
     ) +
   theme_minimal(
-    base_size = 30,
+    base_size = 10,
     base_family = "Commissioner"
     ) +
   theme(
@@ -482,18 +482,18 @@ ggplot(
     plot.title = element_text(
       family = "Commissioner",
         #this is the font
-      margin = margin(b = 20),
+      margin = margin(b = 10),
       colour = dark_col,
-      size = 70
+      size = 17
     ),
     plot.subtitle = element_textbox_simple(
       lineheight = 0.55,
       colour = dark_col,
       family = "Commissioner",
       hjust = 0,
-      margin = margin(b = 20),
+      margin = margin(b = 10),
       halign = 0,
-      size = 28
+      size = 8
     ),
     plot.caption = element_textbox_simple(
       lineheight = 0.55,
@@ -509,5 +509,172 @@ ggplot(
 
 ```
 
-      
-                   
+# CUXOS by Diagnosis 
+
+## {.tabset}
+
+### Code
+```{r}
+# install.packages("ggridges")
+library(ggridges)
+library(ggplot2)
+library(forcats)
+```
+
+
+```{r}
+bg_col <- "#F9FBF2"
+dark_col <- "#333333"
+
+title = "Baseline Anxiety for Patients By Disorder Type"
+subtitle = "Upon entrence of the partial hospitalization program, scores of anxiety are reported from the _Clinically Useful Anxiety Outcome Scale_ (CUXOS). The CUXOS is a 20 item measure used to assess symptoms of anxiety; a cutoff score of 20 suggests a possitive screen for a probable anxiety disorder. Mean CUXOS scores are reported for each disorder type below (i.e., _the black line_)."
+cap = "**Symptom severity:** 0-10 (non-anxiety), 11-20 (minimal anxiety), 21-30 (mild anxiety), 31-40 (moderate anxiety), 41+ (severe anxiety) <br> <br> **Source:**: Methods to Improve Diagnostic Assessment and Services (MIDAS) project"
+
+
+p <- ggplot(Mothership_Current_Long, aes(
+  x = BL_CUXOS,
+  y = Disorder_Type,
+  fill = Disorder_Type)) +
+  # geom_density_ridges(alpha=0.6,
+  #                     rel_min_height = 0.05, 
+  #                     scale = 2)+
+   stat_density_ridges(quantile_lines = TRUE, alpha = 0.6, quantiles = 2, rel_min_height = 0.05, scale = 1.5) +
+   scale_x_continuous(
+   breaks = c(0, 20, 40, 60, 80),
+   limits = c(0, 80)) +
+  #theme_ridges() + 
+  labs(
+    x = "Baseline Score on CUXOS",
+    #y = "DSM-5 Disorder Subtype",
+    title = title,
+    subtitle = subtitle,
+    caption = cap) +
+   theme_minimal(
+    base_size = 10,
+    base_family = "Commissioner"
+    ) + 
+    theme(legend.position = "none",
+          axis.ticks = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(
+       linewidth = 0.4), 
+    axis.title.y= element_blank(),
+    plot.background = element_rect(
+      fill = bg_col,
+      colour = bg_col
+    ),    
+    panel.background = element_rect(
+      fill = bg_col,
+      colour = bg_col
+    ),
+    plot.title = element_text(
+      family = "Commissioner",
+        #this is the font
+      margin = margin(b = 5),
+      colour = dark_col,
+      size = 15
+    ),
+    plot.subtitle = element_textbox_simple(
+      lineheight = 0.55,
+      colour = dark_col,
+      family = "Commissioner",
+      hjust = 0,
+      margin = margin(b = 6),
+      halign = 0,
+      size = 8
+    ),
+     plot.caption = element_textbox_simple(
+      lineheight = 0.55,
+      colour = dark_col,
+      margin = margin(t = 10),
+      size = 7))
+```
+
+### Plot
+
+```{r}
+p
+```
+
+# Depression by disorder type
+
+## {.tabset}
+
+### Code
+```{r}
+bg_col <- "#F9FBF2"
+dark_col <- "#333333"
+
+title = "Baseline Depression for Patients By Disorder Type"
+subtitle = "Upon entrence of the partial hospitalization program, scores of anxiety are reported from the _Clinically Useful Depression Outcome Scale_ (CUDOS). The CUXOS is a 18 item measure used to assess different symptoms of depression; A cut off score of 20 suggests a positive screen for probable major depression. Mean CUDOS scores are reported for each disorder type below (i.e., _the black line_)."
+cap = "**Symptom severity:** 0-10 (non-depression), 11-20 (minimal depression), 21-30 (mild anxiety), 31-45 (moderate depression), 41+ (severe depression) <br><br> **Source:**: Methods to Improve Diagnostic Assessment and Services (MIDAS) project"
+
+
+q <- ggplot(Mothership_Current_Long, aes(
+  x = BL_CUDOS,
+  y = Disorder_Type,
+  fill = Disorder_Type)) +
+  # geom_density_ridges(alpha=0.6,
+  #                     rel_min_height = 0.05, 
+  #                     scale = 2)+
+   stat_density_ridges(quantile_lines = TRUE, alpha = 0.6, quantiles = 2, rel_min_height = 0.05, scale = 1.5) +
+   scale_x_continuous(
+   breaks = c(0, 20, 40, 60),
+   limits = c(0, 64)) +
+  #theme_ridges() + 
+  labs(
+    x = "Baseline Score on CUXOS",
+    #y = "DSM-5 Disorder Subtype",
+    title = title,
+    subtitle = subtitle,
+    caption = cap) +
+   theme_minimal(
+    base_size = 10,
+    base_family = "Commissioner"
+    ) + 
+    theme(legend.position = "none",
+          axis.ticks = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(
+       linewidth = 0.4), 
+    axis.title.y= element_blank(),
+    plot.background = element_rect(
+      fill = bg_col,
+      colour = bg_col
+    ),    
+    panel.background = element_rect(
+      fill = bg_col,
+      colour = bg_col
+    ),
+    plot.title = element_text(
+      family = "Commissioner",
+        #this is the font
+      margin = margin(b = 5),
+      colour = dark_col,
+      size = 15
+    ),
+    plot.subtitle = element_textbox_simple(
+      lineheight = 0.55,
+      colour = dark_col,
+      family = "Commissioner",
+      hjust = 0,
+      margin = margin(b = 5),
+      halign = 0,
+      size = 8
+    ),
+     plot.caption = element_textbox_simple(
+      lineheight = 0.55,
+      colour = dark_col,
+      margin = margin(t = 10),
+      size = 8))
+```
+
+
+### plot
+```{r}
+q
+```
+
+
