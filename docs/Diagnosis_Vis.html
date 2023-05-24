@@ -519,7 +519,9 @@ Mothership_Diag &lt;- Mothership %&gt;%
 
 # df with and without depression
 No_depressy &lt;- Mothership_Diag %&gt;%
-  filter(Disorder_Type != &quot;Mood&quot;)</code></pre>
+  filter(Disorder_Type != &quot;Mood&quot;)
+
+view(Mothership)</code></pre>
 </div>
 <div id="number-of-disorders-treated-over-time" class="section level1">
 <h1>Number of Disorders Treated Over Time</h1>
@@ -699,6 +701,130 @@ Mothership_Current_Long %&gt;%
     y = &quot;Co-Occuring Psychiatric Disorder&quot;,
     x = &quot;Primary Psychiatric Diagnosis&quot;) </code></pre>
 <p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+<div id="duration-of-treatment-based-upon-disorder"
+class="section level1">
+<h1>Duration of treatment based upon disorder</h1>
+<p>Source for <a
+href="https://twitter.com/nrennie35/status/1655911610618114052">Data_Vis</a></p>
+<pre class="r"><code>library(tidyverse)
+#install.packages(&quot;showtext&quot;)
+library(showtext)
+# install.packages(&quot;camcorder&quot;)
+library(camcorder)
+# install.packages(&quot;ggtext&quot;)
+library(ggtext)
+library(glue)
+# install.packages(&quot;nrbrand&quot;)
+#require(nrBrand)
+    #what the fuck is this?
+# install.packages(&quot;ggmagnify&quot;)
+#library(ggmagnify)
+
+
+font_add_google(&quot;Fredericka the Great&quot;, &quot;fred&quot;)
+showtext_auto()
+
+# gg_record(
+#   dir = file.path(&quot;~/Desktop/Coding/R working directory/plots/Recording&quot;), # where to save the recording
+#   device = &quot;png&quot;, # device to use to save images
+#   width = 8, # width of saved image
+#   height = 6.5, # height of saved image
+#   units = &quot;in&quot;, # units for width and height
+#   dpi = 300 # dpi to use when saving image
+# )
+
+
+
+
+bg_col &lt;- &quot;#F9FBF2&quot;
+# highlight_col &lt;- &quot;#FFAD05&quot;
+# highlight_col &lt;- &quot;FF52825&quot;
+highlight_col &lt;- &quot;#02d46e&quot;
+outline_col &lt;- &quot;darkblue&quot;
+dark_col &lt;- &quot;#333333&quot;
+
+title = &quot;Length of Treatment for Different Disorders&quot;
+st = &quot;The partial hospitalization program at the Rhode Island Hospital consists of a variety of treatment modalities for psychiatric disorders, but mainly consists of mindfulness based psychotherapies (e.g., ACT). Patients come for treatment during the day from 9-5 and do not stay overnight in the hospital. Patient discharge is agreed between psychiatrist, therapist, and patient.&quot;
+
+cap = &quot;**Source:**: Methods to Improve Diagnostic Assessment and Services (MIDAS) project &lt;br&gt; &quot;
+
+set.seed(12345)
+ggplot(
+  data = Mothership_Current_Long,
+  mapping = aes(
+    x = Days_complete_1,
+    y = Disorder_Type,
+    group = Disorder_Type)
+  )+
+  geom_jitter(
+    size = 0.6,
+    alpha = .5,
+    colour = highlight_col
+    )+
+  geom_boxplot(
+    outlier.shape = NA,
+    colour = outline_col,
+    fill = highlight_col,
+    alpha = 0.3) +
+  scale_x_continuous(
+   breaks = c(0, 15, 30, 45, 60),
+    limits = c(0.00, 60)
+  ) +
+  labs(
+    x = &quot;Number of Days In Partial Hospitalization Program&quot;,
+    y = &quot;DSM-5 Disorder Subtype&quot;,
+    title = title,
+    subtitle = st,
+    caption = cap
+    ) +
+  theme_minimal(
+    base_size = 30,
+    base_family = &quot;Commissioner&quot;
+    ) +
+  theme(
+    axis.ticks = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(
+       linewidth = 0.4,
+       colour = alpha(dark_col, 0.2),
+    ),
+    plot.background = element_rect(
+      fill = bg_col,
+      colour = bg_col
+    ),
+    panel.background = element_rect(
+      fill = bg_col,
+      colour = bg_col
+    ),
+    plot.title = element_text(
+      family = &quot;Commissioner&quot;,
+        #this is the font
+      margin = margin(b = 20),
+      colour = dark_col,
+      size = 70
+    ),
+    plot.subtitle = element_textbox_simple(
+      lineheight = 0.55,
+      colour = dark_col,
+      family = &quot;Commissioner&quot;,
+      hjust = 0,
+      margin = margin(b = 20),
+      halign = 0,
+      size = 28
+    ),
+    plot.caption = element_textbox_simple(
+      lineheight = 0.55,
+      colour = dark_col,
+      margin = margin(t = 10)
+    ),
+    axis.text = element_text(colour = dark_col),
+    axis.title = element_text(colour = dark_col),
+    legend.position = &quot;none&quot;,
+    plot.margin = margin(15, 15, 10, 10)
+  )</code></pre>
+<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 </div>
 
 

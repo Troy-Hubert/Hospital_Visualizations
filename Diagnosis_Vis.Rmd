@@ -205,6 +205,8 @@ Mothership_Diag <- Mothership %>%
 # df with and without depression
 No_depressy <- Mothership_Diag %>%
   filter(Disorder_Type != "Mood")
+
+view(Mothership)
 ```
 
 # Number of Disorders Treated Over Time
@@ -379,6 +381,132 @@ Mothership_Current_Long %>%
     subtitle = "Grouped into subtypes of DSM diagonsis",
     y = "Co-Occuring Psychiatric Disorder",
     x = "Primary Psychiatric Diagnosis") 
+```
+
+
+# Duration of treatment based upon disorder
+
+Source for [Data_Vis](https://twitter.com/nrennie35/status/1655911610618114052)
+```{r}
+library(tidyverse)
+#install.packages("showtext")
+library(showtext)
+# install.packages("camcorder")
+library(camcorder)
+# install.packages("ggtext")
+library(ggtext)
+library(glue)
+# install.packages("nrbrand")
+#require(nrBrand)
+    #what the fuck is this?
+# install.packages("ggmagnify")
+#library(ggmagnify)
+
+
+font_add_google("Fredericka the Great", "fred")
+showtext_auto()
+
+# gg_record(
+#   dir = file.path("~/Desktop/Coding/R working directory/plots/Recording"), # where to save the recording
+#   device = "png", # device to use to save images
+#   width = 8, # width of saved image
+#   height = 6.5, # height of saved image
+#   units = "in", # units for width and height
+#   dpi = 300 # dpi to use when saving image
+# )
+
+
+
+
+bg_col <- "#F9FBF2"
+# highlight_col <- "#FFAD05"
+# highlight_col <- "FF52825"
+highlight_col <- "#02d46e"
+outline_col <- "darkblue"
+dark_col <- "#333333"
+
+title = "Length of Treatment for Different Disorders"
+st = "The partial hospitalization program at the Rhode Island Hospital consists of a variety of treatment modalities for psychiatric disorders, but mainly consists of mindfulness based psychotherapies (e.g., ACT). Patients come for treatment during the day from 9-5 and do not stay overnight in the hospital. Patient discharge is agreed between psychiatrist, therapist, and patient."
+
+cap = "**Source:**: Methods to Improve Diagnostic Assessment and Services (MIDAS) project <br> "
+
+set.seed(12345)
+ggplot(
+  data = Mothership_Current_Long,
+  mapping = aes(
+    x = Days_complete_1,
+    y = Disorder_Type,
+    group = Disorder_Type)
+  )+
+  geom_jitter(
+    size = 0.6,
+    alpha = .5,
+    colour = highlight_col
+    )+
+  geom_boxplot(
+    outlier.shape = NA,
+    colour = outline_col,
+    fill = highlight_col,
+    alpha = 0.3) +
+  scale_x_continuous(
+   breaks = c(0, 15, 30, 45, 60),
+    limits = c(0.00, 60)
+  ) +
+  labs(
+    x = "Number of Days In Partial Hospitalization Program",
+    y = "DSM-5 Disorder Subtype",
+    title = title,
+    subtitle = st,
+    caption = cap
+    ) +
+  theme_minimal(
+    base_size = 30,
+    base_family = "Commissioner"
+    ) +
+  theme(
+    axis.ticks = element_blank(),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.major.x = element_line(
+       linewidth = 0.4,
+       colour = alpha(dark_col, 0.2),
+    ),
+    plot.background = element_rect(
+      fill = bg_col,
+      colour = bg_col
+    ),
+    panel.background = element_rect(
+      fill = bg_col,
+      colour = bg_col
+    ),
+    plot.title = element_text(
+      family = "Commissioner",
+        #this is the font
+      margin = margin(b = 20),
+      colour = dark_col,
+      size = 70
+    ),
+    plot.subtitle = element_textbox_simple(
+      lineheight = 0.55,
+      colour = dark_col,
+      family = "Commissioner",
+      hjust = 0,
+      margin = margin(b = 20),
+      halign = 0,
+      size = 28
+    ),
+    plot.caption = element_textbox_simple(
+      lineheight = 0.55,
+      colour = dark_col,
+      margin = margin(t = 10)
+    ),
+    axis.text = element_text(colour = dark_col),
+    axis.title = element_text(colour = dark_col),
+    legend.position = "none",
+    plot.margin = margin(15, 15, 10, 10)
+  )
+
+
 ```
 
       
