@@ -94,6 +94,13 @@ Mothership<-Mothership %>%
                       ifelse(Eating_D == 1, "Eating", 
                       ifelse(Somatic_D == 1, "Somatic", NA
                       )))))))))),
+                    Disorder_treat = as.factor(
+                      ifelse(Anxiety_D == 1, "Anxiety",
+                      ifelse(BPD_P == 1, "BPD",
+                      ifelse(Trauma_D == 1, "Trauma",
+                      ifelse(Mood_D == 1, "Mood",
+                      NA
+                      ))))),
                   Anxiety_C =  as.factor(
                     ifelse( GAD_P !=1 & GAD_C ==1 | 
                         Panic_P != 1 & Panic_C == 1 | 
@@ -127,6 +134,22 @@ Mothership<-Mothership %>%
                     ifelse(OCD_P != 1 & OCD_C == 1,1,0)),
                   BPD_Co_C = as.factor(
                     ifelse(BPD_P != 1 & BPD_C ==1,1,0)),
+                  No_Co = as.factor(
+                    ifelse(BPD_Co_C == 0 &
+                           OCD_Co_C == 0 &
+                           Somatic_C == 0 & 
+                           Eating_C == 0 &
+                           Psychotic_C == 0 &
+                           Trauma_C == 0 & 
+                           Substance_C == 0 &
+                           Mood_C == 0 &
+                           Anxiety_C == 0, 1,0)),
+                  Other_Co = as.factor(
+                    ifelse(OCD_Co_C == 1 & 
+                           Somatic_C == 0 & 
+                           Eating_C == 0 &
+                           Psychotic_C == 0,1,0)),
+                  
           #emotional disorders
                   Emotional_dis = as.factor(
                     ifelse(Anxiety_D == 1 | OCD_P == 1 | Trauma_D == 1 |
@@ -202,6 +225,9 @@ Mothership_Diag <- Mothership %>%
   filter(!is.na(Disorder_Type))%>%
   filter(!is.na(TxYear))
 
+Mothership_Diag_treat <- Mothership %>%
+  filter(!is.na(Disorder_treat))%>%
+  filter(!is.na(TxYear))
 # df with and without depression
 No_depressy <- Mothership_Diag %>%
   filter(Disorder_Type != "Mood")
@@ -363,8 +389,8 @@ library(tidyr)
 
 Mothership_Current_Long %>%
   ggplot(aes(x = Disorder_Type, y = Disorder_Present, color = Disorder_Type)) +
-  geom_count(alpha = .5)+
-  scale_size_area(max_size = 20) +
+  geom_count(aes(size = after_stat(prop),group = Disorder_Type),alpha = .5)+
+  scale_size_area(max_size = 25) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45,hjust = 1),
     legend.position = "none") +
@@ -382,6 +408,58 @@ Mothership_Current_Long %>%
     y = "Co-Occuring Psychiatric Disorder",
     x = "Primary Psychiatric Diagnosis") 
 ```
+
+
+```{r}
+
+Mothership_current_Imp <- Mothership %>%
+  pivot_longer(
+    cols=c(Anxiety_C, Mood_C, Substance_C, Trauma_C, BPD_Co_C,Other_Co,No_Co),
+    names_to = 'Disorder_Present') %>%
+  filter(value != 0) %>%
+  select(!value)  %>%
+  filter(!is.na(Disorder_Present))%>%
+  filter(!is.na(Disorder_treat))
+
+
+tabs<-as.data.frame.matrix(xtabs(~Disorder_treat + Disorder_Present, data = Mothership_current_Imp))
+
+anx<-sum(tabs[1,])
+bpd<-sum(tabs[2,])
+mood<-sum(tabs[3,])
+trauma<-sum(tabs[4,])
+
+tabs[1,] <- (tabs[1,] /anx)*100
+tabs[2,] <- (tabs[2,] /bpd)*100
+tabs[3,] <- (tabs[3,] /mood)*100
+tabs[4,] <- (tabs[4,] /trauma)*100
+
+tabs
+```
+
+```{r}
+Mothership_current_Imp$Disorder_Present
+Mothership_current_Imp %>%
+  ggplot(aes(x = Disorder_treat, y = Disorder_Present, color = Disorder_treat)) +
+  geom_count(aes(size = after_stat(prop),group = Disorder_treat), alpha = .5)+
+  scale_size_area(max_size = 30) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1),
+    legend.position = "none") +
+  scale_y_discrete(labels=c("Trauma_C" = "Trauma", 
+                            "Substance_C" = "Substance Use",
+                            "Other_Co" = "Other",
+                            "No_Co" = "None",
+                            "Mood_C" = "Mood",
+                            "BPD_Co_C" = "BPD",
+                            "Anxiety_C" = "Anxiety")) +
+  labs(title = "Percent of Co Occuring Psychiatric Diosrders per Primary Diagnosis",
+    subtitle = "Grouped into subtypes of DSM diagonsis",
+    y = "Co-Occuring Psychiatric Disorder",
+    x = "Primary Psychiatric Diagnosis") 
+```
+
+
 
 
 # Duration of treatment based upon disorder
@@ -624,7 +702,7 @@ q <- ggplot(Mothership_Current_Long, aes(
    limits = c(0, 64)) +
   #theme_ridges() + 
   labs(
-    x = "Baseline Score on CUXOS",
+    x = "Baseline Score on CUDOS",
     #y = "DSM-5 Disorder Subtype",
     title = title,
     subtitle = subtitle,
