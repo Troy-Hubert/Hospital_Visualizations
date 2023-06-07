@@ -61,8 +61,10 @@ Mothership<-Mothership %>%
                         Social_P == 1 | Specific_P == 1, 1, 0)),
           # Obsessive Compusive Disorders
                 #OCD_P is for current OCD
+                OCD_P = as.factor(OCD_P),
           # Personality Disorders
                 #BPD_P is for current BPD
+                BPD_P = as.factor(BPD_P),
           # Substance Use Disorders
                     Substance_D = as.factor(
                       ifelse(
@@ -419,27 +421,27 @@ Mothership_current_Imp <- Mothership %>%
   filter(value != 0) %>%
   select(!value)  %>%
   filter(!is.na(Disorder_Present))%>%
-  filter(!is.na(Disorder_treat))
+  filter(!is.na(Disorder_treat)) 
 
 
-tabs<-as.data.frame.matrix(xtabs(~Disorder_treat + Disorder_Present, data = Mothership_current_Imp))
+tabs<-as.data.frame.matrix(xtabs(~ Disorder_Present + Disorder_treat, data = Mothership_current_Imp))
 
-anx<-sum(tabs[1,])
-bpd<-sum(tabs[2,])
-mood<-sum(tabs[3,])
-trauma<-sum(tabs[4,])
+anx<-summary(Mothership$Anxiety_D)[2]
+bpd<-summary(Mothership$BPD_P)[2]
+mood<-summary(Mothership$Mood_D)[2]
+trauma<-summary(Mothership$Trauma_D)[2]
 
-tabs[1,] <- (tabs[1,] /anx)*100
-tabs[2,] <- (tabs[2,] /bpd)*100
-tabs[3,] <- (tabs[3,] /mood)*100
-tabs[4,] <- (tabs[4,] /trauma)*100
+tabs[,1] <- (tabs[,1] / anx)*100
+tabs[,2] <- (tabs[,2] /bpd)*100
+tabs[,3] <- (tabs[,3] /mood)*100
+tabs[,4] <- (tabs[,4] /trauma)*100
 
 tabs
 ```
 
 ```{r}
 Mothership_current_Imp$Disorder_Present
-Mothership_current_Imp %>%
+CO_OC<- Mothership_current_Imp %>%
   ggplot(aes(x = Disorder_treat, y = Disorder_Present, color = Disorder_treat)) +
   geom_count(aes(size = after_stat(prop),group = Disorder_treat), alpha = .5)+
   scale_size_area(max_size = 30) +
@@ -457,6 +459,8 @@ Mothership_current_Imp %>%
     subtitle = "Grouped into subtypes of DSM diagonsis",
     y = "Co-Occuring Psychiatric Disorder",
     x = "Primary Psychiatric Diagnosis") 
+
+CO_OC
 ```
 
 
