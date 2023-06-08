@@ -411,7 +411,12 @@ Mothership_Current_Long %>%
     x = "Primary Psychiatric Diagnosis") 
 ```
 
+While very pretty, this visualization is hard to interpret as. It may be easier to focus on the disorders most treated at the hospital (i.e., Anxiety, BPD, Mood, Trauma), and compare those across treatments. 
 
+I first wanted to find out the percentages of patients with one diagnoses that also had another diagnosis. The following code:
+1. Creates a cross tabs of the number of people with each disorder / co occuring disorders
+2. Sums the number of people with a primary diagnosis of anxiety, mood, trauma, and BPD
+2. creates a value with the % of people that also have co-occuring disorders. 
 ```{r}
 
 Mothership_current_Imp <- Mothership %>%
@@ -441,37 +446,9 @@ colnames(tabs)[5] = "Disorder"
 tabs
 ```
 
-```{r}
-Mothership_current_Imp %>%
-  ggplot(aes(x = Disorder_treat, y = Disorder_Present, color = Disorder_treat)) +
-  geom_point(aes(size = ..count..),stat = "bin2d")+
-  #scale_size_area(max_size = 30)+
-  scale_colour_manual(values = c( "#F4B393","#FC60A8","#7A28CB","#494368"))+
-  #scale_size_continuous(range = c(10, 30)) +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1),
-    legend.position = "none") +
-  scale_y_discrete(labels=c("Trauma_C" = "Trauma", 
-                            "Substance_C" = "Substance Use",
-                            "Other_Co" = "Other",
-                            "No_Co" = "None",
-                            "Mood_C" = "Mood",
-                            "BPD_Co_C" = "BPD",
-                            "Anxiety_C" = "Anxiety")) +
-  labs(title = "Percent of Co Occuring Psychiatric Diosrders per Primary Diagnosis",
-    subtitle = "Grouped into subtypes of DSM diagonsis",
-    y = "Co-Occuring Psychiatric Disorder",
-    x = "Primary Psychiatric Diagnosis") 
-  
- "#CEEC97"
- "#F4B393"
- "#FC60A8"
- "#7A28CB"
- "#494368"
+### Plot the thing
 
-```
-
-
+Now that we have the percentages we will need to plot it. This figure plots the proportion of co-occuring disorders (y-axis) by the main diagnoses treated (x axis).
 ```{r}
 Mothership_current_Imp %>%
   ggplot(aes(x = Disorder_treat, y = Disorder_Present, color = Disorder_treat)) +
@@ -495,7 +472,9 @@ Mothership_current_Imp %>%
     x = "Primary Psychiatric Diagnosis") 
 ```
 
+While this figure is more clear, I wanted to add numbers to it. I popped this over to illustrator and made things a bit better. You can see the final figure below:
 
+![Note. Other = OCD, Eating Disorders, Somatic Disorders, and Psychotic Disorders; None = No other co-occuring disorder.](images/Co_occuring.png)
 
 
 # Duration of treatment based upon disorder
