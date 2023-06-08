@@ -376,8 +376,10 @@ acounting for conditions.</p>
                         Social_P == 1 | Specific_P == 1, 1, 0)),
           # Obsessive Compusive Disorders
                 #OCD_P is for current OCD
+                OCD_P = as.factor(OCD_P),
           # Personality Disorders
                 #BPD_P is for current BPD
+                BPD_P = as.factor(BPD_P),
           # Substance Use Disorders
                     Substance_D = as.factor(
                       ifelse(
@@ -409,6 +411,13 @@ acounting for conditions.</p>
                       ifelse(Eating_D == 1, &quot;Eating&quot;, 
                       ifelse(Somatic_D == 1, &quot;Somatic&quot;, NA
                       )))))))))),
+                    Disorder_treat = as.factor(
+                      ifelse(Anxiety_D == 1, &quot;Anxiety&quot;,
+                      ifelse(BPD_P == 1, &quot;BPD&quot;,
+                      ifelse(Trauma_D == 1, &quot;Trauma&quot;,
+                      ifelse(Mood_D == 1, &quot;Mood&quot;,
+                      NA
+                      ))))),
                   Anxiety_C =  as.factor(
                     ifelse( GAD_P !=1 &amp; GAD_C ==1 | 
                         Panic_P != 1 &amp; Panic_C == 1 | 
@@ -442,6 +451,22 @@ acounting for conditions.</p>
                     ifelse(OCD_P != 1 &amp; OCD_C == 1,1,0)),
                   BPD_Co_C = as.factor(
                     ifelse(BPD_P != 1 &amp; BPD_C ==1,1,0)),
+                  No_Co = as.factor(
+                    ifelse(BPD_Co_C == 0 &amp;
+                           OCD_Co_C == 0 &amp;
+                           Somatic_C == 0 &amp; 
+                           Eating_C == 0 &amp;
+                           Psychotic_C == 0 &amp;
+                           Trauma_C == 0 &amp; 
+                           Substance_C == 0 &amp;
+                           Mood_C == 0 &amp;
+                           Anxiety_C == 0, 1,0)),
+                  Other_Co = as.factor(
+                    ifelse(OCD_Co_C == 1 &amp; 
+                           Somatic_C == 0 &amp; 
+                           Eating_C == 0 &amp;
+                           Psychotic_C == 0,1,0)),
+                  
           #emotional disorders
                   Emotional_dis = as.factor(
                     ifelse(Anxiety_D == 1 | OCD_P == 1 | Trauma_D == 1 |
@@ -517,6 +542,9 @@ Mothership_Diag &lt;- Mothership %&gt;%
   filter(!is.na(Disorder_Type))%&gt;%
   filter(!is.na(TxYear))
 
+Mothership_Diag_treat &lt;- Mothership %&gt;%
+  filter(!is.na(Disorder_treat))%&gt;%
+  filter(!is.na(TxYear))
 # df with and without depression
 No_depressy &lt;- Mothership_Diag %&gt;%
   filter(Disorder_Type != &quot;Mood&quot;)
@@ -682,8 +710,8 @@ library(tidyr)
 
 Mothership_Current_Long %&gt;%
   ggplot(aes(x = Disorder_Type, y = Disorder_Present, color = Disorder_Type)) +
-  geom_count(alpha = .5)+
-  scale_size_area(max_size = 20) +
+  geom_count(aes(size = after_stat(prop),group = Disorder_Type),alpha = .5)+
+  scale_size_area(max_size = 25) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45,hjust = 1),
     legend.position = &quot;none&quot;) +
@@ -701,6 +729,84 @@ Mothership_Current_Long %&gt;%
     y = &quot;Co-Occuring Psychiatric Disorder&quot;,
     x = &quot;Primary Psychiatric Diagnosis&quot;) </code></pre>
 <p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>While very pretty, this visualization is hard to interpret as. It may
+be easier to focus on the disorders most treated at the hospital (i.e.,
+Anxiety, BPD, Mood, Trauma), and compare those across treatments.</p>
+<p>I first wanted to find out the percentages of patients with one
+diagnoses that also had another diagnosis. The following code: 1.
+Creates a cross tabs of the number of people with each disorder / co
+occuring disorders 2. Sums the number of people with a primary diagnosis
+of anxiety, mood, trauma, and BPD 2. creates a value with the % of
+people that also have co-occuring disorders.</p>
+<pre class="r"><code>Mothership_current_Imp &lt;- Mothership %&gt;%
+  pivot_longer(
+    cols=c(Anxiety_C, Mood_C, Substance_C, Trauma_C, BPD_Co_C,Other_Co,No_Co),
+    names_to = &#39;Disorder_Present&#39;) %&gt;%
+  filter(value != 0) %&gt;%
+  select(!value)  %&gt;%
+  filter(!is.na(Disorder_Present))%&gt;%
+  filter(!is.na(Disorder_treat)) 
+
+
+tabs&lt;-as.data.frame.matrix(xtabs(~ Disorder_Present + Disorder_treat, data = Mothership_current_Imp))
+
+anx&lt;-summary(Mothership$Anxiety_D)[2]
+bpd&lt;-summary(Mothership$BPD_P)[2]
+mood&lt;-summary(Mothership$Mood_D)[2]
+trauma&lt;-summary(Mothership$Trauma_D)[2]
+
+tabs[,1] &lt;- (tabs[,1] / anx)*100
+tabs[,2] &lt;- (tabs[,2] /bpd)*100
+tabs[,3] &lt;- (tabs[,3] /mood)*100
+tabs[,4] &lt;- (tabs[,4] /trauma)*100
+
+tabs[,5] &lt;- c(&quot;Anxiety&quot;,&quot;BPD&quot;,&quot;Mood&quot;,&quot;None&quot;,&quot;Other&quot;,&quot;Substance&quot;,&quot;Trauma&quot;)
+colnames(tabs)[5] = &quot;Disorder&quot;
+tabs</code></pre>
+<pre><code>##               Anxiety       BPD      Mood    Trauma  Disorder
+## Anxiety_C   48.036649 56.727273 58.727001 45.418719   Anxiety
+## BPD_Co_C    13.612565  0.000000 21.084038 23.054187       BPD
+## Mood_C      46.727749 55.272727  8.577822 45.320197      Mood
+## No_Co       15.575916  8.000000 19.194431 22.364532      None
+## Other_Co     7.068063  6.545455  4.823471  3.546798     Other
+## Substance_C 18.062827 29.818182 19.691696 19.113300 Substance
+## Trauma_C    18.848168 41.818182 29.860766  3.645320    Trauma</code></pre>
+<div id="plot-the-thing" class="section level3">
+<h3>Plot the thing</h3>
+<p>Now that we have the percentages we will need to plot it. This figure
+plots the proportion of co-occuring disorders (y-axis) by the main
+diagnoses treated (x axis).</p>
+<pre class="r"><code>Mothership_current_Imp %&gt;%
+  ggplot(aes(x = Disorder_treat, y = Disorder_Present, color = Disorder_treat)) +
+  geom_count(aes(size = after_stat(prop),group = Disorder_treat), alpha = .75)+
+ scale_size_area(max_size = 40)+
+  scale_colour_manual(values = c(&quot;#FE6CAA&quot;,&quot;#f7a174&quot;,&quot;#B1D4E0&quot;,&quot;#A06CFE&quot;))+
+  #scale_size_continuous(range = c(10, 30)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1),
+    legend.position = &quot;none&quot;) +
+  scale_y_discrete(labels=c(&quot;Other_Co&quot; = &quot;Other&quot;,
+                            &quot;No_Co&quot; = &quot;None&quot;,
+                            &quot;BPD_Co_C&quot; = &quot;BPD&quot;,
+                            &quot;Trauma_C&quot; = &quot;Trauma&quot;, 
+                            &quot;Substance_C&quot; = &quot;Substance Use&quot;,
+                            &quot;Mood_C&quot; = &quot;Mood&quot;,
+                            &quot;Anxiety_C&quot; = &quot;Anxiety&quot;)) +
+  labs(title = &quot;Percent of Co Occuring Psychiatric Diosrders per Primary Diagnosis&quot;,
+    subtitle = &quot;Grouped into subtypes of DSM diagonsis&quot;,
+    y = &quot;Co-Occuring Psychiatric Disorder&quot;,
+    x = &quot;Primary Psychiatric Diagnosis&quot;) </code></pre>
+<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>While this figure is more clear, I wanted to add numbers to it. I
+popped this over to illustrator and made things a bit better. You can
+see the final figure below:</p>
+<div class="figure">
+<img src="images/Co_occuring.png" alt="" />
+<p class="caption">Note. Other = OCD, Eating Disorders, Somatic
+Disorders, and Psychotic Disorders; None = No other co-occuring
+disorder.</p>
+</div>
+</div>
 </div>
 <div id="duration-of-treatment-based-upon-disorder"
 class="section level1">
@@ -824,7 +930,7 @@ ggplot(
     legend.position = &quot;none&quot;,
     plot.margin = margin(15, 15, 10, 10)
   )</code></pre>
-<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 </div>
 <div id="cuxos-by-diagnosis" class="section level1">
 <h1>CUXOS by Diagnosis</h1>
@@ -906,7 +1012,7 @@ p &lt;- ggplot(Mothership_Current_Long, aes(
 <div id="plot" class="section level3">
 <h3>Plot</h3>
 <pre class="r"><code>p</code></pre>
-<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 </div>
 </div>
 </div>
@@ -937,7 +1043,7 @@ q &lt;- ggplot(Mothership_Current_Long, aes(
    limits = c(0, 64)) +
   #theme_ridges() + 
   labs(
-    x = &quot;Baseline Score on CUXOS&quot;,
+    x = &quot;Baseline Score on CUDOS&quot;,
     #y = &quot;DSM-5 Disorder Subtype&quot;,
     title = title,
     subtitle = subtitle,
@@ -986,7 +1092,7 @@ q &lt;- ggplot(Mothership_Current_Long, aes(
 <div id="plot-1" class="section level3">
 <h3>plot</h3>
 <pre class="r"><code>q</code></pre>
-<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p><img src="Diagnosis_Vis_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 </div>
 </div>
 </div>

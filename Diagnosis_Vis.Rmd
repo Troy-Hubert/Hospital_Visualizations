@@ -436,15 +436,18 @@ tabs[,2] <- (tabs[,2] /bpd)*100
 tabs[,3] <- (tabs[,3] /mood)*100
 tabs[,4] <- (tabs[,4] /trauma)*100
 
+tabs[,5] <- c("Anxiety","BPD","Mood","None","Other","Substance","Trauma")
+colnames(tabs)[5] = "Disorder"
 tabs
 ```
 
 ```{r}
-Mothership_current_Imp$Disorder_Present
-CO_OC<- Mothership_current_Imp %>%
+Mothership_current_Imp %>%
   ggplot(aes(x = Disorder_treat, y = Disorder_Present, color = Disorder_treat)) +
-  geom_count(aes(size = after_stat(prop),group = Disorder_treat), alpha = .5)+
-  scale_size_area(max_size = 30) +
+  geom_point(aes(size = ..count..),stat = "bin2d")+
+  #scale_size_area(max_size = 30)+
+  scale_colour_manual(values = c( "#F4B393","#FC60A8","#7A28CB","#494368"))+
+  #scale_size_continuous(range = c(10, 30)) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45,hjust = 1),
     legend.position = "none") +
@@ -459,8 +462,37 @@ CO_OC<- Mothership_current_Imp %>%
     subtitle = "Grouped into subtypes of DSM diagonsis",
     y = "Co-Occuring Psychiatric Disorder",
     x = "Primary Psychiatric Diagnosis") 
+  
+ "#CEEC97"
+ "#F4B393"
+ "#FC60A8"
+ "#7A28CB"
+ "#494368"
 
-CO_OC
+```
+
+
+```{r}
+Mothership_current_Imp %>%
+  ggplot(aes(x = Disorder_treat, y = Disorder_Present, color = Disorder_treat)) +
+  geom_count(aes(size = after_stat(prop),group = Disorder_treat), alpha = .75)+
+ scale_size_area(max_size = 40)+
+  scale_colour_manual(values = c("#FE6CAA","#f7a174","#B1D4E0","#A06CFE"))+
+  #scale_size_continuous(range = c(10, 30)) +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1),
+    legend.position = "none") +
+  scale_y_discrete(labels=c("Other_Co" = "Other",
+                            "No_Co" = "None",
+                            "BPD_Co_C" = "BPD",
+                            "Trauma_C" = "Trauma", 
+                            "Substance_C" = "Substance Use",
+                            "Mood_C" = "Mood",
+                            "Anxiety_C" = "Anxiety")) +
+  labs(title = "Percent of Co Occuring Psychiatric Diosrders per Primary Diagnosis",
+    subtitle = "Grouped into subtypes of DSM diagonsis",
+    y = "Co-Occuring Psychiatric Disorder",
+    x = "Primary Psychiatric Diagnosis") 
 ```
 
 
