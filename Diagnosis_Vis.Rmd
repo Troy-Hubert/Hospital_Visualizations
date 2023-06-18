@@ -220,6 +220,10 @@ Mothership<-Mothership %>%
                                 Somatic_D == 1 & Anxiety_C ==1 |
                                 Somatic_D == 1 & Psychotic_C ==1, 1, 0)))
 
+
+### Export as CSV
+write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Diag.csv")
+
 ##### df for plots 
 
 # df without NAs in date and disorder type
@@ -701,7 +705,7 @@ dark_col <- "#333333"
 
 title = "Baseline Depression for Patients By Disorder Type"
 subtitle = "Upon entrence of the partial hospitalization program, scores of anxiety are reported from the _Clinically Useful Depression Outcome Scale_ (CUDOS). The CUXOS is a 18 item measure used to assess different symptoms of depression; A cut off score of 20 suggests a positive screen for probable major depression. Mean CUDOS scores are reported for each disorder type below (i.e., _the black line_)."
-cap = "**Symptom severity:** 0-10 (non-depression), 11-20 (minimal depression), 21-30 (mild anxiety), 31-45 (moderate depression), 41+ (severe depression) <br><br> **Source:**: Methods to Improve Diagnostic Assessment and Services (MIDAS) project"
+cap = "**Symptom severity:** 0-10 (non-depression), 11-20 (minimal depression), 21-30 (mild depression), 31-45 (moderate depression), 46+ (severe depression) <br><br> **Source:**: Methods to Improve Diagnostic Assessment and Services (MIDAS) project"
 
 
 q <- ggplot(Mothership_Current_Long, aes(
@@ -769,5 +773,7 @@ q <- ggplot(Mothership_Current_Long, aes(
 ```{r}
 q
 ```
+
+
 
 
