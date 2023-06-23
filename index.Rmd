@@ -45,6 +45,16 @@ This is a series of R Markdowns dipicting code used for a final project in a Des
 3. [Treatment Progression Visualizations](https://troy-hubert.github.io/Hospital_Visualizations/Anxiety_Vis.html)
 4. [Treatment Outcome Visualization](https://troy-hubert.github.io/Hospital_Visualizations/Treatment_Outcomes.html)
 
+
+#### Enjoy my favorite visualizations from the project!
+
+
+![](images/Treatment_duration.png)
+
+![Note. Other = OCD, Eating Disorders, Somatic Disorders, and Psychotic Disorders; None = No other co-occuring disorder.](images/Co_occuring.png)
+
+![Pre (red) and Post (green) scores of depression via self report for different DSM diagnoses.](images/Pre_post.png)
+
 ---
 ### References
 

@@ -11,6 +11,7 @@ output:
 ---
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message=FALSE,warning = FALSE)
+getOption("max.print")
 # Libraries 
 library(tidyverse)
 library(dplyr)
@@ -120,44 +121,76 @@ ggplot(data=Mothership_Mean_RDQ,
 
 ```
 
-```{r, include=FALSE}
+
+# Pre and Post Scores
+
+## {.tabset}
+
+### Extract pre/post scores
+```{r}
 # 1. First adjust the their values for length of stay above 40 to 40, because the measures don't go above 40 days.
 
 Mothership_post <- Mothership %>%
-  mutate(Days_complete_W = ifelse(Days_complete_1 > 40, 40,Days_complete_1),
+  mutate(Days_complete_W = ifelse(Days_complete_1 > 40, 40, Days_complete_1),
 
 #2. Create pre_scores
       CUXOS_pre = Day1_CUXOS,
-      CUDOX_pre = Day1_CUDOS
-      )
+      CUDOS_pre = Day1_CUDOS
+      ) %>%
+  filter(!is.na(Days_complete_W)) %>%
+  filter(!Days_complete_W == 0)
+
+sum(is.na(Mothership_post$Days_complete_W))
 
 #3. Then create df with CUDOS and CUXOS scores
   # Depression
 
-    CUDOS_Score <- select(Mothership,
+    CUDOS_Score <- select(Mothership_post,
                       Day1_CUDOS:Day40_CUDOS)
     CUDOS_Score <- data.frame(CUDOS_Score)
 
   # Anxiety
-    CUXOS_Score <- select(Mothership,
-                      Day1_CUXOS:Day40_CUXOS)
-    CUXOS_Score <- data.frame(CUDOS_Score)
+    CUXOS_Score <- select(Mothership_post, Day1_CUXOS:Day40_CUXOS)
+    CUXOS_Score <- data.frame(CUXOS_Score)
     
-    view(Mothership)
-    
+
+
+length(Mothership_post$Days_complete_W)
+  
 #4. Extract the valeues for each patient at their last day (length of stay), and create a CUDOS and CUXOS post score.
 
-Mothership <- Mothership %>%
+# Mothership_post2 <- Mothership_post %>%
+#   mutate(
+#     CUDOS_post = CUDOS_Score[cbind(seq_along(1:8610),CUDOS_Score$Days_complete_W)],
+#     CUXOS_post = CUXOS_Score[cbind(seq_along(1:8610),CUXOS_Score$Days_complete_W)]
+#   )
+
+# CUDOS_Score2=CUDOS_Score[,2:41]
+# CUXOS_Score2=CUXOS_Score[,2:41]
+
+
+Mothership_post <- Mothership_post %>%
   mutate(
-    CUDOS_post = CUDOS_Score[cbind(seq_along(1:8667),CUDOS_Score$Days_complete_W)],
-    CUXOS_post = CUXOS_Score[cbind(seq_along(1:8667),CUDOS_Score$Days_complete_W)]
+    CUDOS_post = CUDOS_Score[cbind(c(1:8367),Mothership_post$Days_complete_W)],
+    CUXOS_post = CUXOS_Score[cbind(c(1:8367),Mothership_post$Days_complete_W)]
   )
 
+####WTF
+```
+
+
+```{r}
 #5. create new DF with Varaibles we want
 
-AnxDep_PrePost<- data.frame(cbind(Mothership$ID1,Mothership$Disorder_Type,CUDOS_pre,CUDOS_post,CUXOS_pre,CUXOS_post)) %>%
-  filter(!is.na(Mothership$Disorder_Type))
-colnames(AnxDep_PrePost)[1:2] = c("ID1","Disorder_Type")
+AnxDep_PrePost <- data.frame(cbind(Mothership_post$ID1,
+                                  Mothership_post$Disorder_Type,
+                                  Mothership_post$CUDOS_pre,
+                                  Mothership_post$CUDOS_post,
+                                  Mothership_post$CUXOS_pre,
+                                  Mothership_post$CUXOS_post)) %>%
+  filter(!is.na(Mothership_post$Disorder_Type))
+
+colnames(AnxDep_PrePost) = c("ID1","Disorder_Type", "CUDOS_pre","CUDOS_post","CUXOS_pre","CUXOS_post")
 
 #6. Create long data frame
 
@@ -184,7 +217,12 @@ AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
   group_by(Test,PrePost) %>%
   summarise(Score=mean(Score,na.rm=TRUE))
 
-#8. Pre Post CUDOS/CUXOS Plot
+
+```
+
+### Overall Plot
+```{r}
+# Pre Post CUDOS/CUXOS Plot
 ggplot(data=AnxDep_PrePost_mean,
        aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
            group=Test,color=Test))+
@@ -196,13 +234,11 @@ ggplot(data=AnxDep_PrePost_mean,
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   theme(legend.title = element_blank())
- # scale_color_manual(values=c("1"="#8956BB","2"="#4C4452","3"="#B1A8B9",
-                             # "4"="#00BCA3","5"="#008570"),
-                     #labels=c("Coping Skills","Positive Mental Health",
-                             # "Functioning","Well-Being","Symptoms"))
 
 ```
-Anxiety / Depression Pre_Post by disorder - line plot
+
+
+### Line Plot By Disorder
 ```{r}
 #1. Creaate new datasets with only anxiety / depresssion
 
@@ -255,7 +291,7 @@ ggplot(data=DEP_PrePost_mean,
   theme(legend.title = element_blank())
 ```
 
-Depression/ Anxiety pre/ post Dumbell plots
+### Dumbell Plot by Disorder
 ```{r}
 Pre_ANX<-ANX_PrePost_mean %>%
   filter(PrePost == "Pre")
@@ -286,7 +322,7 @@ ggplot(data=Pre_ANX,
       fill = "white",
       colour = "white"))
   
-sum(as.factor(ANX_PrePost$Disorder_Type))
+#sum(as.factor(ANX_PrePost$Disorder_Type))
 
   
 Pre_DEP<-DEP_PrePost_mean %>%
@@ -305,7 +341,8 @@ ggplot(data=Pre_DEP,
   geom_point( aes(x=Post_DEP$Disorder_Type, y=Post_DEP$Score), color= "#0CC541", size=3.5) +
   labs(title = "Mean Pre and Post Depression Scores By Disorder Type",
        subtitle = "Self Report anxiety was assessed using the CUDOS",
-       caption = "Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-45 (moderate), 46+ (severe)")+
+       caption = "Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-45 (moderate), 46+ (severe)",
+       ylab = "Disorder Type")+
   scale_y_reverse()+
   # limits = c(10, 50))+
   coord_flip() +
