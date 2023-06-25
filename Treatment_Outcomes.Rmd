@@ -137,12 +137,16 @@ Mothership_post <- Mothership %>%
       CUXOS_pre = Day1_CUXOS,
       CUDOS_pre = Day1_CUDOS
       ) %>%
+
+#4. Filter out scores for people not in the program / don't have dataa
   filter(!is.na(Days_complete_W)) %>%
+    #Having people in the program for more than 40 days means that their scores may be a lot higher, they should be filtered out as result. 
+  filter(!Days_complete_1 > 40) %>%
   filter(!Days_complete_W == 0)
 
-sum(is.na(Mothership_post$Days_complete_W))
+dim(Mothership_post)
 
-#3. Then create df with CUDOS and CUXOS scores
+#5. Then create df with CUDOS and CUXOS scores
   # Depression
 
     CUDOS_Score <- select(Mothership_post,
@@ -152,35 +156,17 @@ sum(is.na(Mothership_post$Days_complete_W))
   # Anxiety
     CUXOS_Score <- select(Mothership_post, Day1_CUXOS:Day40_CUXOS)
     CUXOS_Score <- data.frame(CUXOS_Score)
-    
 
-
-length(Mothership_post$Days_complete_W)
-  
-#4. Extract the valeues for each patient at their last day (length of stay), and create a CUDOS and CUXOS post score.
-
-# Mothership_post2 <- Mothership_post %>%
-#   mutate(
-#     CUDOS_post = CUDOS_Score[cbind(seq_along(1:8610),CUDOS_Score$Days_complete_W)],
-#     CUXOS_post = CUXOS_Score[cbind(seq_along(1:8610),CUXOS_Score$Days_complete_W)]
-#   )
-
-# CUDOS_Score2=CUDOS_Score[,2:41]
-# CUXOS_Score2=CUXOS_Score[,2:41]
-
+#6. Using incidences to extract values
 
 Mothership_post <- Mothership_post %>%
   mutate(
-    CUDOS_post = CUDOS_Score[cbind(c(1:8367),Mothership_post$Days_complete_W)],
-    CUXOS_post = CUXOS_Score[cbind(c(1:8367),Mothership_post$Days_complete_W)]
+    CUDOS_post = CUDOS_Score[cbind(c(1:8343),Mothership_post$Days_complete_W)],
+    CUXOS_post = CUXOS_Score[cbind(c(1:8343),Mothership_post$Days_complete_W)]
   )
 
-####WTF
-```
 
-
-```{r}
-#5. create new DF with Varaibles we want
+#7. create new DF with Varaibles we want
 
 AnxDep_PrePost <- data.frame(cbind(Mothership_post$ID1,
                                   Mothership_post$Disorder_Type,
@@ -192,7 +178,7 @@ AnxDep_PrePost <- data.frame(cbind(Mothership_post$ID1,
 
 colnames(AnxDep_PrePost) = c("ID1","Disorder_Type", "CUDOS_pre","CUDOS_post","CUXOS_pre","CUXOS_post")
 
-#6. Create long data frame
+#8. Create long data frame
 
 AnxDep_PrePost_Long <- AnxDep_PrePost %>% 
   pivot_longer(
@@ -212,13 +198,26 @@ AnxDep_PrePost_Long <-AnxDep_PrePost_Long %>%
                      ifelse(Test == "CUDOS_post", "CUDOS", "CUXOS"
                      ))))  
            
-#7. Convert to data frame with means of values to be plotted
+#9. Convert to data frame with means of values to be plotted
 AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
   group_by(Test,PrePost) %>%
   summarise(Score=mean(Score,na.rm=TRUE))
 
 
 ```
+
+```{r, include=FALSE}
+# Try to extract values using a while loop?
+
+
+for (i in 1:nrow(CUDOS_Score)){
+  while(is.na(CUDOS_Score[i,CUDOS_Score$Days_complete_W])){
+    x = Days_complete_W -1
+    post_days <- CUDOS_Score[i,(x)]
+  }
+}
+```
+
 
 ### Overall Plot
 ```{r}
@@ -257,8 +256,6 @@ ANX_PrePost_mean<-ANX_PrePost %>%
 DEP_PrePost_mean<-DEP_PrePost %>%
   group_by(Disorder_Type,PrePost) %>%
   summarise(Score=mean(Score,na.rm=TRUE))
-
-#3. Plot em 
 
 #### ANX
 ggplot(data=ANX_PrePost_mean,
