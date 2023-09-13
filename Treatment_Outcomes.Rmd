@@ -310,8 +310,7 @@ ggplot(data=Pre_ANX,
   labs(title = "Mean Pre and Post Anxiety Scores By Disorder Type",
        subtitle = "Self Report anxiety was assessed using the CUXOS",
        caption = "Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-40 (moderate), 41+ (severe)")+
-  scale_y_reverse()+
-  # limits = c(10, 50))+
+  scale_y_reverse(limits = c(45,15)) +
   coord_flip() +
   theme_classic()+
   theme(#legend.position = "none",
@@ -340,8 +339,7 @@ ggplot(data=Pre_DEP,
        subtitle = "Self Report anxiety was assessed using the CUDOS",
        caption = "Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-45 (moderate), 46+ (severe)",
        ylab = "Disorder Type")+
-  scale_y_reverse()+
-  # limits = c(10, 50))+
+  scale_y_reverse(limits = c(45,15)) +
   coord_flip() +
   theme_classic()+
   theme(#legend.position = "none",
