@@ -133,6 +133,7 @@ Mothership <- mutate(Mothership,
                                       "3"="11-15",
                                       "4"="16+"
                                       )))
+
     
 
 #Extract Year From Intake Date
@@ -427,6 +428,18 @@ ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping = aes(x = D
   theme(panel.background=NULL)+
   scale_y_continuous(name = "Frequency",limits=c(0,4300))+
   coord_flip()
+
+ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type, fill=Disorder_Type))+
+  geom_bar()+
+  ggtitle("Frequency of Psychiatric Disorder Subtypes") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1),
+        legend.position = "none")+
+  xlab("Psychiatric Disorder Subtype")+
+  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,2000))+
+  coord_flip()+
+  facet_wrap(~Duration)
 ```
 
 
@@ -435,7 +448,7 @@ ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping = aes(x = D
 
 Mothership_current_Imp <- Mothership_Diag_treat %>%
   pivot_longer(
-    cols=c("Co_Anx","Co_Mood","Co_OCD","CO_BPD","CO_Psychotic","CO_Eating","CO_Somatic", "CO_Substance","CO_Trauma", "No_Co"),
+    cols=c("Co_Anx","Co_Mood","Co_OCD","Co_BPD","Co_Psychotic","Co_Eating","Co_Somatic", "Co_Substance","Co_Trauma", "No_Co"),
     names_to = 'Disorder_Present') %>%
   filter(value != 0) %>%
   select(!value)  %>%
@@ -445,7 +458,7 @@ Mothership_current_Imp <- Mothership_Diag_treat %>%
 
 co_dis_tab <- Mothership_Diag_treat |>
   pivot_longer(
-    cols = c("Co_Anx","Co_Mood","Co_OCD","Co_BPD","Co_Psychotic","Co_Eating","Co_Somatic", "CO_Substance","Co_Trauma", "No_Co"),
+    cols = c("Co_Anx","Co_Mood","Co_OCD","Co_BPD","Co_Psychotic","Co_Eating","Co_Somatic", "Co_Substance","Co_Trauma", "No_Co"),
     names_to = 'Co Occuring',
     values_to = "Number"
   ) |>
@@ -478,7 +491,7 @@ p <- Mothership_current_Imp %>%
   ggplot(aes(x = Disorder_treat, y = Disorder_Present, color = Disorder_treat)) +
   geom_count(aes(size = after_stat(prop),group = Disorder_treat), alpha = .75)+
  scale_size_area(max_size = 30)+
-  scale_colour_manual(values = c("#FE6CAA","#f7a174","#B1D4E0","#A06CFE","red"))+
+  scale_colour_manual(values = c("#ffa600","#ff6361","#bc5090","#58508d","#003f5c"))+
   #scale_size_continuous(range = c(10, 30)) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 45,hjust = 1),
@@ -493,14 +506,26 @@ p <- Mothership_current_Imp %>%
   labs(title = "Percent of Co Occuring Psychiatric Diosrders per Primary Diagnosis",
     subtitle = "Grouped into subtypes of DSM diagonsis",
     y = "Co-Occuring Psychiatric Disorder",
-    x = "Primary Psychiatric Diagnosis") 
+    x = "Primary Psychiatric Diagnosis")
 
+p
 ```
 
 
 •	Visualizations – CUDOS and CUXOS trajectories by treatment duration, treatment track, most common diagnoses. 
+
+### plot means based upon duration group membership 
 •	Visualization – RDQ pre and post change.
 •	Table or Visualization – Reasons for discharge results.
+
+
+
+
+
+
+
+
+
 
 
 # Sociodemographic Visualizations
