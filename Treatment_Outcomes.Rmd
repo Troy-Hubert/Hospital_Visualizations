@@ -101,8 +101,9 @@ Mothership_Mean_RDQ<-mutate(Mothership_Mean_RDQ,
 
 Mothership_Mean_RDQ
 
+str(Mothership_Mean_RDQ$rm)
 
-#Pre Post RDQ Plot
+#Pre Post RDQ Plot - combined 
 ggplot(data=Mothership_Mean_RDQ,
        aes(x=factor(PrePost,level=c("Pre","Post")),y=RDQ,
            group=rm,color=paired,!is.na(PrePost)))+
@@ -115,10 +116,32 @@ ggplot(data=Mothership_Mean_RDQ,
   theme(panel.background=NULL)+
   theme(legend.title = element_blank())+
   scale_color_manual(values=c("1"="#8956BB","2"="#4C4452","3"="#B1A8B9",
-                              "4"="#00BCA3","5"="#008570"),
+                               "4"="#00BCA3","5"="#008570"),
                      labels=c("Coping Skills","Positive Mental Health",
-                              "Functioning","Well-Being","Symptoms"))
+                              "Functioning","Well-Being","Symptoms")) 
 
+
+
+# pre post RDQ Plot - facet wrap
+ggplot(data=Mothership_Mean_RDQ,
+       aes(x=factor(PrePost,level=c("Pre","Post")),y=RDQ,
+           group=rm,color=paired,!is.na(PrePost))) +
+  geom_point(size=2.5) +
+  geom_line(group=Mothership_Mean_RDQ$paired,size=1.5) +
+  scale_x_discrete(name="Time Point") +
+  scale_y_continuous(name="RDQ Subscore",limits = c(0, 40)) +
+  ggtitle("Mean Pre and Post Scores of the Remission from Depression Questionnaire") +
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2)) +
+  theme(panel.background=NULL) +
+  theme(legend.position="none") +
+  scale_color_manual(values=c("1"="#8956BB","2"="#4C4452","3"="#B1A8B9",
+                               "4"="#00BCA3","5"="#008570")) +
+  facet_wrap(~paired, labeller = labeller(paired =
+    c("1" = "Coping Skills",
+      "2"="Positive Mental Health",
+      "3"="Functioning",
+      "4"="Well-Being",
+      "5"="Symptoms")))
 ```
 
 

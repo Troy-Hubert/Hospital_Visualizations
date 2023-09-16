@@ -109,14 +109,16 @@ Mothership <- mutate(Mothership,
                                       "10"="Other"),
                     DC_status_1 = as.factor(DC_status_1),
                     DC_status_1 = recode(DC_status_1,
-                                      "1"="Inpatient",
-                                      "2"="PHP",
-                                      "3"="APS",
-                                      "4"="Psychatrist",
-                                      "5"="PCP",
-                                      "6"="Another Physican",
-                                      "7"="Therapist",
-                                      "17"="Other"
+                                      "1" ="Inpatient",
+                                      "2" ="PHP",
+                                      "3" ="APS",
+                                      "4" ="Psychatrist",
+                                      "5" ="PCP",
+                                      "6" ="Another Physican",
+                                      "7" ="Therapist",
+                                      "17"="Other",
+                                      "11"="Other",
+                                      "0" ="Other"
                     ),
                                         
 #Lets make some new variables 
@@ -127,14 +129,16 @@ Mothership <- mutate(Mothership,
                        ifelse(Days_complete_1>10 & Days_complete_1 <=15, "3",
                        ifelse(is.na(Days_complete_1), NA, "4"
                               ))))),
-                    Duration = as.factor(recode(Duration,
+                    Duration_lab = as.factor(recode(Duration,
                                       "1"="1-5",
                                       "2"="6-10",
                                       "3"="11-15",
                                       "4"="16+"
-                                      )))
-
-    
+                                      )),
+                    Duration_10 = as.factor(
+                      ifelse(Duration == 1 | Duration == 2, "1",
+                      ifelse(Duration == 3 | Duration == 4, "2", NA)
+                      )))
 
 #Extract Year From Intake Date
 #Convert to Date
@@ -153,7 +157,7 @@ Mothership<-mutate(Mothership,
 write.csv(Mothership,"~/Desktop/Coding/data/Mothership_paper")
 ```
 
-
+Disorder_varaibles
 ```{r}
 Mothership<-Mothership %>%
   mutate(
@@ -362,24 +366,113 @@ Mothership<-Mothership %>%
         
   
 
-### Export as CSV
-write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Diag.csv")
+
 
 ##### df for plots 
 
 # df without NAs in date and disorder type
-Mothership_Diag <- Mothership %>%
-  filter(!is.na(Disorder_Type))%>%
+Mothership_Diag <- Mothership |>
+  filter(!is.na(Disorder_Type)) |>
   filter(!is.na(TxYear))
 
-Mothership_Diag_treat <- Mothership %>%
+Mothership_Diag_treat <- Mothership |>
   filter(!is.na(Disorder_treat),
          !is.na(TxYear),
          !is.na(Duration)) 
 
+Main_Treat <- Mothership |>
+
+### Export as CSV
+write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Diag.csv")
+
 # df with and without depression
 No_depressy <- Mothership_Diag %>%
   filter(Disorder_Type != "Mood")
+```
+
+
+Pre_Post
+```{r}
+Mothership_post <- Mothership |>
+  #1. Filter out scores for people not in the program / don't have dataa
+  filter(!is.na(Days_complete_1)) |>
+    #Having people in the program for more than 40 days means that their scores may be a lot higher, they should be filtered out as result. 
+  filter(!Days_complete_1 > 40,
+         !Days_complete_1 == 0,
+         !is.na(BL_CUXOS),
+         !is.na(SUManx_DC),
+         BL_CUXOS > 1,
+         SUManx_DC > 0,
+         !is.na(BL_CUDOS),
+         !is.na(SUMdep_DC),
+         BL_CUDOS > 1,
+         SUMdep_DC > 0
+         ) |>
+  mutate(
+    Delta_Anx_DC = BL_CUXOS - SUManx_DC,
+    Delta_Dep_DC = BL_CUDOS - SUMdep_DC,
+    Percent_anx_change = SUManx_DC - BL_CUXOS/BL_CUXOS,
+    Percent_Dep_Dchange = SUMdep_DC - BL_CUDOS/BL_CUDOS,
+    #Days_complete_W = ifelse(Days_complete_1 > 40, 40, Days_complete_1),
+    Anx_Responder = as.factor(
+      ifelse(BL_CUXOS > 10 &(Delta_Anx_DC/BL_CUXOS) <= .5 & (Delta_Anx_DC/BL_CUXOS) >= 0, "Anx Responder",
+      ifelse(BL_CUXOS > 10 & Delta_Anx_DC/BL_CUXOS < 0, "Anx Worse", 
+      ifelse(BL_CUXOS > 10 & Delta_Anx_DC/BL_CUXOS < 1 & Delta_Anx_DC/BL_CUXOS > .5,  "Unresponders", "Low BL Anx"      
+      )))),
+    Dep_Responder = as.factor(
+      ifelse(BL_CUDOS > 10 & (Delta_Dep_DC/BL_CUDOS) <= .5 & (Delta_Dep_DC/BL_CUDOS) >= 0, "Dep Responder",
+      ifelse(BL_CUDOS > 10 & Delta_Dep_DC/BL_CUDOS < 0, "Dep Worse", 
+      ifelse(BL_CUDOS > 10 & Delta_Anx_DC/BL_CUXOS <= 1 & Delta_Anx_DC/BL_CUXOS > .5,  "Unresponders", "Low BL Dep" 
+      )))),
+    Treatment_Responder = as.factor(
+      ifelse(BL_CUXOS > 10 & (Delta_Anx_DC/BL_CUXOS) < .5 & (Delta_Anx_DC/BL_CUXOS) >= 0, "Anx Responder",
+      ifelse((Delta_Dep_DC/BL_CUDOS) < .5 & (Delta_Dep_DC/BL_CUDOS) >= 0, "Dep Responder",
+      ifelse(BL_CUXOS > 10 & BL_CUDOS > 10 &(Delta_Anx_DC/BL_CUXOS) < .5 & (Delta_Anx_DC/BL_CUXOS) >= 0 & (Delta_Dep_DC/BL_CUDOS) < .5 & (Delta_Dep_DC/BL_CUDOS) >= 0, "Both_Responder", 
+      ifelse(BL_CUXOS > 10 & Delta_Anx_DC/BL_CUXOS < 0, "Anx Worse",
+      ifelse(BL_CUDOS > 10 & Delta_Dep_DC/BL_CUDOS < 0, "Dep Worse",
+      ifelse(BL_CUXOS > 10 & BL_CUDOS > 10 & Delta_Anx_DC/BL_CUXOS < 1 & Delta_Anx_DC/BL_CUXOS >= .5 & Delta_Dep_DC/BL_CUDOS < 1 & Delta_Dep_DC/BL_CUDOS >= .5, "Both Unresponder",
+      ifelse(BL_CUDOS > 10 & Delta_Dep_DC/BL_CUDOS < 1 & Delta_Dep_DC/BL_CUDOS >= .5, "Dep Unresponders", 
+      ifelse(BL_CUXOS > 10 & Delta_Anx_DC/BL_CUXOS < 1 & Delta_Anx_DC/BL_CUXOS >= .5, "Anx Unresponders", "Low Baseline"
+      ))))))))))
+
+
+summary(Mothership_post$Treatment_Responder)
+summary(Mothership_post$Anx_Responder)
+summary(Mothership_post$Dep_Responder)
+
+ggplot(Mothership_post, aes(x = Treatment_Responder)) +
+  geom_bar() +
+  coord_flip() +
+  labs(
+    title = "Treatment response of Anxiety and Depression",
+    subtitle = "Response = 50% reduciton in scores if BL score > 10")
+
+ggplot(Mothership_post, aes(x = Anx_Responder)) +
+  geom_bar() +
+  coord_flip() +
+    labs(
+    title = "Treatment response of Anxiety",
+    subtitle = "Response = 50% reduciton in scores if BL score > 10")
+
+ggplot(Mothership_post, aes(x = Dep_Responder)) +
+  geom_bar() +
+  coord_flip() +
+    labs(
+    title = "Treatment response of Depression",
+    subtitle = "Response = 50% reduciton in scores if BL score > 10")
+
+      
+
+mean(Mothership_post$Percent_anx_change)
+ggplot(Mothership_post,aes(x = Anx_Responder, y = Percent_anx_change)) +
+         geom_boxplot()
+#2. Create pre_scores
+      # CUXOS_pre = Day1_CUXOS,
+      # CUDOS_pre = Day1_CUDOS
+      # )
+
+sum(Mothership_post$SUManx_DC < 0)
+
 ```
 
 What Doug Wants
@@ -405,20 +498,41 @@ Demo_tab_df <- Mothership_Diag_treat |>
          
         )
 
+#Demographic tab
 Demo_tab<-data.frame(table1::table1(~Age_1+Education_1+Race_1+Gender_1+Relationship_1, data=Demo_tab_df))
 colnames(Demo_tab) <- c("Variable","Total Sample")
 Demo_tab
 
-#Disorder Table
+#Disorder Table - duratin
 Dis_tab <- data.frame(table1::table1(~Disorder_Type | Duration, data = Mothership_Diag_treat))
 colnames(Dis_tab) <- c("Primary Diagnosis","1-5 Days", "6-10 Days", "11-15 Days","16+ Days", "Total Sample")
 Dis_tab
+
+#Disorder Tab by 10 days
+Dis_tab_10 <- data.frame(table1::table1(~Disorder_Type | Duration_10, data = Mothership_Diag_treat))
+colnames(Dis_tab_10) <- c("Primary Diagnosis","1-10 Days", "10+ Days", "Total Sample")
+Dis_tab_10
+
 ```
 ### Visualization – most common diagnoses.
 ```{r}
 #frequency
 
-ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type, fill=Disorder_Type))+
+ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping =  aes(x = fct_rev(fct_infreq(Disorder_Type))))+
+  geom_bar(fill = c("#EBC500", "#ffa600", "#ff7c43", "#f95d6a", "#d45087","#a05195","#665191","#2f4b7c","#003f5c"
+                               ))+
+  ggtitle("Frequency of Psychiatric Disorder Subtypes") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1),
+        legend.position = "none")+
+  xlab("Psychiatric Disorder Subtype")+
+  #scale_fill_manual(values = c("#003f5c","#2f4b7c","#665191", "#a05195", "#d45087", "#f95d6a", "#ff7c43", "#ffa600", "#EBC500")) +
+  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,4300))+
+  coord_flip()
+
+
+ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping =  aes(x = fct_rev(fct_infreq(Disorder_Type)),fill= Disorder_Type))+
   geom_bar()+
   ggtitle("Frequency of Psychiatric Disorder Subtypes") +
   theme(axis.text.x = element_text(angle = 45,hjust = 1),
@@ -426,23 +540,19 @@ ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping = aes(x = D
   xlab("Psychiatric Disorder Subtype")+
   theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,4300))+
-  coord_flip()
-
-# ggplot(data = subset(Mothership_Diag, !is.na(Disorder_Type)),mapping = aes(x = Disorder_Type, fill=Disorder_Type))+
-#   geom_bar()+
-#   ggtitle("Frequency of Psychiatric Disorder Subtypes") +
-#   theme(axis.text.x = element_text(angle = 45,hjust = 1),
-#         legend.position = "none")+
-#   xlab("Psychiatric Disorder Subtype")+
-#   theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
-#   theme(panel.background=NULL)+
-#   scale_y_continuous(name = "Frequency",limits=c(0,2000))+
-#   coord_flip()+
-#   facet_wrap(~Duration)
+  scale_y_continuous(name = "Frequency",limits=c(0,1750))+
+  scale_fill_manual(values = c("#EBC500", "#ffa600", "#ff7c43", "#f95d6a", "#d45087","#a05195","#665191","#2f4b7c","#003f5c"
+                               )) +
+  coord_flip()+
+  facet_wrap(~Duration,labeller = labeller(Duration =
+      c("1" = "1-5 Days", 
+        "2" = "6-10 Days", 
+        "3" = "11-15 Days",
+        "4" = "16+ Days")
+      ))
 ```
 
-
+# Most co-ocurring diagnoses
 ```{r}
 # Visualization of percent
 
@@ -520,9 +630,136 @@ p
 
 
 •	Visualization – RDQ pre and post change.
+
+```{r}
+#Read in a New Data Set
+Mothership_RDQ<- read_sav("~/Desktop/Coding/data/Mothership_DV.sav")
+Mothership_RDQ<-select(Mothership,ID1:Sexuality_1,MDD_C:Day40_CUXOS)
+Mothership_RDQ<-data.frame(sapply(Mothership_RDQ,FUN=as.numeric))
+
+#Make This Data Set Long Data
+library(tidyr)
+Mothership_Long_RDQ <- gather(Mothership_RDQ,rm,RDQ,rdqPRE_coping:rdqPOST_sym,
+                              factor_key = "T")
+Mothership_Long_RDQ <- Mothership_Long_RDQ[order(Mothership_Long_RDQ$ID1),]
+
+#Create a Time Variable
+Mothership_Long_RDQ$PrePost <- NA
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_coping"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_pmh"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_func"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_wbs"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_sym"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_coping"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_pmh"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_func"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_wbs"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_sym"]<-"Post"
+
+
+
+#Create a New Data Set with an Average Depression Variable and Race
+Mothership_Mean_RDQ<-Mothership_Long_RDQ %>%
+  group_by(rm,PrePost) %>%
+  summarise(RDQ=mean(RDQ,na.rm=TRUE))
+
+#Add a Paired Variable to the New Data Set
+Mothership_Mean_RDQ<-mutate(Mothership_Mean_RDQ,
+                            paired=case_when(rm=="rdqPRE_coping"~"1",
+                                             rm=="rdqPOST_coping"~"1",
+                                             rm=="rdqPRE_pmh"~"2",
+                                             rm=="rdqPOST_pmh"~"2",
+                                             rm=="rdqPRE_func"~"3",
+                                             rm=="rdqPOST_func"~"3",
+                                             rm=="rdqPRE_wbs"~"4",
+                                             rm=="rdqPOST_wbs"~"4",
+                                             rm=="rdqPRE_sym"~"5",
+                                             rm=="rdqPOST_sym"~"5"))
+
+
+#Pre Post RDQ Plot - combined 
+ggplot(data=Mothership_Mean_RDQ,
+       aes(x=factor(PrePost,level=c("Pre","Post")),y=RDQ,
+           group=rm,color=paired,!is.na(PrePost)))+
+  geom_point(size=2.5)+
+  geom_line(group=Mothership_Mean_RDQ$paired,size=1.5)+
+  scale_x_discrete(name="Time Point")+
+  scale_y_continuous(name="RDQ Subscore")+
+  ggtitle("Mean Pre and Post Scores of the Remission from Depression Questionnaire")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title = element_blank())+
+  # scale_color_manual(values=c("1"="#8956BB","2"="#4C4452","3"="#B1A8B9",
+  #                              "4"="#00BCA3","5"="#008570"),
+  scale_colour_manual(values = c("#ffa600","#ff6361","#bc5090","#58508d","#003f5c"),
+                     labels=c("Coping Skills","Positive Mental Health",
+                              "Functioning","Well-Being","Symptoms")) 
+
+
+
+# pre post RDQ Plot - facet wrap
+ggplot(data=Mothership_Mean_RDQ,
+       aes(x=factor(PrePost,level=c("Pre","Post")),y=RDQ,
+           group=rm,color=paired,!is.na(PrePost))) +
+  geom_point(size=2.5) +
+  geom_line(group=Mothership_Mean_RDQ$paired,size=1.5) +
+  scale_x_discrete(name="Time Point") +
+  scale_y_continuous(name="RDQ Subscore",limits = c(0, 40)) +
+  ggtitle("Mean Pre and Post Scores of the Remission from Depression Questionnaire") +
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2)) +
+  theme(panel.background=NULL) +
+  theme(legend.position="none") +
+  # scale_color_manual(values=c("1"="#8956BB","2"="#4C4452","3"="#B1A8B9",
+  #                              "4"="#00BCA3","5"="#008570")) +
+  scale_colour_manual(values = c("#ffa600","#ff6361","#bc5090","#58508d","#003f5c"))+
+  facet_wrap(~paired, labeller = labeller(paired =
+    c("1" = "Coping Skills",
+      "2"="Positive Mental Health",
+      "3"="Functioning",
+      "4"="Well-Being",
+      "5"="Symptoms")))
+
+```
+
 •	Table or Visualization – Reasons for discharge results.
 
+### Discharge Status
+```{r}
+### Bar Chart for Discharge Status ###
 
+
+
+ggplot(data = subset(Mothership, !is.na(DC_status_1)), mapping = aes(x = fct_rev(fct_infreq(DC_status_1))))+
+  geom_bar(fill = c("#EBC500", "#ffa600", "#ff7c43", "#f95d6a", "#d45087","#a05195","#665191","#2f4b7c","#003f5c"
+                               ))+
+  ggtitle("Frequency of Treatment Discharge Status") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Discharge Status") +
+  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6000)) +
+  coord_flip()
+
+ggplot(data = subset(Mothership, !is.na(DC_status_1)), mapping = aes(x = fct_rev(fct_infreq(DC_status_1))))+
+  geom_bar()+ #fill = c("#EBC500", "#ffa600", "#ff7c43", "#f95d6a", "#d45087","#a05195","#665191","#2f4b7c","#003f5c"))+
+  ggtitle("Frequency of Treatment Discharge Status") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Discharge Status") +
+  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,2100)) +
+  #scale_fill_manual(values = c("#00AFBB", "#E7B800", "#FC4E07")) +
+  coord_flip() +
+  facet_wrap(~Duration,labeller = labeller(Duration =
+      c("1" = "1-5 Days", 
+        "2" = "6-10 Days", 
+        "3" = "11-15 Days",
+        "4" = "16+ Days")
+      ))
+
+
+
+```
 
 
 
@@ -543,9 +780,10 @@ ggplot(data = subset(Mothership, !is.na(Education_1)),mapping = aes(x = Educatio
   ggtitle("Frequency of Education Level") +
   theme(axis.text.x = element_text(angle = 45,hjust = 1))+
   xlab("Education Level")+
-  theme(panel.grid.major.y = element_line(color = "grey",linewidth = 0.5,linetype = 2))+
+  theme(panel.grid.major.x = element_line(color = "grey",linewidth = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,3000))
+  scale_y_continuous(name = "Frequency",limits=c(0,3000))+
+  coord_flip()
 ```
 
 
@@ -558,7 +796,8 @@ ggplot(data = subset(Mothership, !is.na(Race_1)),mapping = aes(x = Race_1))+
   xlab("Race")+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+  scale_y_continuous(name = "Frequency",limits=c(0,6500)) +
+  coord_flip()
 ```
 
 ### Gender
@@ -612,20 +851,7 @@ ggplot(data = Education_df, mapping = aes(x="", y=Frequency, fill=Category))+
 
 ## {.tabset}
 
-### Discharge Status
-```{r}
-### Bar Chart for Discharge Status ###
 
-ggplot(data = subset(Mothership, !is.na(DC_status_1)), mapping = aes(x = DC_status_1))+
-  geom_bar(color = "black",fill="darkgreen")+
-  ggtitle("Frequency of Treatment Discharge Status") +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
-  xlab("Discharge Status") +
-  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,6000)) +
-  coord_flip()
-```
 
 ### Treatment Track
 ```{r}
@@ -636,9 +862,10 @@ ggplot(data = subset(Mothership, !is.na(IPT_track_1)),mapping = aes(x = IPT_trac
   ggtitle("Frequency of Treatment Type") +
   theme(axis.text.x = element_text(angle = 45,hjust = 1))+
   xlab("Treatment Type")+
-  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.grid.major.x= element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+  scale_y_continuous(name = "Frequency",limits=c(0,4200))+
+  coord_flip()
 ```
 
 ### Treatment Year
@@ -650,9 +877,10 @@ ggplot(data = subset(Mothership, !is.na(TxYear)),mapping = aes(x = TxYear))+
   ggtitle("Frequency of Patients per Year") +
   theme(axis.text.x = element_text(angle = 45,hjust = 1))+
   xlab("Treatment Year")+
-  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,1500))
+  scale_y_continuous(name = "Frequency",limits=c(0,1500)) +
+  coord_flip()
 ```
 
 ### Duration of Treatment
@@ -663,9 +891,10 @@ ggplot(data = subset(Mothership, !is.na(Duration)),mapping = aes(x = Duration))+
   ggtitle("Frequency of Patients per Duration of Treatment") +
   theme(axis.text.x = element_text(angle = 45,hjust = 1))+
   xlab("Treatment Duration")+
-  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+  scale_y_continuous(name = "Frequency",limits=c(0,3000))+
+  coord_flip()
 
 ```
 
