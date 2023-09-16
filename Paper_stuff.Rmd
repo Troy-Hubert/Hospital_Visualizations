@@ -409,32 +409,32 @@ Mothership_post <- Mothership |>
          SUMdep_DC > 0
          ) |>
   mutate(
-    Delta_Anx_DC = BL_CUXOS - SUManx_DC,
-    Delta_Dep_DC = BL_CUDOS - SUMdep_DC,
-    Percent_anx_change = SUManx_DC - BL_CUXOS/BL_CUXOS,
-    Percent_Dep_Dchange = SUMdep_DC - BL_CUDOS/BL_CUDOS,
+    Delta_Anx_DC =  SUManx_DC - BL_CUXOS,
+    Delta_Dep_DC = SUMdep_DC - BL_CUDOS,
+    Percent_Anx_change = (Delta_Anx_DC/BL_CUXOS)*100,
+    Percent_Dep_Dchange = (Delta_Dep_DC/BL_CUDOS)*100,
     #Days_complete_W = ifelse(Days_complete_1 > 40, 40, Days_complete_1),
     Anx_Responder = as.factor(
-      ifelse(BL_CUXOS > 10 &(Delta_Anx_DC/BL_CUXOS) <= .5 & (Delta_Anx_DC/BL_CUXOS) >= 0, "Anx Responder",
-      ifelse(BL_CUXOS > 10 & Delta_Anx_DC/BL_CUXOS < 0, "Anx Worse", 
-      ifelse(BL_CUXOS > 10 & Delta_Anx_DC/BL_CUXOS < 1 & Delta_Anx_DC/BL_CUXOS > .5,  "Unresponders", "Low BL Anx"      
+      ifelse(BL_CUXOS > 10 & Percent_Anx_change  <= -50, "Anx Responder",
+      ifelse(BL_CUXOS > 10 & Percent_Anx_change > 0, "Anx Worse", 
+      ifelse(BL_CUXOS > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50,  "Unresponders", "Low BL Anx"      
       )))),
     Dep_Responder = as.factor(
-      ifelse(BL_CUDOS > 10 & (Delta_Dep_DC/BL_CUDOS) <= .5 & (Delta_Dep_DC/BL_CUDOS) >= 0, "Dep Responder",
-      ifelse(BL_CUDOS > 10 & Delta_Dep_DC/BL_CUDOS < 0, "Dep Worse", 
-      ifelse(BL_CUDOS > 10 & Delta_Anx_DC/BL_CUXOS <= 1 & Delta_Anx_DC/BL_CUXOS > .5,  "Unresponders", "Low BL Dep" 
+      ifelse(BL_CUDOS > 10 & Percent_Dep_Dchange <= -50, "Dep Responder",
+      ifelse(BL_CUDOS > 10 & Percent_Dep_Dchange > 0, "Dep Worse", 
+      ifelse(BL_CUDOS > 10 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50,  "Unresponders", "Low BL Dep" 
       )))),
     Treatment_Responder = as.factor(
-      ifelse(BL_CUXOS > 10 & (Delta_Anx_DC/BL_CUXOS) < .5 & (Delta_Anx_DC/BL_CUXOS) >= 0, "Anx Responder",
-      ifelse((Delta_Dep_DC/BL_CUDOS) < .5 & (Delta_Dep_DC/BL_CUDOS) >= 0, "Dep Responder",
-      ifelse(BL_CUXOS > 10 & BL_CUDOS > 10 &(Delta_Anx_DC/BL_CUXOS) < .5 & (Delta_Anx_DC/BL_CUXOS) >= 0 & (Delta_Dep_DC/BL_CUDOS) < .5 & (Delta_Dep_DC/BL_CUDOS) >= 0, "Both_Responder", 
-      ifelse(BL_CUXOS > 10 & Delta_Anx_DC/BL_CUXOS < 0, "Anx Worse",
-      ifelse(BL_CUDOS > 10 & Delta_Dep_DC/BL_CUDOS < 0, "Dep Worse",
-      ifelse(BL_CUXOS > 10 & BL_CUDOS > 10 & Delta_Anx_DC/BL_CUXOS < 1 & Delta_Anx_DC/BL_CUXOS >= .5 & Delta_Dep_DC/BL_CUDOS < 1 & Delta_Dep_DC/BL_CUDOS >= .5, "Both Unresponder",
-      ifelse(BL_CUDOS > 10 & Delta_Dep_DC/BL_CUDOS < 1 & Delta_Dep_DC/BL_CUDOS >= .5, "Dep Unresponders", 
-      ifelse(BL_CUXOS > 10 & Delta_Anx_DC/BL_CUXOS < 1 & Delta_Anx_DC/BL_CUXOS >= .5, "Anx Unresponders", "Low Baseline"
-      ))))))))))
-
+      ifelse(BL_CUXOS > 10 & BL_CUXOS > 10 & Percent_Anx_change  <= -50 & Percent_Anx_change < 0 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange <= -50, "Both_Responder", 
+      ifelse(BL_CUXOS > 10 & Percent_Anx_change  <= -50, "Anx Responder",
+      ifelse(BL_CUDOS > 10 & Percent_Dep_Dchange <= -50, "Dep Responder",
+      ifelse(BL_CUDOS > 10 & Percent_Dep_Dchange > 0 & BL_CUXOS > 10 & Percent_Anx_change > 0, "Both Worse",
+      ifelse(BL_CUXOS > 10 & Percent_Anx_change > 0, "Anx Worse",
+      ifelse(BL_CUDOS > 10 & Percent_Dep_Dchange > 0, "Dep Worse",
+      ifelse(BL_CUXOS > 10 & BL_CUDOS > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Both Unresponder",
+      ifelse(BL_CUDOS > 10 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Dep Unresponders", 
+      ifelse(BL_CUXOS > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50, "Anx Unresponders", "Low Baseline"
+      )))))))))))
 
 summary(Mothership_post$Treatment_Responder)
 summary(Mothership_post$Anx_Responder)
@@ -443,6 +443,7 @@ summary(Mothership_post$Dep_Responder)
 ggplot(Mothership_post, aes(x = Treatment_Responder)) +
   geom_bar() +
   coord_flip() +
+  scale_x_discrete(limits =c("Low Baseline", "Both Worse", "Dep Worse", "Anx Worse","Both Unresponder","Dep Unresponders", "Anx Unresponders","Both_Responder", "Anx Responder","Dep Responder"))+
   labs(
     title = "Treatment response of Anxiety and Depression",
     subtitle = "Response = 50% reduciton in scores if BL score > 10")
@@ -464,8 +465,13 @@ ggplot(Mothership_post, aes(x = Dep_Responder)) +
       
 
 mean(Mothership_post$Percent_anx_change)
-ggplot(Mothership_post,aes(x = Anx_Responder, y = Percent_anx_change)) +
-         geom_boxplot()
+ggplot(Mothership_post,aes(x = Anx_Responder, y = Percent_Anx_change)) +
+         geom_boxplot() +
+         ylim(-50,500) + 
+  scale_x_discrete(limits = c(
+    ""
+  ))
+  
 #2. Create pre_scores
       # CUXOS_pre = Day1_CUXOS,
       # CUDOS_pre = Day1_CUDOS
@@ -473,6 +479,8 @@ ggplot(Mothership_post,aes(x = Anx_Responder, y = Percent_anx_change)) +
 
 sum(Mothership_post$SUManx_DC < 0)
 
+
+(40-50)/50
 ```
 
 What Doug Wants
