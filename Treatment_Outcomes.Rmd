@@ -251,15 +251,9 @@ data <- tail(data, n=1)
 new_var <- rbind(new_var,data)
 }
 
-new_var
 
-
-
-
-
-
-first_var <-rbind(first_var,first)
-last_var
+missing_BL <- Mothership |>
+  filter(is.na(BL_CUDOS))
 
 pre_post <-data.frame(first_var,last_var)
 
