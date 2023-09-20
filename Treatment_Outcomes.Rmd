@@ -158,7 +158,8 @@ Mothership_post <- Mothership %>%
 
 #2. Create pre_scores
       CUXOS_pre = Day1_CUXOS,
-      CUDOS_pre = Day1_CUDOS
+      CUDOS_pre = Day1_CUDOS,
+      dummy = -99
       ) %>%
 
 #4. Filter out scores for people not in the program / don't have dataa
@@ -171,13 +172,14 @@ dim(Mothership_post)
 
 #5. Then create df with CUDOS and CUXOS scores
   # Depression
-
-    CUDOS_Score <- select(Mothership_post,
+Mothership_post
+    CUDOS_Score <-    
+                      select(Mothership_post,
                       Day1_CUDOS:Day40_CUDOS)
     CUDOS_Score <- data.frame(CUDOS_Score)
 
   # Anxiety
-    CUXOS_Score <- select(Mothership_post, Day1_CUXOS:Day40_CUXOS)
+    CUDOS_Score <- select(Mothership_post, dummy,Day1_CUXOS:Day40_CUXOS)
     CUXOS_Score <- data.frame(CUXOS_Score)
 
 #6. Using incidences to extract values
@@ -225,9 +227,66 @@ AnxDep_PrePost_Long <-AnxDep_PrePost_Long %>%
 AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
   group_by(Test,PrePost) %>%
   summarise(Score=mean(Score,na.rm=TRUE))
+```
 
+
+
+
+
+```{r}
+#load DF
+nrow(CUDOS_Score)
+CUDOS_Score
+
+CUDOS_Score_Test <- CUDOS_Score[1:20,]
+CUDOS_Score_Test 
+
+new_var <- NA
+data <- NA
+# new_var <- data.frame(new_var)
+for(i in 1:nrow(CUDOS_Score)){
+data <- unname(unlist(CUDOS_Score[i,]))
+data <- data[!is.na(data)]
+data <- tail(data, n=1)
+new_var <- rbind(new_var,data)
+}
+
+new_var
+
+
+
+
+
+
+first_var <-rbind(first_var,first)
+last_var
+
+pre_post <-data.frame(first_var,last_var)
+
+pre_post
+
+
+
+
+new_var
+nrow(new_var)
+
+Mothership_post <- mutate(Mothership_post,
+                          
+                          
+                          )
+
+
+# Mothership_post$Days_complete_W
 
 ```
+
+
+
+
+
+
+
 
 ```{r, include=FALSE}
 # Try to extract values using a while loop?
