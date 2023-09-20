@@ -151,45 +151,91 @@ ggplot(data=Mothership_Mean_RDQ,
 
 ### Extract pre/post scores
 ```{r}
-# 1. First adjust the their values for length of stay above 40 to 40, because the measures don't go above 40 days.
+#1. load DF
 
-Mothership_post <- Mothership %>%
-  mutate(Days_complete_W = ifelse(Days_complete_1 > 40, 40, Days_complete_1),
+Mothership
+    
+    Mothership_post <- Mothership |>
+        filter(
+          is.na(Prev_AdmitID_1),
+          C_Admit_1 == 1
+          ) |>
+        mutate(
+          dummy = -99
+        )
 
-#2. Create pre_scores
-      CUXOS_pre = Day1_CUXOS,
-      CUDOS_pre = Day1_CUDOS,
-      dummy = -99
-      ) %>%
+    # Depressiopn
+    CUDOS_Score_post <-  select(Mothership_post, dummy,Day1_CUDOS:Day40_CUDOS)
+    # Anxiety
+    CUXOS_Score_post <- select(Mothership_post, dummy,Day1_CUXOS:Day40_CUXOS)
 
-#4. Filter out scores for people not in the program / don't have dataa
-  filter(!is.na(Days_complete_W)) %>%
-    #Having people in the program for more than 40 days means that their scores may be a lot higher, they should be filtered out as result. 
-  filter(!Days_complete_1 > 40) %>%
-  filter(!Days_complete_W == 0)
 
-dim(Mothership_post)
+#2. Getting post scores for people who have NA for post
+    
+    # Depression
+    Post_DEP <- NA
+    PD_df <- NA
+    for(i in 1:nrow(CUDOS_Score_post)){
+    PD_df <- unname(unlist(CUDOS_Score_post[i,]))
+    PD_df <- PD_df[!is.na(PD_df)]
+    PD_df <- tail(PD_df, n=1)
+    Post_DEP <- rbind(Post_DEP,PD_df)
+    }
+    Post_DEP
+    Post_Dep <- Post_DEP[-1]
 
-#5. Then create df with CUDOS and CUXOS scores
-  # Depression
-Mothership_post
-    CUDOS_Score <-    
-                      select(Mothership_post,
-                      Day1_CUDOS:Day40_CUDOS)
-    CUDOS_Score <- data.frame(CUDOS_Score)
+    # Anxiety
+    Post_ANX <- NA
+    PA_df <- NA
+    for(i in 1:nrow(CUXOS_Score_post)){
+    PA_df <- unname(unlist(CUXOS_Score_post[i,]))
+    PA_df <- PA_df[!is.na(PA_df)]
+    PA_df <- tail(PA_df, n=1)
+    Post_ANX <- rbind(Post_ANX,PA_df)
+    }
+    
+    Post_ANX
+    Post_anx <- Post_ANX[-1]
 
-  # Anxiety
-    CUDOS_Score <- select(Mothership_post, dummy,Day1_CUXOS:Day40_CUXOS)
-    CUXOS_Score <- data.frame(CUXOS_Score)
+# 3. Getting BL scores for people who have NA at Baseline 
+  
+    # Depression / Anxiety Dummy variable
+    CUDOS_Score_pre <-  select(Mothership_post, Day1_CUDOS:Day40_CUDOS,dummy)
+    CUXOS_Score_pre <- select(Mothership_post, Day1_CUXOS:Day40_CUXOS,dummy)
 
-#6. Using incidences to extract values
+    # Depression
+    Pre_DEP <- NA
+    PD_df <- NA
+    for(i in 1:nrow(CUDOS_Score_pre)){
+    PD_df <- unname(unlist(CUDOS_Score_pre[i,]))
+    PD_df <- PD_df[!is.na(PD_df)]
+    PD_df <- head(PD_df, n=1)
+    Pre_DEP <- rbind(Pre_DEP,PD_df)
+    }
+    Pre_dep <- Pre_DEP[-1]
 
-Mothership_post <- Mothership_post %>%
-  mutate(
-    CUDOS_post = CUDOS_Score[cbind(c(1:8343),Mothership_post$Days_complete_W)],
-    CUXOS_post = CUXOS_Score[cbind(c(1:8343),Mothership_post$Days_complete_W)]
-  )
+    # Anxiety
+    Pre_ANX <- NA
+    PA_df <- NA
+    for(i in 1:nrow(CUXOS_Score_pre)){
+    PA_df <- unname(unlist(CUXOS_Score_pre[i,]))
+    PA_df <- PA_df[!is.na(PA_df)]
+    PA_df <- head(PA_df, n=1)
+    Pre_ANX <- rbind(Pre_ANX,PA_df)
+    }
+    Pre_anx <- Pre_ANX[-1]
 
+#4 Adding it back to mother ship
+    Mothership_post <- Mothership_post |>
+      mutate(
+        CUDOS_pre = ifelse(is.na(BL_CUDOS),Pre_dep,BL_CUDOS),
+          CUDOS_pre = ifelse(CUDOS_pre < 0, NA, CUDOS_pre),
+        CUXOS_pre = ifelse(is.na(BL_CUXOS),Pre_anx,BL_CUXOS),
+          CUXOS_pre = ifelse(CUXOS_pre < 0, NA, CUXOS_pre),
+        CUDOS_post = ifelse(Post_Dep < 0, NA, Post_Dep),
+        CUXOS_post = ifelse(Post_anx < 0, NA, Post_anx)
+      )
+    
 
 #7. create new DF with Varaibles we want
 
@@ -227,73 +273,9 @@ AnxDep_PrePost_Long <-AnxDep_PrePost_Long %>%
 AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
   group_by(Test,PrePost) %>%
   summarise(Score=mean(Score,na.rm=TRUE))
-```
 
-
-
-
-
-```{r}
-#load DF
-nrow(CUDOS_Score)
-CUDOS_Score
-
-CUDOS_Score_Test <- CUDOS_Score[1:20,]
-CUDOS_Score_Test 
-
-new_var <- NA
-data <- NA
-# new_var <- data.frame(new_var)
-for(i in 1:nrow(CUDOS_Score)){
-data <- unname(unlist(CUDOS_Score[i,]))
-data <- data[!is.na(data)]
-data <- tail(data, n=1)
-new_var <- rbind(new_var,data)
-}
-
-
-missing_BL <- Mothership |>
-  filter(is.na(BL_CUDOS))
-
-pre_post <-data.frame(first_var,last_var)
-
-pre_post
-
-
-
-
-new_var
-nrow(new_var)
-
-Mothership_post <- mutate(Mothership_post,
-                          
-                          
-                          )
-
-
-# Mothership_post$Days_complete_W
 
 ```
-
-
-
-
-
-
-
-
-```{r, include=FALSE}
-# Try to extract values using a while loop?
-
-
-for (i in 1:nrow(CUDOS_Score)){
-  while(is.na(CUDOS_Score[i,CUDOS_Score$Days_complete_W])){
-    x = Days_complete_W -1
-    post_days <- CUDOS_Score[i,(x)]
-  }
-}
-```
-
 
 ### Overall Plot
 ```{r}
@@ -375,10 +357,13 @@ Post_ANX<-ANX_PrePost_mean %>%
 Plot_Text<- dplyr::count(ANX_PrePost, Disorder_Type)
 Plot_Text
 
+"#aeb6bf"
+
+
 ggplot(data=Pre_ANX,
        aes(x=Disorder_Type,y=Score,
            group=Disorder_Type,color=Disorder_Type))+
-  geom_segment(aes(x=Disorder_Type, xend=Post_ANX$Disorder_Type, y=Score, yend=Post_ANX$Score),color = "#aeb6bf",
+  geom_segment(aes(x=Disorder_Type, xend=Post_ANX$Disorder_Type, y=Score, yend=Post_ANX$Score),color = "#ad3e4f",
               size = 4, #Note that I sized the segment to fit the points
               alpha = .5) +
   geom_point( aes(x=Disorder_Type, y=Score), color= "#F90000", size=3.5) +
@@ -406,7 +391,7 @@ Post_DEP<-DEP_PrePost_mean %>%
 ggplot(data=Pre_DEP,
        aes(x=Disorder_Type,y=Score,
            group=Disorder_Type,color=Disorder_Type))+
-  geom_segment(aes(x=Disorder_Type, xend=Post_DEP$Disorder_Type, y=Score, yend=Post_DEP$Score),color = "#aeb6bf",
+  geom_segment(aes(x=Disorder_Type, xend=Post_DEP$Disorder_Type, y=Score, yend=Post_DEP$Score),color = "#4068a8",
               size = 4, #Note that I sized the segment to fit the points
               alpha = .5) +
   geom_point( aes(x=Disorder_Type, y=Score), color= "#F90000", size=3.5) +
