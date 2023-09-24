@@ -456,11 +456,6 @@ Pre_Post
     Pre_ANX <- rbind(Pre_ANX,PA_df)
     }
     Pre_anx <- Pre_ANX[-1]
-
-    dim(CUDOS_Score_pre)
-    dim(Mothership_post)
-    length(Mothership_post$BL_CUDOS)
-    length(Pre_dep)
 #4 Adding it back to mother ship
     Mothership_post <- Mothership_post |>
       mutate(
@@ -470,8 +465,10 @@ Pre_Post
            CUXOS_first = ifelse(CUXOS_first < 0, NA, CUXOS_first),
         CUDOS_pre = BL_CUDOS,
         CUXOS_pre = BL_CUXOS,
-        CUDOS_post = ifelse(Post_Dep < 0, NA, Post_Dep),
-        CUXOS_post = ifelse(Post_anx < 0, NA, Post_anx),
+        CUDOS_post = ifelse(!is.na(SUMdep_DC), SUMdep_DC,Post_Dep),
+            CUDOS_post = ifelse(CUDOS_post < 0, NA, CUDOS_post),
+        CUXOS_post = ifelse(!is.na(SUManx_DC), SUManx_DC,Post_anx),
+            CUXOS_post = ifelse(CUXOS_post < 0, NA, CUXOS_post),
         BL_Missing = as.factor(ifelse(is.na(BL_CUXOS), "Anx Missing",
                                ifelse(is.na(BL_CUDOS), "Dep Missing", "Not Missing"
                                       ))),
@@ -513,21 +510,21 @@ Pre_Post
                  ifelse(is.na(CUDOS_post), NA,
                  ifelse(is.na(CUXOS_post), NA, "Subclinical"
                         )))))),
-        Sig_unresponse = as.factor(ifelse(Sig_BL %in% c("Sig Both","Sig Anx","Sig Dep") & Sig_Post == "Subclinical", "Responder",
+        Sig_unresponse_type = as.factor(ifelse(Sig_BL %in% c("Sig Both","Sig Anx","Sig Dep") & Sig_Post == "Subclinical", "Responder",
                             ifelse(Sig_BL == "Sig Both" & Sig_Post == "Sig Both", "Non-responder",
                             ifelse(Sig_BL == "Sig Anx" & Sig_Post == "Sig Anx", "Non-responder",
                             ifelse(Sig_BL == "Sig Dep" & Sig_Post == "Sig Dep", "Non-responder",
                             ifelse(Sig_BL == "Sig Both" & Sig_Post == "Sig Anx", "Dep gone Anx not",
-                            ifelse(Sig_BL == "Sig Both" & Sig_Post == "Sig Dep", "Anx gone Dep not", NA
-                            ))))))))
+                            ifelse(Sig_BL == "Sig Both" & Sig_Post == "Sig Dep", "Anx gone Dep not", 
+                            ifelse(ifelse(Sig_BL == "Subclinical" & Sig_Post == "Subclinical", "Low_BL",       
+                                   NA
+                            ))))))))),
+        Sig_unresponse = as.factor(ifelse(Sig_BL %in% c("Sig Both","Sig Anx","Sig Dep") & Sig_Post == "Subclinical", "Responder",
+                                        ifelse(Sig_BL %in% c("Sig Both","Sig Anx","Sig Dep") & Sig_Post %in% c("Sig Both","Sig Anx","Sig Dep"), "Non-responder",
+                                        ifelse(ifelse(Sig_BL == "Subclinical" & Sig_Post == "Subclinical", "Low_BL",       
+                                   NA
+                                   ))))),
                             
-  # checking for pre scores
-   (grepl("Sig Both",Mothership_post$Sig_pre) | grepl("Sig Anx",Mothership_post$Sig_pre) | grepl("Sig Anx",Mothership_post$Sig_pre))
-    &
-  # Checking psot scores
-  (grepl("Sig Both",Mothership_post$Sig_Post) | grepl("Sig Anx",Mothership_post$Sig_Post) | grepl("Sig Anx",Mothership_post$Sig_Post))
-          
-        ))
               #deprssion values Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-45 (moderate), 46+ (severe)"
         BL_Dep_level = as.factor(ifelse(BL_CUDOS > 10 & BL_CUDOS <= 20, "Minimal",
                                  ifelse(BL_CUDOS > 20 & BL_CUDOS <= 30, "Mild",
@@ -553,8 +550,7 @@ Pre_Post
                                  ifelse(CUXOS_post > 45, "Severe",
                                  ifelse(is.na(CUXOS_post), NA, "Remission"
                                 )))))))
-        
-      )
+    
 #7. create new DF with Varaibles we want
 
 AnxDep_PrePost <- data.frame(cbind(Mothership_post$ID1,
@@ -567,16 +563,15 @@ AnxDep_PrePost <- data.frame(cbind(Mothership_post$ID1,
                                   Mothership_post$CUXOS_post,
                                   #Extra stuff?
                                   Mothership_post$BL_Missing,
-                                  Sig_BL_Anx,
-                                  Sig_unresponse
-                                  
-                                  
-                                  
-                                  )) %>%
-  filter(!is.na(Mothership_post$Disorder_Type))
+                                  Mothership_post$Sig_BL,
+                                  Mothership_post$Sig_Post,
+                                  Mothership_post$Sig_unresponse,
+                                  Mothership_post$Sig_unresponse_type
+                                  )) #%>%
+  #filter(!is.na(Mothership_post$Disorder_treat))
 
-
-colnames(AnxDep_PrePost) = c("ID1","Disorder_Type", "CUDOS_pre","CUDOS_post","CUXOS_pre","CUXOS_post")
+colnames(AnxDep_PrePost) = c("ID1","Disorder_Type", "BL_CUDOS", "BL_CUXOS", "CUDOS_pre","CUDOS_post","CUXOS_pre","CUXOS_post","BL_Missing",
+                             "Sig_BL", "Sig_Post","Sig_unresponse", "Sig_unresponse_type")
 
 #8. Create long data frame
 
@@ -604,6 +599,8 @@ AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
   summarise(Score=mean(Score,na.rm=TRUE))
 
 
+view(data.frame(table1::table1(~BL_CUXOS + BL_CUDOS + SUManx_DC + SUMdep_DC + CUDOS_post +CUXOS_post, data = Mothership_post)))
+
 ```
 
 ### Overall Plot
@@ -611,7 +608,7 @@ AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
 # Pre Post CUDOS/CUXOS Plot
 ggplot(data=AnxDep_PrePost_mean,
        aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
-           group=Test,color=Test))+
+           group=Test,color=fct_rev(Test)))+
   geom_point(size=2.5)+
   geom_line(group=AnxDep_PrePost_mean$PrePost,size=1.5)+
   scale_x_discrete(name="Time Point")+
@@ -621,21 +618,26 @@ ggplot(data=AnxDep_PrePost_mean,
   theme(panel.background=NULL)+
   theme(legend.title = element_blank())
 
-ggplot(data=AnxDep_PrePost_mean,
+AnxDep_response_mean<-AnxDep_PrePost_Long %>%
+  filter(!is.na(Sig_unresponse)) |>
+  group_by(Test,Sig_unresponse,PrePost) %>%
+  summarise(Score=mean(Score,na.rm=TRUE))
+
+ggplot(data=AnxDep_response_mean,
        aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
-           group=Test,color=Test))+
-  geom_point(size=2.5)+
-  geom_line(group=AnxDep_PrePost_mean$PrePost,size=1.5)+
+           group=Test,color=fct_rev(Test)))+
+  geom_point(size=2.5) +
+  geom_line(group=AnxDep_response_mean$PrePost,size=1.5)+
   scale_x_discrete(name="Time Point")+
   scale_y_continuous(name="CUDOS/CUXOS Score")+
   ggtitle("Mean Pre and Post Scores of the Anxiety and Depression")+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   theme(legend.title = element_blank()) +
-  facet_wrap(~Sig_)
-
-
-
+  facet_wrap(~Sig_unresponse,labeller = labeller(Sig_unresponse =
+      c("1" = "Non-responders", 
+        "2" = "Responders")
+      ))
 ```
 
 ### Line Plot By Disorder
@@ -687,6 +689,37 @@ ggplot(data=DEP_PrePost_mean,
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   theme(legend.title = element_blank())
+
+
+### FACAT WRAP
+
+AnxDep_Treat_mean<-AnxDep_PrePost_Long %>%
+  filter(!is.na(Sig_unresponse),
+         !is.na(Disorder_Type)) |>
+  group_by(Test,Disorder_Type,Sig_unresponse,PrePost) %>%
+  summarise(Score=mean(Score,na.rm=TRUE))
+
+
+p <- ggplot(data=AnxDep_Treat_mean,
+       aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
+           group=Test,color=fct_rev(Test)))+
+  geom_point(size=2.5) +
+  geom_line(group=AnxDep_Treat_mean$PrePost,size=1.5)+
+  scale_x_discrete(name="Time Point")+
+  scale_y_continuous(name="CUDOS/CUXOS Score")+
+  labs(
+    title = "Mean Pre and Post Scores of the Anxiety and Depression",
+    subtitle = "Treatment response based upon Disorder")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title = element_blank()) +
+  facet_grid(Sig_unresponse~Disorder_Type,
+             labeller = labeller(
+               Sig_unresponse = c("1" = "Non-responders", "2" = "Responders"),
+               Disorder_Type = c("1" = "Anxiety", "2" = "BPD", "3" = "Mood", "4" ="Other", "5" = "Trauma")
+      ))
+
+#Anxiety     BPD    Mood   Other  Trauma
 ```
 
 ### Dumbell Plot by Disorder
@@ -800,7 +833,6 @@ Mothership_post <- Mothership_post |>
 
 
  CUXOS_post == !(CUXOS_post %in% c(seq(1,9,1)))
- CUXOS_post
 
 summary(Mothership_post$Treatment_Responder)
 summary(Mothership_post$Anx_Responder)
