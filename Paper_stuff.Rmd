@@ -834,10 +834,6 @@ Mothership_post <- Mothership_post |>
 
  CUXOS_post == !(CUXOS_post %in% c(seq(1,9,1)))
 
-summary(Mothership_post$Treatment_Responder)
-summary(Mothership_post$Anx_Responder)
-summary(Mothership_post$Dep_Responder)
-
 ggplot(Mothership_post, aes(x = Treatment_Responder)) +
   geom_bar() +
   coord_flip() +
@@ -860,6 +856,83 @@ ggplot(Mothership_post, aes(x = Dep_Responder)) +
     title = "Treatment response of Depression",
     subtitle = "Response = 50% reduciton in scores if BL score > 10")
 ```
+
+```{r}
+devtools::install_github("AWKruijt/JT-RCI")
+library(JTRCI)
+
+# generate some random data:
+df <- cbind.data.frame("ppid" = seq(1:64), 
+                       "pre" = rnorm(64, 65, 8), 
+                       "post" = c(rnorm(32, 40, 8), rnorm(32, 45, 8)),
+                       "group" = rep(c("treatment", "control"), each = 32))
+
+# The function will determine which criterion to use based on the available information 
+# f.i. when no (healthy or dysfunctional) norm values are provided, the function will  
+# return criterion A using the baseline distribution as the 'dysfunctional distribution':
+
+JTRCI(data = df, 
+      ppid = "ppid", 
+      pre = "pre", 
+      post = "post",  
+      reliability = .8, 
+      indextype = "JT", 
+      JTcrit = "auto")
+
+df
+
+
+Mothership_post$ID1
+RCI_df_dep <- Mothership_post |>
+  mutate(
+    ID1  = as.integer(ID1),
+    pre  = as.numeric(CUDOS_pre),
+    post = as.numeric(CUDOS_post),
+    Disorder = Disorder_treat
+  ) |>
+  select(
+    ID1,pre,post,Disorder
+  ) |>
+  filter(!is.na(pre),
+         !is.na(post))
+
+RCI_df_anx <- Mothership_post |>
+  mutate(
+    ID1  = as.integer(ID1),
+    pre  = as.numeric(CUXOS_pre),
+    post = as.numeric(CUXOS_post),
+    Disorder = Disorder_treat
+  ) |>
+  select(
+    ID1,pre,post,Disorder
+  ) |>
+  filter(!is.na(pre),
+         !is.na(post))
+
+
+RCI_df_dep <- data.frame(RCI_df_dep)
+RCI_df_anx <- data.frame(RCI_df_anx)
+
+
+JTRCI (data = RCI_df_anx, 
+       pre = "pre", 
+       post = "post", 
+       ppid = "ID1", 
+       reliability = .9, 
+       indextype = "JT", 
+       JTcrit = 20,
+       group = "Disorder",
+       facetplot = T,
+       plottitle = "Anxeity: JT indices by disorder")
+
+
+JTRCI(data = df, pre = "pre", post = "post",  group = "group", ppid = "ppid",
+      reliability = .8, indextype = "JT", JTcrit = "C",
+       normM = 30, normSD = 5, dysfM = 60, dysfSD = 5, 
+      facetplot = T, plottitle = "JT indices by group:")
+```
+
+
 
 What Doug Wants
 
