@@ -879,10 +879,7 @@ JTRCI(data = df,
       indextype = "JT", 
       JTcrit = "auto")
 
-df
 
-
-Mothership_post$ID1
 RCI_df_dep <- Mothership_post |>
   mutate(
     ID1  = as.integer(ID1),
@@ -894,7 +891,8 @@ RCI_df_dep <- Mothership_post |>
     ID1,pre,post,Disorder
   ) |>
   filter(!is.na(pre),
-         !is.na(post))
+         !is.na(post),
+         pre > 20)
 
 RCI_df_anx <- Mothership_post |>
   mutate(
@@ -907,7 +905,8 @@ RCI_df_anx <- Mothership_post |>
     ID1,pre,post,Disorder
   ) |>
   filter(!is.na(pre),
-         !is.na(post))
+         !is.na(post),
+         pre > 20)
 
 
 RCI_df_dep <- data.frame(RCI_df_dep)
