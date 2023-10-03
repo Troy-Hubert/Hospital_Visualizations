@@ -858,9 +858,12 @@ ggplot(Mothership_post, aes(x = Dep_Responder)) +
 ```
 
 ```{r}
-devtools::install_github("AWKruijt/JT-RCI")
+#devtools::install_github("AWKruijt/JT-RCI")
+
 library(JTRCI)
 
+devtools::install_github("zieglema/ClinicalSig")
+library(ClinicalSig)
 # generate some random data:
 df <- cbind.data.frame("ppid" = seq(1:64), 
                        "pre" = rnorm(64, 65, 8), 
@@ -870,14 +873,6 @@ df <- cbind.data.frame("ppid" = seq(1:64),
 # The function will determine which criterion to use based on the available information 
 # f.i. when no (healthy or dysfunctional) norm values are provided, the function will  
 # return criterion A using the baseline distribution as the 'dysfunctional distribution':
-
-JTRCI(data = df, 
-      ppid = "ppid", 
-      pre = "pre", 
-      post = "post",  
-      reliability = .8, 
-      indextype = "JT", 
-      JTcrit = "auto")
 
 
 RCI_df_dep <- Mothership_post |>
@@ -912,16 +907,47 @@ RCI_df_anx <- Mothership_post |>
 RCI_df_dep <- data.frame(RCI_df_dep)
 RCI_df_anx <- data.frame(RCI_df_anx)
 
+https://awkruijt.netlify.app/plotposts/longitudinaljtrci
 
-JTRCI (data = RCI_df_anx, 
+dataRci <- rci(pre="pre", post="post", data=RCI_df_anx, rtt=.74, sdNorm=19.5)
+ggplot(dataRci, aes(x = rci)) +
+  geom_histogram(fill = "blue", alpha = .5) +
+  labs(
+    title = "Histogram of RCI",
+    xlab = "RCI",
+    ylab = "Quanity of patients"
+  ) 
+  
+dataRci
+  
+```
+
+
+```{r}
+
+
+
+JTRCI(data = RCI_df_dep, 
+      pre = "pre", 
+      post = "post",
+      ppid = "ID1",
+      reliability = .9, 
+      indextype = "RCI",  
+      table = F, 
+      plot = F)
+
+scores
+
+RCI_df_anx1<-RCI_df_anx |>
+  select(ID1,pre,post)
+
+JTRCI (data = RCI_df_dep, 
        pre = "pre", 
        post = "post", 
        ppid = "ID1", 
-       reliability = .9, 
-       indextype = "JT", 
-       JTcrit = 20,
-       group = "Disorder",
-       facetplot = T,
+       reliability = .74, 
+       indextype = "RCI", 
+       #JTcrit = "auto",
        plottitle = "Anxeity: JT indices by disorder")
 
 
@@ -929,7 +955,25 @@ JTRCI(data = df, pre = "pre", post = "post",  group = "group", ppid = "ppid",
       reliability = .8, indextype = "JT", JTcrit = "C",
        normM = 30, normSD = 5, dysfM = 60, dysfSD = 5, 
       facetplot = T, plottitle = "JT indices by group:")
+
+JTRCI(data = df, 
+      ppid = "ppid", 
+      pre = "pre", 
+      post = "post",  
+      reliability = .8, 
+      indextype = "JT", 
+      JTcrit = "auto")
 ```
+
+The mean total score on the CUXOS was 25.8 (SD = 19.5). The mean scores on the 6-item psychic anxiety subscale and 14-item somatic anxiety subscale were 10.6 (SD = 7.1) and 15.3 (SD = 13.7), respectively.
+
+A factor analysis yielded 2 factors with eigenvalues greater than 1. The 2 factors accounted for 58.7% of the total variance. On the first factor, the 14 somatic anxiety items had the highest loadings, each item with a loading ≥ 0.49. On the second factor, the 6 psychic anxiety items had the highest loadings with each item loading ≥ 0.68.
+
+The internal consistency of the CUXOS total scale score and the psychic and somatic anxiety subscales was examined in the entire sample who completed the scale at the initial evaluation and a sample of 120 patients who completed it at a follow-up appointment. The CUXOS demonstrated excellent internal consistency (baseline: Cronbach α = .95 for the total scale, .90 for the psychic anxiety subscale, and .93 for the somatic anxiety subscale; follow-up: α = .95 for the total scale, .94 for the psychic anxiety subscale, and .91 for the somatic anxiety subscale). The data in Table 2 show the correlation between each item and the total scale score. All item-scale correlations were statistically significant at baseline (median = 0.68) and at follow-up (median = 0.68).
+
+The test-retest reliability of the CUXOS was examined in 216 subjects who completed the scale at the time of their initial appointment. The test-retest reliability of the total scale and the psychic and somatic anxiety subscales was high (r = 0.90, 0.86, 0.88, respectively), and the test-retest reliability of each item was statistically significant (median r = 0.75) (Table 2).
+
+
 
 
 
