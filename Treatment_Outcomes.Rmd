@@ -241,10 +241,10 @@ Mothership
 
 AnxDep_PrePost <- data.frame(cbind(Mothership_post$ID1,
                                   Mothership_post$Disorder_Type,
-                                  Mothership_post$CUDOS_pre,
-                                  Mothership_post$CUDOS_post,
-                                  Mothership_post$CUXOS_pre,
-                                  Mothership_post$CUXOS_post)) %>%
+                                  Mothership_post$pre_anx,
+                                  Mothership_post$post_anx,
+                                  Mothership_post$pre_dep,
+                                  Mothership_post$post_dep)) %>%
   filter(!is.na(Mothership_post$Disorder_Type))
 
 colnames(AnxDep_PrePost) = c("ID1","Disorder_Type", "CUDOS_pre","CUDOS_post","CUXOS_pre","CUXOS_post")
