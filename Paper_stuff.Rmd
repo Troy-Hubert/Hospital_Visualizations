@@ -28,54 +28,43 @@ We can change the current variables to make them easier to interpret.
 ```{r}
 #recode varaibles
 Mothership <- mutate(Mothership, 
-                     DC_status_1 = as.factor(DC_status_1),
-                     DC_status_1 = recode(DC_status_1,
-                                          "1"="Complete",
-                                          "2"="Nearly Complete",
-                                          "3"="Insurance",
-                                          "4"="Nonatteneance",
-                                          "5"="Inappropriate",
-                                          "6"="Inpatient",
-                                          "7"="Withdrew",
-                                          "8"="Dissatisfaction",
-                                          "9"="Other"),
                      Education_1 = as.factor(Education_1),
                      Education_1 = recode(Education_1,
-                                          "1"="<Grade 12",
-                                          "2"="HS Diploma",
-                                          "3"="GED",
-                                          "4"="Some College",
-                                          "5"="Associates Degree",
-                                          "6"="Bachelors Degree",
-                                          "7"="Some Grad School",
-                                          "8"="Grad Degree"),
+                          "1"="<Grade 12",
+                          "2"="HS Diploma or GED",
+                          "3"="HS Diploma or GED",
+                          "4"="Some College/Associates Degree",
+                          "5"="Some College/Associates Degree",
+                          "6"="Bachelors Degree",
+                          "7"="Bachelors Degree",
+                          "8"="Grad Degree"),
                      Gender_1 = as.factor(Gender_1),
                      Gender_1 = recode(Gender_1,
-                                       "0"="Female",
-                                       "1"="Male",
-                                       "2"="Non-Binary",
-                                       "3"="Other",
-                                       "4"="Unknown"),
+                          "0"="Female",
+                          "1"="Male",
+                          "2"="Non-Binary",
+                          "3"="Other",
+                          "4"="Other"),
                      Relationship_1 = as.factor(Relationship_1),
                      Relationship_1 = recode(Relationship_1,
-                                             "0"="Married",
-                                             "1"="Cohabitating",
-                                             "2"="Widowed",
-                                             "3"="Separated",
-                                             "4"="Divorced",
-                                             "5"="Never Married"),
+                          "0"="Married or Cohabitating",
+                          "1"="Married or Cohabitating",
+                          "2"="Widowed or Seperated",
+                          "3"="Widowed or Separated",
+                          "4"="Divorced",
+                          "5"="Single or Never Married"),
                      Sexuality_1 = as.factor(Sexuality_1),
                      Sexuality_1 = recode(Sexuality_1,
-                                          "1"="Straight",
-                                          "2"="Gay",
-                                          "3"="Bisexual",
-                                          "4"="Other"),
+                          "1"="Straight",
+                          "2"="Gay",
+                          "3"="Bisexual",
+                          "4"="Other"),
                      IPT_track_1 = as.factor(IPT_track_1),
                      IPT_track_1 = recode(IPT_track_1,
-                                          "0"="General",
-                                          "1"="Trauma",
-                                          "2"="Young Adult",
-                                          "3"="BPD"),
+                          "0"="General",
+                          "1"="Trauma",
+                          "2"="Young Adult",
+                          "3"="BPD"),
                      Race_1 = as.factor(Race_1),
                      Race_1 = recode(Race_1,
                                      "0"="White",
@@ -84,29 +73,6 @@ Mothership <- mutate(Mothership,
                                      "3"="Asian",
                                      "4"="Portugese",
                                      "5"="Other"),
-                     Education_1 = as.factor(Education_1),
-                     Education_1 = recode(Education_1,
-                                      "0"="<Grade 6", 
-                                      "1"="Grades 7-12",
-                                      "2"="HS Diploma", 
-                                      "3"="GED",
-                                      "4"="Some College",
-                                      "5"="Associates Degree",
-                                      "6"="Bachelors Degree",
-                                      "7"="Some Grad School",
-                                      "8"="Grad Degree"),
-                     DC_status_1 = as.factor(DC_status_1),
-                     DC_status_1 = recode(DC_status_1,
-                                      "1"="Treatment Complete",
-                                      "2"="Treatment Near Complete",
-                                      "3"="Insurance Stopped",
-                                      "4"="Nonattendence",
-                                      "5"="Inapproparite Language",
-                                      "6"="Transfered To Impatient",
-                                      "7"="Withdrew for External factors",
-                                      "8"="Withdrew (AMA)",
-                                      "9"="Other",
-                                      "10"="Other"),
                     DC_status_1 = as.factor(DC_status_1),
                     DC_status_1 = recode(DC_status_1,
                                       "1" ="Inpatient",
@@ -116,10 +82,12 @@ Mothership <- mutate(Mothership,
                                       "5" ="PCP",
                                       "6" ="Another Physican",
                                       "7" ="Therapist",
-                                      "17"="Other",
+                                      "8"="Withdrew (AMA)",
+                                      "9"="Other",
+                                      "10"="Other",
                                       "11"="Other",
-                                      "0" ="Other"
-                    ),
+                                      "17"="Other",
+                                      "0" ="Other"),
                                         
 #Lets make some new variables 
       #Duration of treatment
@@ -149,6 +117,9 @@ Mothership<-mutate(Mothership,
                    TxYear = as.factor(TxYear),
                    TxYear = recode(TxYear,
                                    "1582"="2014"))
+
+
+str(Mothership$Education_1)
 ```
 
 
@@ -904,9 +875,10 @@ Demo_tab_df <- Mothership_Diag_treat |>
         )
 
 #Demographic tab
-Demo_tab<-data.frame(table1::table1(~Age_1+Education_1+Race_1+Gender_1+Relationship_1, data=Demo_tab_df))
-colnames(Demo_tab) <- c("Variable","Total Sample")
+Demo_tab<-data.frame(table1::table1(~Age_1+Race_1+Education_1+Gender_1+Relationship_1, data=Demo_tab_df))
+colnames(Demo_tab) <- c("Demographic","Total Sample")
 Demo_tab
+
 
 #Disorder Table - duratin
 Dis_tab <- data.frame(table1::table1(~Disorder_Type | Duration, data = Mothership_Diag_treat))
@@ -1073,7 +1045,7 @@ ggplot(data=ANX_PrePost_mean,
 #### DEP
 ggplot(data=DEP_PrePost_mean,
        aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
-           group=Disorder_Type,color=Disorder_Type))+
+           group=as.factor(Disorder_Type),color=as.factor(Disorder_Type)))+
   geom_point(size=2.5)+
   geom_line(size=1)+
   scale_x_discrete(name="Time Point")+
@@ -1089,9 +1061,9 @@ ggplot(data=DEP_PrePost_mean,
 ### FACAT WRAP
 
 AnxDep_Treat_mean<-AnxDep_PrePost_Long %>%
-  filter(!is.na(Sig_unresponse),
+  filter(!is.na(RESPONDER_FIGS),
          !is.na(Disorder_Type)) |>
-  group_by(Test,Disorder_Type,Sig_unresponse,PrePost) %>%
+  group_by(Test,Disorder_Type,RESPONDER_FIGS,PrePost) %>%
   summarise(Score=mean(Score,na.rm=TRUE))
 
 
@@ -1108,9 +1080,9 @@ p <- ggplot(data=AnxDep_Treat_mean,
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   theme(legend.title = element_blank()) +
-  facet_grid(Sig_unresponse~Disorder_Type,
+  facet_grid(RESPONDER_FIGS~Disorder_Type,
              labeller = labeller(
-               Sig_unresponse = c("1" = "Non-responders", "2" = "Responders"),
+               RESPONDER_FIGS = c("1" = "Non-responders", "2" = "Responders"),
                Disorder_Type = c("1" = "Anxiety", "2" = "BPD", "3" = "Mood", "4" ="Other", "5" = "Trauma")
       ))
 p 
@@ -1237,7 +1209,7 @@ p
 ### plot means based upon duration group membership 
 
 ```{r}
-Mothership_Long_anx <- gather(Mothership,rm,CUXOS,Day1_CUXOS:Day40_CUXOS,factor_key = "T")
+Mothership_Long_anx <- gather(Mothership_post,rm,CUXOS,Day1_CUXOS:Day40_CUXOS,factor_key = "T")
 Mothership_Long_anx <- Mothership_Long_anx[order(Mothership_Long_anx$ID1),]
 
 #Create a Time Variable
@@ -1270,10 +1242,17 @@ Mothership_Long_anx$TxDay[Mothership_Long_anx$rm=="Day20_CUXOS"]<-20
 
 #plot Anxiety mean with each group
 
+
 # New dataset for the treatment duration Anxiety plot
 Mothership_Mean_CUXOS<-Mothership_Long_anx %>%
   group_by(Duration,TxDay) %>%
   summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+
+Mothership_Mean_CUXOS2 <- Mothership_Long_anx %>%
+  group_by(Duration,RESPONDER_FIGS,TxDay) %>%
+  summarise(Score=mean(CUXOS,na.rm=TRUE))
+
+View(Mothership_Mean_CUXOS2)
 
 Mothership_duration_CUXOS<-Mothership_Mean_CUXOS[1:83,]
 #delete weird Na values and put NA for values
@@ -1513,6 +1492,52 @@ ggplot(data = subset(Mothership, !is.na(DC_status_1)), mapping = aes(x = fct_rev
 
 
 
+
+length of treatment based upon response?
+```{r}
+
+bg_col <- "#F9FBF2"
+# highlight_col <- "#FFAD05"
+# highlight_col <- "FF52825"
+highlight_col <- "#02d46e"
+outline_col <- "darkblue"
+dark_col <- "#333333"
+
+str(Mothership_post$Days_complete_1)
+subset(Mothership, !is.na(Gender_1))
+ggplot(
+  data = subset(Mothership_post, !is.na(RESPONDER_FIGS)),
+  mapping = aes(
+    x = Days_complete_1,
+    y = Disorder_treat,
+    group = Disorder_treat)
+  )+
+  geom_jitter(
+    size = 0.6,
+    alpha = .5,
+   colour = highlight_col
+    )+
+  geom_boxplot(
+    outlier.shape = NA,
+   colour = outline_col,
+   fill = highlight_col,
+    alpha = 0.3) +
+  scale_x_continuous(
+   breaks = c(0, 15, 30, 45, 60),
+    limits = c(0.00, 60)
+  ) +
+  facet_wrap(~RESPONDER_FIGS)
+             
+      #        labeller = labeller(RESPONDER_FIGS =
+      # c("1" = "Non-Responders", 
+      #   "2" = "Responders"))
+
+summary(Mothership_post$Days_complete_1)
+  
+table1(Days_complete_1, data = Mothership_post)
+#####W WHY ARE DAYS COMPLETE NOT SHOWING UP???
+
+```
 
 
 
