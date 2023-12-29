@@ -30,6 +30,7 @@ We can change the current variables to make them easier to interpret.
 Mothership <- mutate(Mothership, 
                      Education_1 = as.factor(Education_1),
                      Education_1 = recode(Education_1,
+                          "0"="<Grade 12",
                           "1"="<Grade 12",
                           "2"="HS Diploma or GED",
                           "3"="HS Diploma or GED",
@@ -45,11 +46,12 @@ Mothership <- mutate(Mothership,
                           "2"="Non-Binary",
                           "3"="Other",
                           "4"="Other"),
+                     Relationship_1 = ifelse(Relationship_1 == 8, NA, Relationship_1),
                      Relationship_1 = as.factor(Relationship_1),
                      Relationship_1 = recode(Relationship_1,
                           "0"="Married or Cohabitating",
                           "1"="Married or Cohabitating",
-                          "2"="Widowed or Seperated",
+                          "2"="Widowed or Separated",
                           "3"="Widowed or Separated",
                           "4"="Divorced",
                           "5"="Single or Never Married"),
@@ -65,6 +67,7 @@ Mothership <- mutate(Mothership,
                           "1"="Trauma",
                           "2"="Young Adult",
                           "3"="BPD"),
+                     Race_1 = ifelse(Race_1 == 6, NA, Race_1),
                      Race_1 = as.factor(Race_1),
                      Race_1 = recode(Race_1,
                                      "0"="White",
@@ -118,8 +121,6 @@ Mothership<-mutate(Mothership,
                    TxYear = recode(TxYear,
                                    "1582"="2014"))
 
-
-str(Mothership$Education_1)
 ```
 
 
@@ -364,7 +365,6 @@ No_depressy <- Mothership_Diag %>%
   filter(Disorder_Type != "Mood")
 ```
 
-
 Pre_Post
 ### Extract pre/post scores
 ```{r}
@@ -522,7 +522,9 @@ Pre_Post
                                  ifelse(is.na(CUXOS_post), NA, "Remission"
                                 )))))))
     ```
-    ```{r}
+   
+Responders
+```{r}
 #devtools::install_github("AWKruijt/JT-RCI")
 
 library(JTRCI)
@@ -598,7 +600,7 @@ colnames(RCI_DF)[1] = "ID1"
 RCI_DF
 ```
 
-
+RCI
     ```{r}
 Mothership_post <- Mothership_post |>
   #1. Filter out scores for people not in the program / don't have dataa
@@ -672,7 +674,7 @@ Mothership_post <- left_join(Mothership_post,RCI_DF, by = join_by(ID1)) |>
 # View(Mothership_joined)
 ```
 
-
+AnxDep_PrePost
     ```{r}
 #7. create new DF with Varaibles we want
 
@@ -877,7 +879,7 @@ Demo_tab_df <- Mothership_Diag_treat |>
 #Demographic tab
 Demo_tab<-data.frame(table1::table1(~Age_1+Race_1+Education_1+Gender_1+Relationship_1, data=Demo_tab_df))
 colnames(Demo_tab) <- c("Demographic","Total Sample")
-Demo_tab
+view(Demo_tab)
 
 
 #Disorder Table - duratin
