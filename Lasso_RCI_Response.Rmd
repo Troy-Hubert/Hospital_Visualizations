@@ -1,0 +1,1010 @@
+---
+title: "Lasso_RCI_Response"
+author: Troy Hubert
+output: html_document
+date: "2024-01-28"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Libraries
+library(tidyverse)
+library(dplyr)
+library(haven)
+library(ggplot2)
+library(tidyr)
+```
+
+# Prep data for analysis 
+
+## Read in the dataset. 
+```{r}
+Mothership <- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
+head(df)
+
+# source("~/Desktop/Coding/R working directory/Hospital_Visualizations/Lasso_RCI_Source.R")
+```
+
+## Clean, update, and wrangle data
+
+The code below reads in the data frame, and prepares df for analysis.
+
+this includes:
+  1 Re-coding / Renaming variables
+  2 Creating new Diagnostic variables 
+  3 Functions to create Pre - post scores 
+  4 RCI Analysis categorization
+  5 Pre - Post long data sets
+
+```{r}
+# 1. Re-coding / Renaming variables ------------------------------------------
+# We can change the current variables to make them easier to interpret.
+
+#recode varaibles
+Mothership <- mutate(Mothership, 
+                     Education_1 = as.factor(Education_1),
+                     Education_1 = recode(Education_1,
+                                          "0"="<Grade 12",
+                                          "1"="<Grade 12",
+                                          "2"="HS Diploma or GED",
+                                          "3"="HS Diploma or GED",
+                                          "4"="Some College/Associates Degree",
+                                          "5"="Some College/Associates Degree",
+                                          "6"="Bachelors Degree",
+                                          "7"="Bachelors Degree",
+                                          "8"="Grad Degree"),
+                     Gender_1 = as.factor(Gender_1),
+                     Gender_1 = recode(Gender_1,
+                                       "0"="Female",
+                                       "1"="Male",
+                                       "2"="Non-Binary",
+                                       "3"="Other",
+                                       "4"="Other"),
+                     Relationship_1 = ifelse(Relationship_1 == 8, NA, Relationship_1),
+                     Relationship_1 = as.factor(Relationship_1),
+                     Relationship_1 = recode(Relationship_1,
+                                             "0"="Married or Cohabitating",
+                                             "1"="Married or Cohabitating",
+                                             "2"="Widowed or Separated",
+                                             "3"="Widowed or Separated",
+                                             "4"="Divorced",
+                                             "5"="Single or Never Married"),
+                     Sexuality_1 = as.factor(Sexuality_1),
+                     Sexuality_1 = recode(Sexuality_1,
+                                          "1"="Straight",
+                                          "2"="Gay",
+                                          "3"="Bisexual",
+                                          "4"="Other"),
+                     IPT_track_1 = as.factor(IPT_track_1),
+                     IPT_track_1 = recode(IPT_track_1,
+                                          "0"="General",
+                                          "1"="Trauma",
+                                          "2"="Young Adult",
+                                          "3"="BPD"),
+                     Race_1 = ifelse(Race_1 == 6, NA, Race_1),
+                     Race_1 = as.factor(Race_1),
+                     Race_1 = recode(Race_1,
+                                     "0"="White",
+                                     "1"="Black",
+                                     "2"="Hispanic",
+                                     "3"="Asian",
+                                     "4"="Portugese",
+                                     "5"="Other"),
+                     DC_status_1 = as.factor(DC_status_1),
+                     DC_status_1 = recode(DC_status_1,
+                                          "1" ="Treatment Complete",
+                                          "2" ="Treatment nearly complete",
+                                          "3" ="Insurance no longer covering",
+                                          "4" ="Nonattendance",
+                                          "5" ="Inappropriate (language)/Referred to another tx setting",
+                                          "6" ="Transferred to inpatient",
+                                          "7" ="Withdrew due to external limitations",
+                                          "8"= "Withdrew AMA",
+                                          "9"= "Other",
+                                          "10"="Other",
+                                          "0" ="Other"),
+                     Referral_1 = as.factor(Referral_1),
+                     Referral_1 = recode(Referral_1,
+                                         "1" ="Inpatient",
+                                         "2" ="PHP",
+                                         "3" ="APS",
+                                         "4" ="Psychatrist",
+                                         "5" ="PCP",
+                                         "6" ="Another Physican",
+                                         "7" ="Therapist",
+                                         "17"="Other",
+                                         "0" ="Other"),
+                     
+                     #Lets make some new variables 
+                     #Duration of treatment
+                     Duration = as.factor(
+                       ifelse(Days_complete_1>0 & Days_complete_1 <=5, "1",
+                              ifelse(Days_complete_1>5 & Days_complete_1 <=10, "2",
+                                     ifelse(Days_complete_1>10 & Days_complete_1 <=15, "3",
+                                            ifelse(is.na(Days_complete_1), NA, "4"
+                                            ))))),
+                     Duration_lab = as.factor(recode(Duration,
+                                                     "1"="1-5",
+                                                     "2"="6-10",
+                                                     "3"="11-15",
+                                                     "4"="16+"
+                     )),
+                     Duration_10 = as.factor(
+                       ifelse(Duration == 1 | Duration == 2, "1",
+                              ifelse(Duration == 3 | Duration == 4, "2", NA)
+                       )))
+
+#Extract Year From Intake Date
+#Convert to Date
+library("lubridate")
+Mothership$Intake_1<-ymd(Mothership$Intake_1)
+Mothership$TxYear<-as.numeric(format(Mothership$Intake_1,"%Y"))
+Mothership<-mutate(Mothership,
+                   TxYear = as.factor(TxYear),
+                   TxYear = recode(TxYear,
+                                   "1582"="2014"))
+
+####  Export as CSV
+write.csv(Mothership,"~/Desktop/Coding/data/Mothership_paper")
+
+
+
+# 2. Creating new diagnostic variables  -----------------------------------
+
+Mothership<-Mothership %>%
+  mutate(
+    # Mood Disorders
+    Mood_D = as.factor(
+      ifelse(
+        MDD_P ==1 | Bipolar1_P == 1 | Bipolar2_P == 1 | Dysthymia_P == 1, 1, 0)),
+    # Anxiety Disorders
+    Anxiety_D = as.factor(
+      ifelse(
+        GAD_P ==1 | Panic_P == 1 | PanicAgor_P == 1 | Agoraphobia_P == 1 |
+          Social_P == 1 | Specific_P == 1, 1, 0)),
+    # Obsessive Compusive Disorders
+    #OCD_P is for current OCD
+    OCD_P = as.factor(OCD_P),
+    # Personality Disorders
+    #BPD_P is for current BPD
+    BPD_P = as.factor(BPD_P),
+    # Substance Use Disorders
+    Substance_D = as.factor(
+      ifelse(
+        Alcohol_P == 1 | Drug_P ==1, 1, 0)),
+    # Trauma or stresor related disorders
+    Trauma_D = as.factor(
+      ifelse(PTSD_P == 1 | Adjustment_P ==1, 1,0)),
+    # Psychotic Disorders
+    Psychotic_D = as.factor(
+      ifelse(
+        Schiz_P == 1 | Schizaff_P == 1,1,0)),
+    # Eating Disorders
+    Eating_D = as.factor(
+      ifelse(
+        Anorex_P == 1 | Bulim_P == 1 | Binge_P == 1, 1,0)),
+    # Somatic Disroders
+    Somatic_D = as.factor(
+      ifelse(
+        Somat_P == 1 | UndiffSoma_P == 1| Hypochondriasis_P ==1,
+        1,0)),
+    Other = as.factor(
+      ifelse(
+        Somat_P == 1 | UndiffSoma_P == 1| Hypochondriasis_P ==1 |
+          Anorex_P == 1 | Bulim_P == 1 | Binge_P == 1 | Schiz_P == 1 | 
+          Schizaff_P == 1 | Alcohol_P == 1 | Drug_P ==1 | OCD_P ==1,
+        1,0)),
+    Disorder_Type = as.factor(
+      ifelse(Anxiety_D == 1, "Anxiety",
+             ifelse(OCD_P == 1, "OCD",
+                    ifelse(BPD_P == 1, "BPD",
+                           ifelse(Substance_D == 1, "Substance Use",
+                                  ifelse(Trauma_D == 1, "Trauma",
+                                         ifelse(Mood_D == 1, "Mood",
+                                                ifelse(Psychotic_D == 1, "Psychotic", 
+                                                       ifelse(Eating_D == 1, "Eating", 
+                                                              ifelse(Somatic_D == 1, "Somatic", NA
+                                                              )))))))))),
+    Disorder_treat = as.factor(
+      ifelse(Anxiety_D == 1, "Anxiety",
+             ifelse(BPD_P == 1, "BPD",
+                    ifelse(Trauma_D == 1, "Trauma",
+                           ifelse(Mood_D == 1, "Mood",
+                                  ifelse(OCD_P == 1, "Other",
+                                         ifelse(Substance_D == 1, "Other",
+                                                ifelse(Psychotic_D == 1, "Other", 
+                                                       ifelse(Eating_D == 1, "Other", NA
+                                                       ))))))))),
+    Anxiety_C =  as.factor(
+      ifelse( GAD_P !=1 & GAD_C ==1 | 
+                Panic_P != 1 & Panic_C == 1 | 
+                PanicAgor_P != 1 & PanicAgor_C == 1 | 
+                Agoraphobia_P != 1 & Agoraphobia_C == 1 |
+                Social_P != 1 & Social_C == 1 | 
+                Specific_P != 1 & Specific_C == 1, 1, 0)),
+    Mood_C =  as.factor(
+      ifelse( MDD_P != 1 & MDD_C == 1 |
+                Bipolar1_P != 1 & Bipolar1_C == 1 | 
+                Bipolar2_P != 1 &  Bipolar2_C == 1 | 
+                Dysthymia_P != 1 & Dysthymia_C == 1 , 1, 0)),
+    Substance_C = as.factor(
+      ifelse(Alcohol_P != 1 & Alcohol_C == 1 | 
+               Drug_P != 1 & Drug_C ==1, 1, 0)),
+    Trauma_C = as.factor(
+      ifelse(PTSD_P != 1 & PTSD_C == 1 | 
+               Adjustment_P != 1 & Adjustment_C ==1, 1,0)),
+    Psychotic_C = as.factor(
+      ifelse(Schiz_P != 1 & Schiz_C == 1 | 
+               Schizaff_P != 1 & Schizaff_C == 1,1,0)),
+    Eating_C = as.factor(
+      ifelse(Anorex_P != 1 & Anorex_C == 1 | 
+               Bulim_P != 1 & Bulim_C == 1 | 
+                  Binge_P != 1 & Binge_C == 1, 1,0)),
+    Somatic_C = as.factor(
+      ifelse(Somat_P != 1 & Somat_C == 1 | 
+               UndiffSoma_P != 1 & UndiffSoma_C == 1 | 
+               Hypochondriasis_P != 1 &  Hypochondriasis_C == 1, 1,0)),
+    OCD_Co_C = as.factor(
+      ifelse(OCD_P != 1 & OCD_C == 1,1,0)),
+    BPD_Co_C = as.factor(
+      ifelse(BPD_P != 1 & BPD_C ==1,1,0)),
+    No_Co = as.factor(
+      ifelse(BPD_Co_C == 0 &
+               OCD_Co_C == 0 &
+               Somatic_C == 0 & 
+               Eating_C == 0 &
+               Psychotic_C == 0 &
+               Trauma_C == 0 & 
+               Substance_C == 0 &
+               Mood_C == 0 &
+               Anxiety_C == 0, 1,0)),
+    Other_Co = as.factor(
+      ifelse(OCD_Co_C == 1 & 
+               Somatic_C == 1 & 
+               Eating_C == 1 &
+               Psychotic_C == 1,1,0)),
+    
+    #emotional disorders
+    Emotional_dis = as.factor(
+      ifelse(Anxiety_D == 1 | OCD_P == 1 | Trauma_D == 1 |
+               Mood_D == 1, "Emotional Disorder", "Other Disorder")),
+    
+    # co occuring disorders
+    Co_Anx = as.factor(
+      ifelse(Anxiety_C == 1 & Mood_D == 1 |
+               Anxiety_C == 1 & OCD_P == 1 |
+               Anxiety_C == 1 & BPD_P == 1 |
+               Anxiety_C == 1 & Substance_D == 1 |
+               Anxiety_C == 1 & Trauma_D == 1 |
+               Anxiety_C == 1 & Eating_D ==1 |
+               Anxiety_C == 1 & Psychotic_D ==1 |
+               Anxiety_C == 1 & Somatic_D ==1, 1, 0)),
+    Co_Mood = as.factor(
+      ifelse(Mood_C == 1 & Anxiety_D == 1 |
+               Mood_C == 1 & OCD_P == 1 |
+               Mood_C == 1 & BPD_P == 1 |
+               Mood_C == 1 & Substance_D == 1 |
+               Mood_C == 1 & Trauma_D == 1 |
+               Mood_C == 1 & Eating_D ==1 |
+               Mood_C == 1 & Psychotic_D ==1 |
+               Mood_C == 1 & Somatic_D==1 , 1, 0)),
+    Co_OCD = as.factor(
+      ifelse(OCD_C == 1 & Anxiety_D == 1 |
+               OCD_C == 1 & Mood_D == 1 |
+               OCD_C == 1 & BPD_P== 1 |
+               OCD_C == 1 & Substance_D == 1 |
+               OCD_C == 1 & Trauma_D == 1 |
+               OCD_C == 1 & Eating_D ==1 |
+               OCD_C == 1 & Psychotic_D ==1 |
+               OCD_C == 1 & Somatic_D ==1, 1, 0)),
+    Co_BPD = as.factor(
+      ifelse(BPD_C == 1 & Anxiety_D == 1 |
+               BPD_C == 1 & Mood_D == 1 |
+               BPD_C == 1 & OCD_P== 1 |
+               BPD_C == 1 & Substance_D == 1 |
+               BPD_C == 1 & Trauma_D == 1 |
+               BPD_C == 1 & Eating_D ==1 |
+               BPD_C == 1 & Psychotic_D ==1 |
+               BPD_C == 1 & Somatic_D ==1 , 1, 0)),
+    Co_Psychotic = as.factor(
+      ifelse(Psychotic_C == 1 & Mood_D == 1 |
+               Psychotic_C == 1 & OCD_P == 1 |
+               Psychotic_C == 1 & BPD_P == 1 |
+               Psychotic_C == 1 & Substance_D == 1 |
+               Psychotic_C == 1 & Trauma_D == 1 |
+               Psychotic_C == 1 & Eating_D ==1 |
+               Psychotic_C == 1 & Anxiety_D ==1 |
+               Psychotic_C == 1 & Somatic_D ==1, 1, 0)),
+    Co_Eating = as.factor(
+      ifelse(Eating_C == 1 & Mood_D == 1 |
+               Eating_C == 1 & OCD_P == 1 |
+               Eating_C == 1 & BPD_P == 1 |
+               Eating_C == 1 & Substance_D == 1 |
+               Eating_C == 1 & Trauma_D == 1 |
+               Eating_C == 1 & Psychotic_D ==1 |
+               Eating_C == 1 & Anxiety_D ==1 |
+               Eating_C == 1 & Somatic_D ==1, 1, 0)),
+    Co_Somatic =  as.factor(
+      ifelse(Somatic_C == 1 & Mood_D == 1 |
+               Somatic_C == 1 & OCD_P == 1 |
+               Somatic_C == 1 & BPD_P == 1 |
+               Somatic_C == 1 & Substance_D == 1 |
+               Somatic_C == 1 & Trauma_D == 1 |
+               Somatic_C == 1 & Eating_D ==1 |
+               Somatic_C == 1 & Anxiety_D ==1 |
+               Somatic_C == 1 & Substance_D ==1 |
+               Somatic_C == 1 & Psychotic_D ==1, 1, 0)),
+    Co_Substance = as.factor(
+      ifelse(Substance_C == 1 & Mood_D == 1 |
+               Substance_C == 1 & OCD_P == 1 |
+               Substance_C == 1 & BPD_P == 1 |
+               Substance_C == 1 & Substance_D == 1 |
+               Substance_C == 1 & Trauma_D == 1 |
+               Substance_C == 1 & Eating_D ==1 |
+               Substance_C == 1 & Anxiety_D ==1 |
+               Substance_C == 1 & Somatic_D ==1 |
+               Substance_C == 1 & Psychotic_D ==1, 1, 0)),
+    Co_Trauma = as.factor(
+      ifelse(Trauma_C == 1 & Mood_D == 1 |
+               Trauma_C == 1 & OCD_P == 1 |
+               Trauma_C == 1 & BPD_P == 1 |
+               Trauma_C == 1 & Substance_D == 1 |
+               Trauma_C == 1 & Eating_D ==1 |
+               Trauma_C == 1 & Anxiety_D ==1 |
+               Trauma_C == 1 & Somatic_D ==1 |
+               Trauma_C == 1 & Psychotic_D ==1, 1, 0)),
+  )
+
+
+##### df for plots 
+
+# only include people that attend treatment & its thier first time attending
+Mothership <- Mothership |>
+  filter(
+    is.na(Prev_AdmitID_1),
+    C_Admit_1 == 1
+  ) |>
+  mutate(
+    dummy = -99
+  )
+
+# df without NAs in date and disorder type
+Mothership_Diag <- Mothership |>
+  filter(!is.na(Disorder_Type)) |>
+  filter(!is.na(TxYear))
+
+Mothership_Diag_treat <- Mothership |>
+  filter(!is.na(Disorder_treat),
+         !is.na(TxYear),
+         !is.na(Duration)) 
+
+### Export as CSV
+write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Diag.csv")
+
+# 3. Functions to create Pre - post scores -----------------------------------
+
+#1. load DF
+  Mothership_post <- Mothership_Diag_treat
+
+  # Depression
+    CUDOS_Score_post <-  select(Mothership_post, dummy,Day1_CUDOS:Day40_CUDOS)
+  # Anxiety
+    CUXOS_Score_post <- select(Mothership_post, dummy,Day1_CUXOS:Day40_CUXOS)
+
+#2. Getting post scores for people who have NA for post
+
+  # Depression
+    Post_DEP <- NA
+    PD_df <- NA
+    for(i in 1:nrow(CUDOS_Score_post)){
+      PD_df <- unname(unlist(CUDOS_Score_post[i,]))
+      PD_df <- PD_df[!is.na(PD_df)]
+      PD_df <- tail(PD_df, n=1)
+      Post_DEP <- rbind(Post_DEP,PD_df)
+    }
+    Post_Dep <- Post_DEP[-1]
+
+  # Anxiety
+    Post_ANX <- NA
+    PA_df <- NA
+    for(i in 1:nrow(CUXOS_Score_post)){
+      PA_df <- unname(unlist(CUXOS_Score_post[i,]))
+      PA_df <- PA_df[!is.na(PA_df)]
+      PA_df <- tail(PA_df, n=1)
+      Post_ANX <- rbind(Post_ANX,PA_df)
+    }
+    Post_anx <- Post_ANX[-1]
+
+# 3. Getting BL scores for people who have NA at Baseline 
+
+  # Depression / Anxiety Dummy variable
+    CUDOS_Score_pre <-  select(Mothership_post, Day1_CUDOS:Day40_CUDOS,dummy)
+    CUXOS_Score_pre <- select(Mothership_post, Day1_CUXOS:Day40_CUXOS,dummy)
+  
+  # Depression
+    Pre_DEP <- NA
+    PD_df <- NA
+    for(i in 1:nrow(CUDOS_Score_pre)){
+      PD_df <- unname(unlist(CUDOS_Score_pre[i,]))
+      PD_df <- PD_df[!is.na(PD_df)]
+      PD_df <- head(PD_df, n=1)
+      Pre_DEP <- rbind(Pre_DEP,PD_df)
+    }
+    Pre_dep <- Pre_DEP[-1]
+    
+  # Anxiety
+    Pre_ANX <- NA
+    PA_df <- NA
+    for(i in 1:nrow(CUXOS_Score_pre)){
+      PA_df <- unname(unlist(CUXOS_Score_pre[i,]))
+      PA_df <- PA_df[!is.na(PA_df)]
+      PA_df <- head(PA_df, n=1)
+      Pre_ANX <- rbind(Pre_ANX,PA_df)
+    }
+    Pre_anx <- Pre_ANX[-1]
+
+#4 Adding it back to mother ship
+    Mothership_post <- Mothership_post |>
+      mutate(
+        CUDOS_first = ifelse(is.na(BL_CUDOS),Pre_dep,BL_CUDOS),
+        CUDOS_first = ifelse(CUDOS_first < 0, NA, CUDOS_first),
+        CUXOS_first = ifelse(is.na(BL_CUXOS),Pre_anx,BL_CUXOS),
+        CUXOS_first = ifelse(CUXOS_first < 0, NA, CUXOS_first),
+        CUDOS_pre = BL_CUDOS,
+        CUXOS_pre = BL_CUXOS,
+        CUDOS_post = ifelse(!is.na(SUMdep_DC), SUMdep_DC,Post_Dep),
+        CUDOS_post = ifelse(CUDOS_post < 0, NA, CUDOS_post),
+        CUXOS_post = ifelse(!is.na(SUManx_DC), SUManx_DC,Post_anx),
+        CUXOS_post = ifelse(CUXOS_post < 0, NA, CUXOS_post),
+#5 Making some other varaibles
+        BL_Missing = as.factor(ifelse(is.na(BL_CUXOS), "Anx Missing",
+                                      ifelse(is.na(BL_CUDOS), "Dep Missing", "Not Missing"
+                                      ))),
+        Sig_BL = as.factor(ifelse(BL_CUXOS > 20 & BL_CUDOS > 20, "Sig Both",
+                                  ifelse(BL_CUXOS > 20, "Sig Anx",
+                                         ifelse(BL_CUDOS > 20, "Sig Dep",
+                                                ifelse(is.na(BL_CUXOS),NA,
+                                                       ifelse(is.na(BL_CUDOS),NA, "Sub Both"
+                                                       )))))),
+        Sig_BL_Anx = as.factor(ifelse(BL_CUXOS > 20, "Significant",
+                                      ifelse(is.na(BL_CUXOS),NA, "Subclinical"
+                                      ))),
+        Sig_BL_Dep = as.factor(ifelse(BL_CUDOS > 20, "Significant",
+                                      ifelse(is.na(BL_CUDOS),NA, "Subclinical"
+                                      ))),
+        Sig_Post_Anx = as.factor(ifelse(CUXOS_post > 20, "Significant",
+                                        ifelse(is.na(CUXOS_post),NA, "Subclinical"
+                                        ))),
+        Sig_Post_Dep = as.factor(ifelse(CUDOS_post > 20, "Significant",
+                                        ifelse(is.na(CUDOS_post),NA, "Subclinical"
+                                        ))),
+        Any_Sig_BL = as.factor(ifelse(BL_CUXOS > 20 | BL_CUDOS > 20, "Sig",
+                                      ifelse(is.na(BL_CUXOS),NA,
+                                             ifelse(is.na(BL_CUDOS),NA, "Sub"
+                                             )))),
+        Sig_BL = as.factor(ifelse(BL_CUXOS > 20 & BL_CUDOS > 20, "Sig Both",
+                                  ifelse(BL_CUXOS > 20, "Sig Anx",
+                                         ifelse(BL_CUDOS > 20, "Sig Dep",
+                                                ifelse(is.na(BL_CUDOS), NA,
+                                                       ifelse(is.na(BL_CUXOS), NA, "Subclinical"
+                                                       ))))))
+)
+
+
+
+# 4. RCI Analysis categorization ------------------------------------------
+
+
+#devtools::install_github("AWKruijt/JT-RCI")
+
+library(JTRCI)
+library(ClinicalSig)
+
+#devtools::install_github("zieglema/ClinicalSig")
+#1. Create df for RCI
+RCI_df_dep <- Mothership_post |>
+  mutate(
+    ID1  = as.integer(ID1),
+    pre  = as.numeric(CUDOS_pre),
+    post = as.numeric(CUDOS_post),
+    Disorder = Disorder_treat
+  ) |>
+  select(
+    ID1,pre,post,Disorder
+  ) |>
+  filter(!is.na(pre),
+         !is.na(post),
+         pre > 20)
+
+RCI_df_anx <- Mothership_post |>
+  mutate(
+    ID1  = as.integer(ID1),
+    pre  = as.numeric(CUXOS_pre),
+    post = as.numeric(CUXOS_post),
+    Disorder = Disorder_treat
+  ) |>
+  select(
+    ID1,pre,post,Disorder
+  ) |>
+  filter(!is.na(pre),
+         !is.na(post),
+         pre > 20)
+
+
+RCI_df_dep <- data.frame(RCI_df_dep)
+RCI_df_anx <- data.frame(RCI_df_anx)
+
+# https://awkruijt.netlify.app/plotposts/longitudinaljtrci
+
+RCI_df_anx1<-RCI_df_anx |>
+  select(ID1,pre,post)
+
+DEP_RCI <- JTRCI (data = RCI_df_dep, 
+                  pre = "pre", 
+                  post = "post", 
+                  ppid = "ID1", 
+                  reliability = .74, 
+                  indextype = "RCI", 
+                  #JTcrit = "auto",
+                  plottitle = "Anxeity: JT indices by disorder")
+
+ANX_RCI <- JTRCI (data = RCI_df_anx, 
+                  pre = "pre", 
+                  post = "post", 
+                  ppid = "ID1", 
+                  reliability = .74, 
+                  indextype = "RCI", 
+                  #JTcrit = "auto",
+                  plottitle = "Anxeity: JT indices by disorder")
+
+RCI_DF<- ANX_RCI$data
+colnames(RCI_DF) <- paste0(colnames(RCI_DF),"_anx")
+
+RCI_DF2<- DEP_RCI$data
+colnames(RCI_DF2) <- paste0(colnames(RCI_DF2),"_dep")
+
+RCI_DF <- full_join(RCI_DF,RCI_DF2, by = c("ppid_anx" = "ppid_dep"))
+colnames(RCI_DF)[1] = "ID1"
+
+RCI_DF
+
+###############          Adding RCI to dataset       ####################
+
+Mothership_post <- Mothership_post |>
+  #1. Filter out scores for people not in the program / don't have data
+  filter(!is.na(Days_complete_1)) |>
+  #Having people in the program for more than 40 days means that their scores may be a lot higher, they should be filtered out as result. 
+  filter(!is.na(CUXOS_pre),
+         !is.na(CUXOS_post),
+         CUXOS_pre > 0,
+         CUXOS_post >= 0,
+         !is.na(CUDOS_pre),
+         !is.na(CUDOS_post),
+         CUDOS_pre > 0,
+         CUDOS_post> 0
+         ) |>
+  mutate(
+    Delta_Anx_DC =  CUXOS_post - CUXOS_pre,
+    Delta_Dep_DC = CUDOS_post - CUDOS_pre,
+    Percent_Anx_change = (Delta_Anx_DC/CUXOS_pre)*100,
+    Percent_Dep_Dchange = (Delta_Dep_DC/CUDOS_pre)*100,
+    #Days_complete_W = ifelse(Days_complete_1 > 40, 40, Days_complete_1),
+    Anx_Responder = as.factor(
+      ifelse(CUXOS_pre < 20 & Percent_Anx_change  <= -50, "Responder",
+      ifelse(CUXOS_pre < 20 & Percent_Anx_change  > -50,  "Unresponders", NA)   
+      )),
+    Dep_Responder = as.factor(
+      ifelse(CUDOS_pre < 20 & Percent_Dep_Dchange <= -50, "Responder",
+      ifelse(CUDOS_pre < 20 & Percent_Dep_Dchange > -50,   "Unresponders", NA) 
+      )),
+    Treatment_Responder = as.factor(
+      ifelse(CUXOS_pre > 10 & CUXOS_pre > 10 & Percent_Anx_change  <= -50 & Percent_Anx_change < 0 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange <= -50, "Both_Responder", 
+      ifelse(CUXOS_pre > 10 & Percent_Anx_change  <= -50, "Anx Responder",
+      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange <= -50, "Dep Responder",
+      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange > 0 & CUXOS_pre > 10 & Percent_Anx_change > 0, "Both Worse",
+      ifelse(CUXOS_pre > 10 & Percent_Anx_change > 0, "Anx Worse",
+      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange > 0, "Dep Worse",
+      ifelse(CUXOS_pre > 10 & CUDOS_pre > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Both Unresponder",
+      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Dep Unresponders", 
+      ifelse(CUXOS_pre > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50, "Anx Unresponders", "Low Baseline"
+      )))))))))))
+
+#2. Left join data from the RCI dataset into the Mothership_post df
+Mothership_post <- left_join(Mothership_post,RCI_DF, by = join_by(ID1 == ID1)) |>
+  mutate(
+    Depression_Responder = ifelse(!is.na(class_RCI_dep), class_RCI_dep, NA),
+    Depression_Responder = as.factor(recode(Depression_Responder,
+                                            "1" = "2",
+                                            "2" = "2",
+                                            "3" = "1"
+    )),
+    Depression_Responder = as.factor(ifelse(!is.na(Depression_Responder), Depression_Responder, Dep_Responder)),
+    Depression_Responder = as.factor(recode(Depression_Responder,
+                                            "2" = "Non-Responder",
+                                            "1" = "Responder"
+    )),
+    Anxiety_Responder = ifelse(!is.na(class_RCI_anx), class_RCI_anx, NA),
+    Anxiety_Responder = as.factor(recode(Anxiety_Responder,
+                                         "1" = "2",
+                                         "2" = "2",
+                                         "3" = "1"
+    )),
+    Anxiety_Responder = as.factor(ifelse(!is.na(Anxiety_Responder), Anxiety_Responder, Anx_Responder)),
+    Anxiety_Responder = as.factor(recode(Anxiety_Responder,
+                                         "2" = "Non-Responder",
+                                         "1" = "Responder"
+    )),
+    RESPONDER_FIGS = as.factor(
+      ifelse(Anxiety_Responder == "Responder" | Depression_Responder == "Responder", "Responder",
+             ifelse(Anxiety_Responder == "Non-Responder" & Depression_Responder == "Non-Responder", "Non-Responder", NA)
+      ))) |>
+  filter(!is.na(RESPONDER_FIGS))
+
+#############            AnxDep_PrePost                 ##################
+
+#7. create new DF with Varaibles we want
+
+AnxDep_PrePost <- data.frame(cbind(Mothership_post$ID1,
+                                   Mothership_post$Disorder_treat,
+                                   Mothership_post$BL_CUDOS,
+                                   Mothership_post$BL_CUXOS,
+                                   Mothership_post$CUDOS_pre,
+                                   Mothership_post$CUDOS_post,
+                                   Mothership_post$CUXOS_pre,
+                                   Mothership_post$CUXOS_post,
+                                   #Extra stuff?
+                                   Mothership_post$Depression_Responder,
+                                   Mothership_post$Anxiety_Responder,
+                                   Mothership_post$RESPONDER_FIGS
+)) #%>%
+#filter(!is.na(Mothership_post$Disorder_treat))
+
+colnames(AnxDep_PrePost) = c("ID1","Disorder_Type", "BL_CUDOS", "BL_CUXOS", "CUDOS_pre","CUDOS_post","CUXOS_pre","CUXOS_post","Depression_Responder",
+                             "Anxiety_Responder", "RESPONDER_FIGS")
+
+#8. Create long data frame
+
+AnxDep_PrePost_Long <- AnxDep_PrePost %>% 
+  pivot_longer(
+    cols = CUDOS_pre:CUXOS_post, 
+    names_to = "Test",
+    values_to = "Score"
+  )
+AnxDep_PrePost_Long <-AnxDep_PrePost_Long %>%
+  mutate(
+    PrePost = ifelse(
+      Test == "CUDOS_pre", "Pre",
+      ifelse(Test == "CUXOS_pre" , "Pre", "Post"
+      )),
+    Score = as.integer(Score),
+    Test = as.factor(Test),
+    Test = as.factor(ifelse(Test == "CUDOS_pre",  "CUDOS",
+                            ifelse(Test == "CUDOS_post", "CUDOS", "CUXOS"
+                            ))))  
+
+#9. Convert to data frame with means of values to be plotted
+AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
+  group_by(Test,PrePost) %>%
+  summarise(Score=mean(Score,na.rm=TRUE))
+```
+
+
+
+## Part 1: Who is attending?
+- Table 1 Demographics By Response
+- Table 2: Treatment information - What did treatment look like?
+- Table 3: Scores on measures pre post change? 
+    + I want to show the figure of prepost change???
+- Table 4: demographic breakdown
+```{r}
+#Demographics Table
+Demo_tab_df <- Mothership_post |>
+  #Mothership_Diag_treat |>
+  filter(!is.na(Education_1),
+         !is.na(Race_1),
+         !is.na(Gender_1),
+         !is.na(Disorder_Type),
+         !is.na(Relationship_1),
+         !is.na(RESPONDER_FIGS)
+        )
+
+#Demographic tab
+Demo_tab<-data.frame(table1::table1(~Age_1+Race_1+Education_1+Gender_1+Relationship_1 | RESPONDER_FIGS, data=Demo_tab_df))
+colnames(Demo_tab) <- c("Demographic","Non-Responder", "Responder","Total Sample")
+Demo_tab
+
+# Treatment info
+resp_tab <- data.frame(table1::table1(
+  ~Referral_1 + DC_status_1 + RIPT_track_1 + Days_complete_1 + Days_cancel_1 + Days_not_attended_1 + Days_noshow_1 | RESPONDER_FIGS, 
+  data = Mothership_post))
+colnames(resp_tab) <- c("Variable","Non-Responder", "Responder", "Total Sample")
+resp_tab
+
+# Disorders by treatment response
+Dis_tab <- data.frame(table1::table1(~Disorder_Type + Current_Dx | RESPONDER_FIGS, 
+                                     data = Mothership_post))
+Dis_tab
+
+#Full demographic break down.
+CODis_tab<-data.frame(table1::table1(~`Co Occuring` | Disorder_treat, data = co_dis_tab))
+CODis_tab
+
+
+Mothership_post$Current_Dx
+```
+
+```{r}
+#Treatment Scores
+
+  # I'm imagining a table that has all of the averages under 3 columns 
+      # Pre, post, delta | (mean, SD)
+  # variables involved = 
+      # CUXOS, CUDOS, RDQ, 
+  # can I make this break up by treatment response?
+
+resp_tab <- data.frame(table1::table1(
+  ~CUXOS_pre + CUXOS_post + Delta_Anx_DC + CUXOS_pre + CUXOS_post + Delta_Anx_DC +   | RESPONDER_FIGS, 
+  data = Mothership_post))
+colnames(resp_tab) <- c("Variable","Non-Responder", "Responder", "Total Sample")
+resp_tab
+
+View(Mothership_post)
+
+#Read in a New Data Set
+Mothership_RDQ<- read_sav("~/Desktop/Coding/data/Mothership_DV.sav")
+Mothership_RDQ<-select(Mothership,ID1:Sexuality_1,MDD_C:Day40_CUXOS)
+Mothership_RDQ<-data.frame(sapply(Mothership_RDQ,FUN=as.numeric))
+
+#Make This Data Set Long Data
+library(tidyr)
+Mothership_Long_RDQ <- gather(Mothership_Diag_treat,rm,RDQ,rdqPRE_coping:rdqPOST_sym,
+                              factor_key = "T")
+Mothership_Long_RDQ <- Mothership_Long_RDQ[order(Mothership_Long_RDQ$ID1),]
+
+
+#Create a Time Variable
+Mothership_Long_RDQ$PrePost <- NA
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_coping"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_pmh"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_func"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_wbs"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_sym"]<-"Pre"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_coping"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_pmh"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_func"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_wbs"]<-"Post"
+Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_sym"]<-"Post"
+
+#Create a New Data Set with an Average Depression Variable and Race
+Mothership_Mean_RDQ<-Mothership_Long_RDQ %>%
+  group_by(rm,PrePost) %>%
+  summarise(RDQ=mean(RDQ,na.rm=TRUE))
+
+#Add a Paired Variable to the New Data Set
+Mothership_Mean_RDQ<-mutate(Mothership_Mean_RDQ,
+                            paired=case_when(rm=="rdqPRE_coping"~"1",
+                                             rm=="rdqPOST_coping"~"1",
+                                             rm=="rdqPRE_pmh"~"2",
+                                             rm=="rdqPOST_pmh"~"2",
+                                             rm=="rdqPRE_func"~"3",
+                                             rm=="rdqPOST_func"~"3",
+                                             rm=="rdqPRE_wbs"~"4",
+                                             rm=="rdqPOST_wbs"~"4",
+                                             rm=="rdqPRE_sym"~"5",
+                                             rm=="rdqPOST_sym"~"5"))
+  
+
+Mothership_Mean_RDQ[,1] = c("Coping","PMH","Functioning","WBS","Symptoms","Coping","PMH","Functioning","WBS","Symptoms")
+
+
+wide_rdq <- Mothership_Mean_RDQ |>
+  pivot_wider(
+    names_from = PrePost, values_from = RDQ
+  ) |>
+  select(
+    rm,Pre,Post
+  )
+
+#Table
+wide_rdq
+
+
+```
+
+Figure 1: Pre-post Line Plot
+```{r}
+
+AnxDep_response_mean<-AnxDep_PrePost_Long %>%
+  filter(!is.na(RESPONDER_FIGS)) |>
+  group_by(Test,RESPONDER_FIGS,PrePost) %>%
+  summarise(Score=mean(Score,na.rm=TRUE))
+
+ggplot(data=AnxDep_response_mean,
+       aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
+           group=Test,color=fct_rev(Test)))+
+  geom_point(size=2.5) +
+  geom_line(group=AnxDep_response_mean$PrePost,size=1.5)+
+  scale_x_discrete(name="Time Point")+
+  scale_y_continuous(name="CUDOS/CUXOS Score")+
+  ggtitle("Mean Pre and Post Scores of the Anxiety and Depression")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title = element_blank()) +
+  facet_wrap(~RESPONDER_FIGS,labeller = labeller(RESPONDER_FIGS =
+      c("1" = "Non-Responders", 
+        "2" = "Responders")
+      ))
+```
+
+- Table 3: Correlation table?
+- supplemental table 1: Full diagnostic breakdown of sample 
+  + (co-occuring by Disorder)
+```{r}
+
+```
+
+
+## Part 2: RCI ANALYSIS - Treatment Response
+Anxiety & Depression = Total response
+- Table 4: RCI Analsyis results
+  + Anxiety, Depression, Total response
+- Figure 2 / Supplimetal 2: RCI Analysis figs 
+  + Anxeity & Depression
+```{r}
+
+```
+
+## Part 3
+Logistic lasso
+
+### Lasso Regression
+https://glmnet.stanford.edu/articles/glmnet.html
+https://www.mygreatlearning.com/blog/understanding-of-lasso-regression/
+https://bookdown.org/tpinto_home/Regularisation/lasso-regression.html
+
+\scriptsize
+```{r, warning=FALSE, message=FALSE}
+library(glmnet)
+ecls2$preds = as.matrix(ecls2[ ,c(1:8,14:22)])
+
+# lambda = 0
+lasso1 = glmnet(ecls2$preds, ecls2$g8_sci_tht, alpha=1, lambda=0, 
+                standardize=TRUE, intercept=TRUE)
+lasso1
+
+coef(lasso1)
+```
+
+### Lasso Regression
+\scriptsize
+```{r}
+## lambda = .1
+lasso2 = glmnet(ecls2$preds, ecls2$g8_sci_tht, alpha=1, lambda=.1,
+                standardize=TRUE, intercept=TRUE)
+lasso2
+
+coef(lasso2)
+```
+
+### $k$-fold Cross Validation
+\scriptsize
+```{r, warning=FALSE, message=FALSE}
+#1. set seed
+set.seed(19860608)
+#2. sample data from the number of rows in els2
+ecls2 = ecls2[sample(nrow(ecls2)),]
+#3. convert ecls2a a new datafraame that is scaled and mean centered.
+ecls2a = as.data.frame(scale(ecls2, center=TRUE, scale=TRUE))
+#4. create a new column of values with predictors
+ecls2a$pred = as.matrix(ecls2a[,c(1:8,14:22)])
+
+#5. define the number of folds: cut a sequence from 1-num rows in ecls2a, broken into 10 equal parts, without labels)
+folds = cut(seq(1,nrow(ecls2a)), breaks=10, labels=FALSE)
+
+#6. create a grid (Sequence) from 0 - 1 increasing by .001
+grid = seq(0, 1, by=.001)
+#.7 make a matrix full of NAs that is 10 columns wide and the length of grid long? 
+    # I think MSE = mean squared error?
+mse  = matrix(NA, 10, length(grid))
+
+#8. create a for loop (for each row in the number of columns (1-10))
+for(i in 1:10){
+  #9. the test cases are the first number for each fold
+  testCases = which(folds==i,arr.ind=TRUE)
+  test      = ecls2a[testCases, ]
+  #10. the train cases are the valeus not the test cases
+  train     = ecls2a[-testCases, ]
+  
+  #11. another for loop for each value in 1 - length of grid)
+  for (j in 1:length(grid)){
+    #12. k lambda = the index of grid[j]
+    klambda = grid[j]
+    #13. run a fit train regression model with predictors, for train$g8_Sci_tht.
+    fitTrain = glmnet(train$pred, train$g8_sci_tht, 
+                      alpha=1, lambda=klambda,
+                      standardize=FALSE, intercept=TRUE)
+    #14. predict the test values using predict using the fitTrain model, and using the new x values as test$pred
+    fit_test = predict(fitTrain, newx=test$pred)
+    #15. at each index of mse, take the mean of the differnece between the test value, and the fit test values and square them
+    mse[i,j] = mean((test$g8_sci_tht - fit_test)^2)
+  }
+}
+
+# 16. load matrixStats
+library(matrixStats)
+
+#17. assign a varaible that is column means of mse
+mseMeans = colMeans(mse, na.rm=TRUE)
+#18. assign column sd
+mseSds = colSds(mse, na.rm=TRUE)
+
+# Find minimum - find the one which has the minimum mean square error 
+best = which.min(mseMeans)
+grid[best]
+
+# Find simplest model within 1 Standard Error - best close 
+maxMse = mseMeans[best] + mseSds[best]/sqrt(10)
+bestClose = max(which(mseMeans<maxMse))
+grid[bestClose]
+```
+
+K-fold cross-validation can be performed using the cv.glmnet function. In addition to all the glmnet parameters, cv.glmnet has its special parameters including nfolds (the number of folds), foldid (user-supplied folds), and type.measure(the loss used for cross-validation):
+
+“deviance” or “mse” for squared loss, MSE = mean squared loss
+
+### Lasso Regression
+\scriptsize
+```{r}
+lasso3 = glmnet(ecls2a$pred, ecls2a$g8_sci_tht, alpha=1, lambda=grid[best],
+                standardize=FALSE, intercept=TRUE)
+coef(lasso3)
+```
+
+### Lasso Regression
+\scriptsize
+```{r}
+lasso4 = glmnet(ecls2a$pred, ecls2a$g8_sci_tht, alpha=1, lambda=grid[bestClose],
+                standardize=FALSE, intercept=TRUE)
+coef(lasso4)
+```
+
+### Relaxed Lasso
+\scriptsize
+```{r}
+rlasso4 = lm(g8_sci_tht~gender+kage+k_math_tht+k_gk_tht+f_mtr+
+             poor, data=ecls2)
+summary(rlasso4)
+```
+
+*Relaxed Lasso*
+- I After variable selection using the lasso, an OLS regression model is fit with only the variables selected
+- The estimates for retained variables are not shrunken
+
+
+*Cautions*
+- When performing cross validation, it’s important to standardize
+variables before creating folds
+- Similarly, when creating the final prediction model, it is important for the standardization process to be the same across datasets
+    + Same means and standard deviations are used across datasets
+- Relaxed lasso avoids the standardization process when creating
+final model
+- Built in k-fold cross-validation using glmnet:
+
+
+### $\mathtt{cv.glmnet}$ function in $\mathtt{glmnet}$
+ - Built in $k$-fold cross-validation using $\text{glmnet}$
+
+\scriptsize
+```{r}
+cvGlmnet = cv.glmnet(ecls2a$pred, ecls2a$g8_sci_tht, 
+                     alpha=1, type.measure='mse', 
+                     nfolds=10)
+cvGlmnet$lambda.min
+cvGlmnet$lambda.1se
+
+plot(cvGlmnet)
+```
+
+
+

@@ -78,6 +78,19 @@ Mothership <- mutate(Mothership,
                                      "5"="Other"),
                     DC_status_1 = as.factor(DC_status_1),
                     DC_status_1 = recode(DC_status_1,
+                                      "1" ="Treatment Complete",
+                                      "2" ="Treatment nearly complete",
+                                      "3" ="Insurance no longer covering",
+                                      "4" ="Nonattendance",
+                                      "5" ="Inappropriate (language)/Referred to another tx setting",
+                                      "6" ="Transferred to inpatient",
+                                      "7" ="Withdrew due to external limitations",
+                                      "8"= "Withdrew AMA",
+                                      "9"= "Other",
+                                      "10"="Other",
+                                      "0" ="Other"),
+                    Referral_1 = as.factor(Referral_1),
+                    Referral_1 = recode(Referral_1,
                                       "1" ="Inpatient",
                                       "2" ="PHP",
                                       "3" ="APS",
@@ -85,13 +98,9 @@ Mothership <- mutate(Mothership,
                                       "5" ="PCP",
                                       "6" ="Another Physican",
                                       "7" ="Therapist",
-                                      "8"="Withdrew (AMA)",
-                                      "9"="Other",
-                                      "10"="Other",
-                                      "11"="Other",
                                       "17"="Other",
                                       "0" ="Other"),
-                                        
+                    
 #Lets make some new variables 
       #Duration of treatment
                      Duration = as.factor(
@@ -100,7 +109,7 @@ Mothership <- mutate(Mothership,
                        ifelse(Days_complete_1>10 & Days_complete_1 <=15, "3",
                        ifelse(is.na(Days_complete_1), NA, "4"
                               ))))),
-                    Duration_lab = as.factor(recode(Duration,
+                        Duration_lab = as.factor(recode(Duration,
                                       "1"="1-5",
                                       "2"="6-10",
                                       "3"="11-15",
@@ -140,10 +149,10 @@ Mothership<-Mothership %>%
                         Social_P == 1 | Specific_P == 1, 1, 0)),
           # Obsessive Compusive Disorders
                 #OCD_P is for current OCD
-                OCD_P = as.factor(OCD_P),
+                    OCD_P = as.factor(OCD_P),
           # Personality Disorders
                 #BPD_P is for current BPD
-                BPD_P = as.factor(BPD_P),
+                    BPD_P = as.factor(BPD_P),
           # Substance Use Disorders
                     Substance_D = as.factor(
                       ifelse(
@@ -328,9 +337,24 @@ Mothership<-Mothership %>%
                                 Trauma_C == 1 & Eating_D ==1 |
                                 Trauma_C == 1 & Anxiety_D ==1 |
                                 Trauma_C == 1 & Somatic_D ==1 |
-                                Trauma_C == 1 & Psychotic_D ==1, 1, 0))
-  )
-          
+                                Trauma_C == 1 & Psychotic_D ==1, 1, 0)),
+                
+          #this isn't working???
+                  # Sum_DX = #Primary
+                  #       as.integer(Mood_D) + as.integer(Anxiety_D) +as.integer(OCD_P) + 
+                  #       as.integer(BPD_P) + as.integer(Substance_D) + as.integer(Trauma_D) + 
+                  #       as.integer(Psychotic_D) + as.integer(Eating_D) + as.integer(Somatic_D) + as.integer(Other) +
+                  #          #Co-Occurring
+                  #       as.integer(GAD_C) + as.integer(Panic_C) + as.integer(PanicAgor_C) + as.integer(Agoraphobia_C) + 
+                  #       as.integer(Social_C) + as.integer(Specific_C) + as.integer(MDD_C) + as.integer(Bipolar1_C) + as.integer(Bipolar2_C) + 
+                  #       as.integer(Dysthymia_C) + as.integer(Alcohol_C) + as.integer(Drug_C) + as.integer(PTSD_C) + 
+                  #       as.integer(Adjustment_C) + as.integer(Schiz_C) + as.integer(Schizaff_C) + as.integer(Anorex_C) + as.integer(Bulim_C) + 
+                  #       as.integer(Binge_C) + as.integer(Somat_C) + as.integer(UndiffSoma_C) + as.integer(Hypochondriasis_C) + as.integer(OCD_Co_C) + 
+                  #       as.integer(BPD_Co_C)
+                      )
+
+View(Mothership)
+
 ##### df for plots 
 
 # only include people that attend treatment & its thier first time attending
@@ -355,10 +379,6 @@ Mothership_Diag_treat <- Mothership |>
 
 ### Export as CSV
 write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Diag.csv")
-
-# df with and without depression
-No_depressy <- Mothership_Diag %>%
-  filter(Disorder_Type != "Mood")
 
 ############.          Extract pre/post scores.   ######################
 
@@ -516,7 +536,10 @@ No_depressy <- Mothership_Diag %>%
                                  ifelse(CUXOS_post > 45, "Severe",
                                  ifelse(is.na(CUXOS_post), NA, "Remission"
                                 )))))))
-   
+    
+
+    
+    
 ############                       Responder                   ############ 
 #devtools::install_github("AWKruijt/JT-RCI")
 
@@ -631,8 +654,6 @@ Mothership_post <- Mothership_post |>
       ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Dep Unresponders", 
       ifelse(CUXOS_pre > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50, "Anx Unresponders", "Low Baseline"
       )))))))))))
-
-RCI_DF
     
 Mothership_post <- left_join(Mothership_post,RCI_DF, by = join_by(ID1 == ID1)) |>
   mutate(
@@ -661,8 +682,8 @@ Mothership_post <- left_join(Mothership_post,RCI_DF, by = join_by(ID1 == ID1)) |
     RESPONDER_FIGS = as.factor(
         ifelse(Anxiety_Responder == "Responder" | Depression_Responder == "Responder", "Responder",
         ifelse(Anxiety_Responder == "Non-Responder" & Depression_Responder == "Non-Responder", "Non-Responder", NA)
-        )))
-
+        ))) |>
+  filter(!is.na(RESPONDER_FIGS))
 
 #############            AnxDep_PrePost                 ##################
 
@@ -719,9 +740,22 @@ AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
 What I Want
 
 # Results
+
+Part 1 - treatment information
+
+- demographics breakdown
+- treatment breakdown
+    - duration of stay based upon disorder?
+    - mean anx / depression based upon stay
+- Treatment discharge?
+- pre post by responder non responder
+
+
+
 ### The overall breakdown of patients’ demographics and diagnoses. 
 Table – Demographics
 Table – Diagnoses
+Table - Treatment information
 ```{r}
 #Demographics Table
 Demo_tab_df <- Mothership_post |>
@@ -730,128 +764,34 @@ Demo_tab_df <- Mothership_post |>
          !is.na(Race_1),
          !is.na(Gender_1),
          !is.na(Disorder_Type),
-         !is.na(Relationship_1)
+         !is.na(Relationship_1),
+         !is.na(RESPONDER_FIGS)
         )
 
 #Demographic tab
-Demo_tab<-data.frame(table1::table1(~Age_1+Race_1+Education_1+Gender_1+Relationship_1, data=Demo_tab_df))
-colnames(Demo_tab) <- c("Demographic","Total Sample")
-view(Demo_tab)
+Demo_tab<-data.frame(table1::table1(~Age_1+Race_1+Education_1+Gender_1+Relationship_1 | RESPONDER_FIGS, data=Demo_tab_df))
+colnames(Demo_tab) <- c("Demographic","Non-Responder", "Responder","Total Sample")
+Demo_tab
 
-
-#Disorder Table - duratin
-Dis_tab <- data.frame(table1::table1(~Disorder_Type | Duration, data = Mothership_post))
-                                       #Mothership_Diag_treat))
-colnames(Dis_tab) <- c("Primary Diagnosis","1-5 Days", "6-10 Days", "11-15 Days","16+ Days", "Total Sample")
-Dis_tab
-
-#Disorder Tab by 10 days
-Dis_tab_10 <- data.frame(table1::table1(~Disorder_Type | Duration_10, data = Mothership_post))
-                                      #Mothership_Diag_treat))
-colnames(Dis_tab_10) <- c("Primary Diagnosis","1-10 Days", "10+ Days", "Total Sample")
-Dis_tab_10
-
-
-##### Add other demographic information here
-
-
-
+# Treatment info
+resp_tab <- data.frame(table1::table1(
+  ~IPT_track_1 + Days_complete_1 + DC_status_1 + Days_cancel_1 + Days_not_attended_1 + Days_noshow_1 + Current_Dx | RESPONDER_FIGS, 
+  data = Mothership_post))
+colnames(resp_tab) <- c("Variable","Non-Responder", "Responder", "Total Sample")
+resp_tab
 ```
 
 ###	The trajectories of depression and anxiety for all patients (both numerical – pre/post scores, overall slope, and visual – graphs). Numerical results are in text, visual results presented to supplement.
 
-Dumbell Plot by Disorder
+## Pre Post
+### table - prepost
 ```{r}
-AnxDep_PrePost <- data.frame(cbind(Mothership_post$ID1,
-                                  Mothership_post$Disorder_Type,
-                                  Mothership_post$pre_anx,
-                                  Mothership_post$post_anx,
-                                  Mothership_post$pre_dep,
-                                  Mothership_post$post_dep,
-                                  Mothership_post$RESPONDER_FIGS)) 
-  # filter(!is.na(Mothership_post$Disorder_Type))
-colnames(AnxDep_PrePost) = c("ID1","Disorder_Type", "CUDOS_pre","CUDOS_post","CUXOS_pre","CUXOS_post","RESPONDER_FIGS)")
 
-Pre_ANX<-ANX_PrePost_mean %>%
-  filter(PrePost == "Pre")
-
-Post_ANX<-ANX_PrePost_mean %>%
-  filter(PrePost == "Post")
-
-Plot_Text<- dplyr::count(ANX_PrePost, Disorder_Type)
-Plot_Text
-
-"#aeb6bf"
-
-
-
-ggplot(data=AnxDep_PrePost,
-       aes(x=Disorder_Type,y=Score,
-           group=Disorder_Type,color=Disorder_Type))+
-  geom_segment(aes(x=Disorder_Type, xend=Post_ANX$Disorder_Type, y=Score, yend=Post_ANX$Score),color = "#ad3e4f",
-              size = 4, #Note that I sized the segment to fit the points
-              alpha = .5) +
-  geom_point( aes(x=Disorder_Type, y=Score), color= "#F90000", size=3.5) +
-  geom_point( aes(x=Post_ANX$Disorder_Type, y=Post_ANX$Score), color= "#0CC541", size=3.5) +
-  labs(title = "Mean Pre and Post Anxiety Scores By Disorder Type",
-       subtitle = "Self Report anxiety was assessed using the CUXOS",
-       caption = "Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-40 (moderate), 41+ (severe)")+
-  scale_y_reverse(limits = c(45,15)) +
-  coord_flip() +
-  theme_classic()+
-  facet_wrap(~RESPONDER_FIGS,labeller = labeller(RESPONDER_FIGS =
-      c("1" = "Non-Responders", 
-        "2" = "Responders")
-  ))
-  theme(#legend.position = "none",
-         plot.background = element_rect(
-      fill = "white",
-      colour = "white"))
-  
-#sum(as.factor(ANX_PrePost$Disorder_Type))
-
-  
-Pre_DEP<-DEP_PrePost_mean %>%
-  filter(PrePost == "Pre")
-
-Post_DEP<-DEP_PrePost_mean %>%
-  filter(PrePost == "Post")
-
-ggplot(data=Pre_DEP,
-       aes(x=Disorder_Type,y=Score,
-           group=Disorder_Type,color=Disorder_Type))+
-  geom_segment(aes(x=Disorder_Type, xend=Post_DEP$Disorder_Type, y=Score, yend=Post_DEP$Score),color = "#4068a8",
-              size = 4, #Note that I sized the segment to fit the points
-              alpha = .5) +
-  geom_point( aes(x=Disorder_Type, y=Score), color= "#F90000", size=3.5) +
-  geom_point( aes(x=Post_DEP$Disorder_Type, y=Post_DEP$Score), color= "#0CC541", size=3.5) +
-  labs(title = "Mean Pre and Post Depression Scores By Disorder Type",
-       subtitle = "Self Report anxiety was assessed using the CUDOS",
-       caption = "Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-45 (moderate), 46+ (severe)",
-       ylab = "Disorder Type")+
-  scale_y_reverse(limits = c(45,15)) +
-  coord_flip() +
-  theme_classic()+
-  theme(#legend.position = "none",
-         plot.background = element_rect(
-      fill = "white",
-      colour = "white"))
 ```
 
-### Overall Plot
+
+### Pre-post Line Plot
 ```{r}
-# Pre Post CUDOS/CUXOS Plot
-ggplot(data=AnxDep_PrePost_mean,
-       aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
-           group=Test,color=fct_rev(Test)))+
-  geom_point(size=2.5)+
-  geom_line(group=AnxDep_PrePost_mean$PrePost,size=1.5)+
-  scale_x_discrete(name="Time Point")+
-  scale_y_continuous(name="CUDOS/CUXOS Score")+
-  ggtitle("Mean Pre and Post Scores of the Anxiety and Depression")+
-  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  theme(legend.title = element_blank())
 
 AnxDep_response_mean<-AnxDep_PrePost_Long %>%
   filter(!is.na(RESPONDER_FIGS)) |>
@@ -895,38 +835,7 @@ DEP_PrePost_mean<-DEP_PrePost %>%
   group_by(Disorder_Type,PrePost) %>%
   summarise(Score=mean(Score,na.rm=TRUE))
 
-#### ANX
-ggplot(data=ANX_PrePost_mean,
-       aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
-           group=Disorder_Type,color=Disorder_Type))+
-  geom_point(size=2.5)+
-  geom_line(size=1)+
-  scale_x_discrete(name="Time Point")+
-  scale_y_continuous(name="CUXOS Score")+
-  labs(title = "Mean Pre and Post Anxiety Scores By Disorder Type",
-       subtitle = "Self Report anxiety was assessed using the CUXOS",
-       caption = "Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-40 (moderate), 41+ (severe)")+
-  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  theme(legend.title = element_blank()) 
-
-#### DEP
-ggplot(data=DEP_PrePost_mean,
-       aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
-           group=as.factor(Disorder_Type),color=as.factor(Disorder_Type)))+
-  geom_point(size=2.5)+
-  geom_line(size=1)+
-  scale_x_discrete(name="Time Point")+
-  scale_y_continuous(name="CUDOS Score")+
-  labs(title = "Mean Pre and Post Depression Scores By Disorder Type",
-       subtitle = "Self report depression was assessed using the CUDOS",
-       caption = "Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-45 (moderate), 46+ (severe)")+
-  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  theme(legend.title = element_blank())
-
-
-### FACAT WRAP
+#3. Create a combined dataset
 
 AnxDep_Treat_mean<-AnxDep_PrePost_Long %>%
   filter(!is.na(RESPONDER_FIGS),
@@ -1080,6 +989,12 @@ p
 Mothership_Long_anx <- gather(Mothership_post,rm,CUXOS,Day1_CUXOS:Day40_CUXOS,factor_key = "T")
 Mothership_Long_anx <- Mothership_Long_anx[order(Mothership_Long_anx$ID1),]
 
+summary(Mothership_post$Duration_lab)
+test <- Mothership_post |>
+  filter(
+Duration == 2
+)
+
 #Create a Time Variable
 Mothership_Long_anx$TxDay <- NA
 Mothership_Long_anx$TxDay[Mothership_Long_anx$rm=="Day1_CUXOS"]<-1
@@ -1104,23 +1019,56 @@ Mothership_Long_anx$TxDay[Mothership_Long_anx$rm=="Day19_CUXOS"]<-19
 Mothership_Long_anx$TxDay[Mothership_Long_anx$rm=="Day20_CUXOS"]<-20
 
 # #Create a New Data Set with an Average Anxiety Variable
-# Mothership_Mean_CUXOS<-Mothership_Long_anx %>%
-#   group_by(TxDay) %>%
-#   summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
-
-#plot Anxiety mean with each group
-
-
-# New dataset for the treatment duration Anxiety plot
 Mothership_Mean_CUXOS<-Mothership_Long_anx %>%
   group_by(Duration,TxDay) %>%
   summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
+```
+
+FIGURE OUT WHY THIS SHIT ISN'T WORKING IT IS GRABBING VALUES THAT DOEN'T EXIST
+ITS GRABBING VALUES (CUXOS) FOR PEOPLE THAT DISCHARGED. I DON'T UNDERSTAND HOW THIS WORKS
+```{r}
+Mothership_duration_CUXOS<-Mothership_Mean_CUXOS[1:83,]
+View(Mothership_duration_CUXOS)
+
+Mothership_duration_CUXOS[6:20,3] = NA
+Mothership_duration_CUXOS[37:41,3] = NA
+Mothership_duration_CUXOS[74:83,3] = NA
+Mothership_duration_CUXOS<-Mothership_duration_CUXOS[(-21),]
+Mothership_duration_CUXOS<-Mothership_duration_CUXOS[(-41),]
+Mothership_duration_CUXOS<-Mothership_duration_CUXOS[(-61),]
+Mothership_duration_CUXOS
+
+ggplot(data=Mothership_duration_CUXOS,aes(x=TxDay,y=mean_CUXOS,group=Duration,color=Duration))+
+  geom_line(size=1)+
+  geom_point()+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  ggtitle("Mean Anxiety Severity During Partial Hospitalization")+
+  scale_x_discrete(name="Treatment Day",limits=c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20))+
+  scale_y_continuous(name="Anxiety Severity",limits=c(5,50,by=5))+
+  scale_color_manual(values=c("#BB9D00","red",
+                              "darkred","orange"))+
+  theme(panel.background=NULL)+
+  labs(subtitle = "Broken up by Duration of Treatment")
+```
+
+
+```{r}
+#plot Anxiety mean with each group
+
+Mothership_Long_anx$Duration_lab
+
+# New dataset for the treatment duration Anxiety plot
+Mothership_Mean_CUXOS<-Mothership_Long_anx %>%
+  group_by(Duration_lab,TxDay) %>%
+  summarise(mean_CUXOS=mean(CUXOS,na.rm=TRUE))
 
 Mothership_Mean_CUXOS2 <- Mothership_Long_anx %>%
-  group_by(Duration,RESPONDER_FIGS,TxDay) %>%
+  group_by(Duration_lab,RESPONDER_FIGS,TxDay) %>%
   summarise(Score=mean(CUXOS,na.rm=TRUE))
 
 View(Mothership_Mean_CUXOS2)
+
+View(Mothership_Mean_CUXOS)
 
 Mothership_duration_CUXOS<-Mothership_Mean_CUXOS[1:83,]
 #delete weird Na values and put NA for values
@@ -1132,7 +1080,8 @@ Mothership_duration_CUXOS<-Mothership_duration_CUXOS[(-41),]
 Mothership_duration_CUXOS<-Mothership_duration_CUXOS[(-61),]
 Mothership_duration_CUXOS
 
-ggplot(data=Mothership_duration_CUXOS,aes(x=TxDay,y=mean_CUXOS,group=Duration,color=Duration))+
+
+ggplot(data=Mothership_duration_CUXOS,aes(x=TxDay,y=mean_CUXOS,group=Duration_lab,color=Duration_lab))+
   geom_line(size=1)+
   geom_point()+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
@@ -1209,7 +1158,6 @@ ggplot(data=Mothership_duration_CUDOS,aes(x=TxDay,y=mean_CUDOS,group=Duration,co
                               "navy","blue"))+
   theme(panel.background=NULL)
 ```
-
 
 
 •	Visualization – RDQ pre and post change.
@@ -1318,94 +1266,12 @@ ggplot(data=Mothership_Mean_RDQ,
 
 ```
 
-•	Table or Visualization – Reasons for discharge results.
-
-### Discharge Status
-```{r}
-### Bar Chart for Discharge Status ###
-
-
-
-ggplot(data = subset(Mothership, !is.na(DC_status_1)), mapping = aes(x = fct_rev(fct_infreq(DC_status_1))))+
-  geom_bar(fill = c("#EBC500", "#ffa600", "#ff7c43", "#f95d6a", "#d45087","#a05195","#665191","#2f4b7c","#003f5c"
-                               ))+
-  ggtitle("Frequency of Treatment Discharge Status") +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
-  xlab("Discharge Status") +
-  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,6000)) +
-  coord_flip()
-
-ggplot(data = subset(Mothership, !is.na(DC_status_1)), mapping = aes(x = fct_rev(fct_infreq(DC_status_1))))+
-  geom_bar()+ #fill = c("#EBC500", "#ffa600", "#ff7c43", "#f95d6a", "#d45087","#a05195","#665191","#2f4b7c","#003f5c"))+
-  ggtitle("Frequency of Treatment Discharge Status") +
-  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
-  xlab("Discharge Status") +
-  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  scale_y_continuous(name = "Frequency",limits=c(0,2100)) +
-  #scale_fill_manual(values = c("#00AFBB", "#E7B800", "#FC4E07")) +
-  coord_flip() +
-  facet_wrap(~Duration,labeller = labeller(Duration =
-      c("1" = "1-5 Days", 
-        "2" = "6-10 Days", 
-        "3" = "11-15 Days",
-        "4" = "16+ Days")
-      ))
-
-
-
-```
 
 
 
 
-length of treatment based upon response?
-```{r}
 
-bg_col <- "#F9FBF2"
-# highlight_col <- "#FFAD05"
-# highlight_col <- "FF52825"
-highlight_col <- "#02d46e"
-outline_col <- "darkblue"
-dark_col <- "#333333"
 
-str(Mothership_post$Days_complete_1)
-subset(Mothership, !is.na(Gender_1))
-ggplot(
-  data = subset(Mothership_post, !is.na(RESPONDER_FIGS)),
-  mapping = aes(
-    x = Days_complete_1,
-    y = Disorder_treat,
-    group = Disorder_treat)
-  )+
-  geom_jitter(
-    size = 0.6,
-    alpha = .5,
-   colour = highlight_col
-    )+
-  geom_boxplot(
-    outlier.shape = NA,
-   colour = outline_col,
-   fill = highlight_col,
-    alpha = 0.3) +
-  scale_x_continuous(
-   breaks = c(0, 15, 30, 45, 60),
-    limits = c(0.00, 60)
-  ) +
-  facet_wrap(~RESPONDER_FIGS)
-             
-      #        labeller = labeller(RESPONDER_FIGS =
-      # c("1" = "Non-Responders", 
-      #   "2" = "Responders"))
-
-summary(Mothership_post$Days_complete_1)
-  
-table1(Days_complete_1, data = Mothership_post)
-#####W WHY ARE DAYS COMPLETE NOT SHOWING UP???
-
-```
 
 
 
@@ -1477,6 +1343,7 @@ ggplot(data = subset(Mothership_post, !is.na(IPT_track_1)),mapping = aes(x = IPT
   theme(panel.background=NULL)+
   scale_y_continuous(name = "Frequency",limits=c(0,4200))+
   coord_flip()
+
 ```
 
 ### Treatment Year
@@ -1508,6 +1375,402 @@ ggplot(data = subset(Mothership_post, !is.na(Duration)),mapping = aes(x = Durati
   coord_flip()
 
 ```
+
+
+tables
+```{r}
+  ### To univariate tests with these???
+
+#Disorder Table - duratin
+# Dis_tab <- data.frame(table1::table1(~Disorder_Type | Duration, data = Mothership_post))
+#                                  #Mothership_Diag_treat))
+# colnames(Dis_tab) <- c("Primary Diagnosis","1-5 Days", "6-10 Days", "11-15 Days","16+ Days", "Total Sample")
+# Dis_tab
+
+#Disorder Tab by 10 days
+# Dis_tab_10 <- data.frame(table1::table1(~Disorder_Type | Duration_10, data = Mothership_post))
+# colnames(Dis_tab_10) <- c("Primary Diagnosis","1-10 Days", "10+ Days", "Total Sample")
+# Dis_tab_10
+
+# Disorder by responder
+```
+
+
+
+Dumbell Plot by Disorder - Pre and Post
+```{r}
+AnxDep_PrePost <- data.frame(cbind(Mothership_post$ID1,
+                                  Mothership_post$Disorder_Type,
+                                  Mothership_post$pre_anx,
+                                  Mothership_post$post_anx,
+                                  Mothership_post$pre_dep,
+                                  Mothership_post$post_dep,
+                                  Mothership_post$RESPONDER_FIGS)) 
+  # filter(!is.na(Mothership_post$Disorder_Type))
+colnames(AnxDep_PrePost) = c("ID1","Disorder_Type", "CUDOS_pre","CUDOS_post","CUXOS_pre","CUXOS_post","RESPONDER_FIGS)")
+
+Pre_ANX<-ANX_PrePost_mean %>%
+  filter(PrePost == "Pre")
+
+Post_ANX<-ANX_PrePost_mean %>%
+  filter(PrePost == "Post")
+
+Plot_Text<- dplyr::count(ANX_PrePost, Disorder_Type)
+Plot_Text
+
+"#aeb6bf"
+
+
+
+ggplot(data=AnxDep_PrePost,
+       aes(x=Disorder_Type,y=Score,
+           group=Disorder_Type,color=Disorder_Type))+
+  geom_segment(aes(x=Disorder_Type, xend=Post_ANX$Disorder_Type, y=Score, yend=Post_ANX$Score),color = "#ad3e4f",
+              size = 4, #Note that I sized the segment to fit the points
+              alpha = .5) +
+  geom_point( aes(x=Disorder_Type, y=Score), color= "#F90000", size=3.5) +
+  geom_point( aes(x=Post_ANX$Disorder_Type, y=Post_ANX$Score), color= "#0CC541", size=3.5) +
+  labs(title = "Mean Pre and Post Anxiety Scores By Disorder Type",
+       subtitle = "Self Report anxiety was assessed using the CUXOS",
+       caption = "Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-40 (moderate), 41+ (severe)")+
+  scale_y_reverse(limits = c(45,15)) +
+  coord_flip() +
+  theme_classic()+
+  facet_wrap(~RESPONDER_FIGS,labeller = labeller(RESPONDER_FIGS =
+      c("1" = "Non-Responders", 
+        "2" = "Responders")
+  ))
+  theme(#legend.position = "none",
+         plot.background = element_rect(
+      fill = "white",
+      colour = "white"))
+  
+#sum(as.factor(ANX_PrePost$Disorder_Type))
+
+  
+Pre_DEP<-DEP_PrePost_mean %>%
+  filter(PrePost == "Pre")
+
+Post_DEP<-DEP_PrePost_mean %>%
+  filter(PrePost == "Post")
+
+ggplot(data=Pre_DEP,
+       aes(x=Disorder_Type,y=Score,
+           group=Disorder_Type,color=Disorder_Type))+
+  geom_segment(aes(x=Disorder_Type, xend=Post_DEP$Disorder_Type, y=Score, yend=Post_DEP$Score),color = "#4068a8",
+              size = 4, #Note that I sized the segment to fit the points
+              alpha = .5) +
+  geom_point( aes(x=Disorder_Type, y=Score), color= "#F90000", size=3.5) +
+  geom_point( aes(x=Post_DEP$Disorder_Type, y=Post_DEP$Score), color= "#0CC541", size=3.5) +
+  labs(title = "Mean Pre and Post Depression Scores By Disorder Type",
+       subtitle = "Self Report anxiety was assessed using the CUDOS",
+       caption = "Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-45 (moderate), 46+ (severe)",
+       ylab = "Disorder Type")+
+  scale_y_reverse(limits = c(45,15)) +
+  coord_flip() +
+  theme_classic()+
+  theme(#legend.position = "none",
+         plot.background = element_rect(
+      fill = "white",
+      colour = "white"))
+```
+
+### Dumbell Plot by Disorder
+```{r}
+Pre_ANX<-ANX_PrePost_mean %>%
+  filter(PrePost == "Pre")
+
+Post_ANX<-ANX_PrePost_mean %>%
+  filter(PrePost == "Post")
+
+Plot_Text<- dplyr::count(ANX_PrePost, Disorder_Type)
+Plot_Text
+
+"#aeb6bf"
+
+
+ggplot(data=Pre_ANX,
+       aes(x=Disorder_Type,y=Score,
+           group=Disorder_Type,color=Disorder_Type))+
+  geom_segment(aes(x=Disorder_Type, xend=Post_ANX$Disorder_Type, y=Score, yend=Post_ANX$Score),color = "#ad3e4f",
+              size = 4, #Note that I sized the segment to fit the points
+              alpha = .5) +
+  geom_point( aes(x=Disorder_Type, y=Score), color= "#F90000", size=3.5) +
+  geom_point( aes(x=Post_ANX$Disorder_Type, y=Post_ANX$Score), color= "#0CC541", size=3.5) +
+  labs(title = "Mean Pre and Post Anxiety Scores By Disorder Type",
+       subtitle = "Self Report anxiety was assessed using the CUXOS",
+       caption = "Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-40 (moderate), 41+ (severe)")+
+  scale_y_reverse(limits = c(45,15)) +
+  coord_flip() +
+  theme_classic()+
+  theme(#legend.position = "none",
+         plot.background = element_rect(
+      fill = "white",
+      colour = "white"))
+  
+#sum(as.factor(ANX_PrePost$Disorder_Type))
+
+  
+Pre_DEP<-DEP_PrePost_mean %>%
+  filter(PrePost == "Pre")
+
+Post_DEP<-DEP_PrePost_mean %>%
+  filter(PrePost == "Post")
+
+ggplot(data=Pre_DEP,
+       aes(x=Disorder_Type,y=Score,
+           group=Disorder_Type,color=Disorder_Type))+
+  geom_segment(aes(x=Disorder_Type, xend=Post_DEP$Disorder_Type, y=Score, yend=Post_DEP$Score),color = "#4068a8",
+              size = 4, #Note that I sized the segment to fit the points
+              alpha = .5) +
+  geom_point( aes(x=Disorder_Type, y=Score), color= "#F90000", size=3.5) +
+  geom_point( aes(x=Post_DEP$Disorder_Type, y=Post_DEP$Score), color= "#0CC541", size=3.5) +
+  labs(title = "Mean Pre and Post Depression Scores By Disorder Type",
+       subtitle = "Self Report anxiety was assessed using the CUDOS",
+       caption = "Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-45 (moderate), 46+ (severe)",
+       ylab = "Disorder Type")+
+  scale_y_reverse(limits = c(45,15)) +
+  coord_flip() +
+  theme_classic()+
+  
+  theme(#legend.position = "none",
+         plot.background = element_rect(
+      fill = "white",
+      colour = "white"))
+```
+
+Overall plot - pre post
+```{r}
+# Pre Post CUDOS/CUXOS Plot
+# ggplot(data=AnxDep_PrePost_mean,
+#        aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
+#            group=Test,color=fct_rev(Test)))+
+#   geom_point(size=2.5)+
+#   geom_line(group=AnxDep_PrePost_mean$PrePost,size=1.5)+
+#   scale_x_discrete(name="Time Point")+
+#   scale_y_continuous(name="CUDOS/CUXOS Score")+
+#   ggtitle("Mean Pre and Post Scores of the Anxiety and Depression")+
+#   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+#   theme(panel.background=NULL)+
+#   theme(legend.title = element_blank())
+```
+
+pre post disorder
+```{r}
+#### ANX
+# ggplot(data=ANX_PrePost_mean,
+#        aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
+#            group=Disorder_Type,color=Disorder_Type))+
+#   geom_point(size=2.5)+
+#   geom_line(size=1)+
+#   scale_x_discrete(name="Time Point")+
+#   scale_y_continuous(name="CUXOS Score")+
+#   labs(title = "Mean Pre and Post Anxiety Scores By Disorder Type",
+#        subtitle = "Self Report anxiety was assessed using the CUXOS",
+#        caption = "Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-40 (moderate), 41+ (severe)")+
+#   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+#   theme(panel.background=NULL)+
+#   theme(legend.title = element_blank()) 
+
+#### DEP
+# ggplot(data=DEP_PrePost_mean,
+#        aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
+#            group=as.factor(Disorder_Type),color=as.factor(Disorder_Type)))+
+#   geom_point(size=2.5)+
+#   geom_line(size=1)+
+#   scale_x_discrete(name="Time Point")+
+#   scale_y_continuous(name="CUDOS Score")+
+#   labs(title = "Mean Pre and Post Depression Scores By Disorder Type",
+#        subtitle = "Self report depression was assessed using the CUDOS",
+#        caption = "Symptom severity: 0-10 (remission), 11-20 (minimal), 21-30 (mild), 31-45 (moderate), 46+ (severe)")+
+#   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+#   theme(panel.background=NULL)+
+#   theme(legend.title = element_blank())
+```
+
+
+
+
+
+
+```{r}
+Mothership_post <- Mothership_post |>
+  #1. Filter out scores for people not in the program / don't have dataa
+  filter(!is.na(Days_complete_1)) |>
+    #Having people in the program for more than 40 days means that their scores may be a lot higher, they should be filtered out as result. 
+  filter(!is.na(CUXOS_pre),
+         !is.na(CUXOS_post),
+         CUXOS_pre > 0,
+         CUXOS_post >= 0,
+         !is.na(CUDOS_pre),
+         !is.na(CUDOS_post),
+         CUDOS_pre > 0,
+         CUDOS_post> 0
+         ) |>
+  mutate(
+    Delta_Anx_DC =  CUXOS_post - CUXOS_pre,
+    Delta_Dep_DC = CUDOS_post - CUDOS_pre,
+    Percent_Anx_change = (Delta_Anx_DC/CUXOS_pre)*100,
+    Percent_Dep_Dchange = (Delta_Dep_DC/CUDOS_pre)*100,
+    #Days_complete_W = ifelse(Days_complete_1 > 40, 40, Days_complete_1),
+    Anx_Responder = as.factor(
+      ifelse(CUXOS_pre < 20 & Percent_Anx_change  <= -50, "Responder",
+      ifelse(CUXOS_pre < 20 & Percent_Anx_change  > -50,  "Unresponders", NA)   
+      )),
+    Dep_Responder = as.factor(
+      ifelse(CUDOS_pre < 20 & Percent_Dep_Dchange <= -50, "Responder",
+      ifelse(CUDOS_pre < 20 & Percent_Dep_Dchange > -50,   "Unresponders", NA) 
+      )),
+    Treatment_Responder = as.factor(
+      ifelse(CUXOS_pre > 10 & CUXOS_pre > 10 & Percent_Anx_change  <= -50 & Percent_Anx_change < 0 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange <= -50, "Both_Responder", 
+      ifelse(CUXOS_pre > 10 & Percent_Anx_change  <= -50, "Anx Responder",
+      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange <= -50, "Dep Responder",
+      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange > 0 & CUXOS_pre > 10 & Percent_Anx_change > 0, "Both Worse",
+      ifelse(CUXOS_pre > 10 & Percent_Anx_change > 0, "Anx Worse",
+      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange > 0, "Dep Worse",
+      ifelse(CUXOS_pre > 10 & CUDOS_pre > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Both Unresponder",
+      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Dep Unresponders", 
+      ifelse(CUXOS_pre > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50, "Anx Unresponders", "Low Baseline"
+      )))))))))))
+
+ #CUXOS_post == !(CUXOS_post %in% c(seq(1,9,1)))
+
+ggplot(Mothership_post, aes(x = Treatment_Responder)) +
+  geom_bar() +
+  coord_flip() +
+  scale_x_discrete(limits =c("Low Baseline", "Both Worse", "Dep Worse", "Anx Worse","Both Unresponder","Dep Unresponders", "Anx Unresponders","Both_Responder", "Anx Responder","Dep Responder"))+
+  labs(
+    title = "Treatment response of Anxiety and Depression",
+    subtitle = "Response = 50% reduciton in scores if BL score > 10")
+
+ggplot(Mothership_post, aes(x = Anx_Responder)) +
+  geom_bar() +
+  coord_flip() +
+    labs(
+    title = "Treatment response of Anxiety",
+    subtitle = "Response = 50% reduciton in scores if BL score > 10")
+
+ggplot(Mothership_post, aes(x = Dep_Responder)) +
+  geom_bar() +
+  coord_flip() +
+    labs(
+    title = "Treatment response of Depression",
+    subtitle = "Response = 50% reduciton in scores if BL score > 10")
+```
+
+# Pie Chart For Education Status 
+We wanted to learn how to make a pie chart in R so here is one!
+```{r}
+#Create Table and Data Frame
+Education<-table(Mothership_post$Education_1)
+Education_df<-as.data.frame(Education)
+Education_df
+
+#Rename Columns
+colnames(Education_df)[1]="Category"
+colnames(Education_df)[2]="Frequency"
+
+
+Education_df$Category=recode(Education_df$Category,
+                             "0"="<Grade 6", 
+                             "1"="Grades 7-12",
+                             "2"="HS Diploma", 
+                             "3"="GED",
+                             "4"="Some College",
+                             "5"="Associates Degree",
+                             "6"="Bachelors Degree",
+                             "7"="Some Grad School",
+                             "8"="Grad Degree")
+
+ggplot(data = Education_df, mapping = aes(x="", y=Frequency, fill=Category))+
+  geom_bar(stat="Identity",width=1,color="white")+
+  ggtitle("Education Level of Patients") +
+  scale_fill_discrete(name = "Education") +
+  coord_polar("y",start=0)+
+  theme_void()
+```
+
+•	Table or Visualization – Reasons for discharge results.
+
+### Discharge Status
+```{r}
+### Bar Chart for Discharge Status ###
+
+ggplot(data = subset(Mothership, !is.na(DC_status_1)), mapping = aes(x = fct_rev(fct_infreq(DC_status_1))))+
+  geom_bar(fill = c("#EBC500", "#ffa600", "#ff7c43", "#f95d6a", "#d45087","#a05195","#665191","#2f4b7c","#003f5c"
+                               ))+
+  ggtitle("Frequency of Treatment Discharge Status") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Discharge Status") +
+  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,6000)) +
+  coord_flip()
+
+ggplot(data = subset(Mothership, !is.na(DC_status_1)), mapping = aes(x = fct_rev(fct_infreq(DC_status_1))))+
+  geom_bar()+ #fill = c("#EBC500", "#ffa600", "#ff7c43", "#f95d6a", "#d45087","#a05195","#665191","#2f4b7c","#003f5c"))+
+  ggtitle("Frequency of Treatment Discharge Status") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Discharge Status") +
+  theme(panel.grid.major.x = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  scale_y_continuous(name = "Frequency",limits=c(0,2100)) +
+  #scale_fill_manual(values = c("#00AFBB", "#E7B800", "#FC4E07")) +
+  coord_flip() +
+  facet_wrap(~Duration,labeller = labeller(Duration =
+      c("1" = "1-5 Days", 
+        "2" = "6-10 Days", 
+        "3" = "11-15 Days",
+        "4" = "16+ Days")
+      ))
+```
+
+length of treatment based upon response?
+```{r}
+
+bg_col <- "#F9FBF2"
+# highlight_col <- "#FFAD05"
+# highlight_col <- "FF52825"
+highlight_col <- "#02d46e"
+outline_col <- "darkblue"
+dark_col <- "#333333"
+
+str(Mothership_post$Days_complete_1)
+subset(Mothership, !is.na(Gender_1))
+ggplot(
+  data = subset(Mothership_post, !is.na(RESPONDER_FIGS)),
+  mapping = aes(
+    x = Days_complete_1,
+    y = Disorder_treat,
+    group = Disorder_treat)
+  )+
+  geom_jitter(
+    size = 0.6,
+    alpha = .5,
+   colour = highlight_col
+    )+
+  geom_boxplot(
+    outlier.shape = NA,
+   colour = outline_col,
+   fill = highlight_col,
+    alpha = 0.3) +
+  scale_x_continuous(
+   breaks = c(0, 15, 30, 45, 60),
+    limits = c(0.00, 60)
+  ) +
+  facet_wrap(~RESPONDER_FIGS)
+             
+      #        labeller = labeller(RESPONDER_FIGS =
+      # c("1" = "Non-Responders", 
+      #   "2" = "Responders"))
+
+summary(Mothership_post$Days_complete_1)
+  
+table1(Days_complete_1, data = Mothership_post)
+#####W WHY ARE DAYS COMPLETE NOT SHOWING UP???
+
+```
+
 
 
 
