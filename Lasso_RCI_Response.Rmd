@@ -134,6 +134,8 @@ Mothership <- mutate(Mothership,
                        ifelse(Duration == 1 | Duration == 2, "1",
                               ifelse(Duration == 3 | Duration == 4, "2", NA)
                        )))
+                     
+
 
 #Extract Year From Intake Date
 #Convert to Date
@@ -692,6 +694,8 @@ AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
 
 
 ## Part 1: Who is attending?
+
+### Demographics information
 - Table 1 Demographics By Response
 - Table 2: Treatment information - What did treatment look like?
 - Table 3: Scores on measures pre post change? 
@@ -713,25 +717,115 @@ Demo_tab_df <- Mothership_post |>
 Demo_tab<-data.frame(table1::table1(~Age_1+Race_1+Education_1+Gender_1+Relationship_1 | RESPONDER_FIGS, data=Demo_tab_df))
 colnames(Demo_tab) <- c("Demographic","Non-Responder", "Responder","Total Sample")
 Demo_tab
+```
 
-# Treatment info
+### Treatment information
+```{r}
+# PHP Treatment information
 resp_tab <- data.frame(table1::table1(
   ~Referral_1 + DC_status_1 + RIPT_track_1 + Days_complete_1 + Days_cancel_1 + Days_not_attended_1 + Days_noshow_1 | RESPONDER_FIGS, 
   data = Mothership_post))
 colnames(resp_tab) <- c("Variable","Non-Responder", "Responder", "Total Sample")
 resp_tab
 
+# Treatment scores 
+Scores_tab <- data.frame(matrix(nrow = 8,ncol=4))
+colnames(Scores_tab) = c("Variables", "Pre M(SD)", "Post M(SD)", "Change M(SD)")
+
+    #CUXOS
+      Scores_tab[1,] = 
+        c("CUXOS",
+          paste0(round(mean(Mothership_post$CUXOS_pre),2), " (", round(sd(Mothership_post$CUXOS_pre),2),")"),
+          paste0(round(mean(Mothership_post$CUXOS_post),2), " (", round(sd(Mothership_post$CUXOS_post),2),")"),
+          paste0(round(mean(Mothership_post$Delta_Anx_DC),2), "(",round(sd(Mothership_post$Delta_Anx_DC),2),")")
+        )
+     
+    #CUDOS
+      Scores_tab[2,] = 
+        c("CUDOS",
+          paste0(round(mean(Mothership_post$CUDOS_pre),2), " (", round(sd(Mothership_post$CUDOS_pre),2),")"),
+          paste0(round(mean(Mothership_post$CUDOS_post),2), " (", round(sd(Mothership_post$CUDOS_post),2),")"),
+          paste0(round(mean(Mothership_post$Delta_Dep_DC),2), "(",round(sd(Mothership_post$Delta_Dep_DC),2),")")
+        )
+      
+    #RDQ total
+      # Scores_tab[3,] = 
+      #    c("RDQ Total",
+      #     paste0(round(mean(Mothership_post$RDQ_Pre_Total),2), " (", round(sd(Mothership_post$RDQ_Pre_Total),2),")"),
+      #     paste0(round(mean(Mothership_post$RDQ_Post_Total),2), " (", round(sd(Mothership_post$RDQ_Post_Total),2),")"),
+      #     paste0(round(mean(Mothership_post$RDQ_Change_Total),2), "(",round(sd(Mothership_post$RDQ_Change_Total),2),")")
+      #    )
+    
+    #RDQ Subscales
+      Scores_tab[3,] = c ("RDQ Subscales", NA, NA, NA)
+         
+    #Coping
+      Scores_tab[4,] = 
+        c("Coping ability",
+          paste0(round(mean(Mothership_post$rdqPRE_coping, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPRE_coping, na.rm = TRUE),2),")"),
+          paste0(round(mean(Mothership_post$rdqPOST_coping, na.rm = TRUE),2), " (",round(sd(Mothership_post$rdqPOST_coping, na.rm = TRUE),2),")"),
+          paste0(round(mean(Mothership_post$rdq_coping_change, na.rm = TRUE),2),"(",round(sd(Mothership_post$rdq_coping_change, na.rm = TRUE),2),")")
+        )
+    
+    #"PMH"
+        Scores_tab[5,] = 
+        c("Positive mental health",
+          paste0(round(mean(Mothership_post$rdqPRE_coping, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPRE_coping, na.rm = TRUE),2),")"),
+          paste0(round(mean(Mothership_post$rdqPOST_coping, na.rm = TRUE),2), " (",round(sd(Mothership_post$rdqPOST_coping, na.rm = TRUE),2),")"),
+          paste0(round(mean(Mothership_post$rdq_coping_change, na.rm = TRUE),2),"(",round(sd(Mothership_post$rdq_coping_change, na.rm = TRUE),2),")")
+        )
+      
+    # functioning
+            Scores_tab[6,] = 
+        c("Functioning",
+          paste0(round(mean(Mothership_post$rdqPRE_func, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPRE_func, na.rm = TRUE),2),")"),
+          paste0(round(mean(Mothership_post$rdqPOST_func, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPOST_func, na.rm = TRUE),2),")"),
+          paste0(round(mean(Mothership_post$rdq_func_change, na.rm = TRUE),2), "(",round(sd(Mothership_post$rdq_func_change, na.rm = TRUE),2),")")
+        )
+            
+    # General sense of wellbeing
+            Scores_tab[7,] = 
+        c("General sense of wellbeing",
+          paste0(round(mean(Mothership_post$rdqPRE_wbs, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPRE_wbs, na.rm = TRUE),2),")"),
+          paste0(round(mean(Mothership_post$rdqPOST_wbs, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPOST_wbs, na.rm = TRUE),2),")"),
+          paste0(round(mean(Mothership_post$rdq_wbs_change, na.rm = TRUE),2), "(",round(sd(Mothership_post$rdq_wbs_change, na.rm = TRUE),2),")")
+        )
+            
+    #Symptoms"
+            Scores_tab[8,] = 
+        c("Symptoms",
+          paste0(round(mean(Mothership_post$rdqPRE_sym, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPRE_sym, na.rm = TRUE),2),")"),
+          paste0(round(mean(Mothership_post$rdqPOST_sym, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPOST_sym, na.rm = TRUE),2),")"),
+          paste0(round(mean(Mothership_post$rdq_sym_change, na.rm = TRUE),2), "(",round(sd(Mothership_post$rdq_sym_change, na.rm = TRUE),2),")")
+        )
+
+ Scores_tab
+```
+
+### Disorder Breakdowns
+Here are some tables displaying info on the psychiatric disorders treated at the PHP
+```{r}
 # Disorders by treatment response
 Dis_tab <- data.frame(table1::table1(~Disorder_Type + Current_Dx | RESPONDER_FIGS, 
                                      data = Mothership_post))
+colnames(Dis_tab) = c("Variables","Non Responder", "Responder", "Total")
 Dis_tab
 
-#Full demographic break down.
+#Full demographic break down
+co_dis_tab <- Mothership_Diag_treat |>
+  pivot_longer(
+    cols = c("Co_Anx","Co_Mood","Co_OCD","Co_BPD","Co_Psychotic","Co_Eating","Co_Somatic", "Co_Substance","Co_Trauma", "No_Co"),
+    names_to = 'Co Occuring',
+    values_to = "Number"
+  ) |>
+  select(Disorder_treat, `Co Occuring`, Number) |>
+  filter(Number != 0,
+         !is.na(`Co Occuring`),
+         !is.na(Disorder_treat)) 
+
 CODis_tab<-data.frame(table1::table1(~`Co Occuring` | Disorder_treat, data = co_dis_tab))
+colnames(CODis_tab)[1] = c("Variables")
 CODis_tab
-
-
-Mothership_post$Current_Dx
 ```
 
 ```{r}
