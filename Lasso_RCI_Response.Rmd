@@ -21,9 +21,8 @@ library(tidyr)
 ## Read in the dataset. 
 ```{r}
 Mothership <- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
-head(df)
+DF_1<- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
 
-# source("~/Desktop/Coding/R working directory/Hospital_Visualizations/Lasso_RCI_Source.R")
 ```
 
 ## Clean, update, and wrangle data
@@ -40,6 +39,7 @@ this includes:
 ```{r}
 # 1. Re-coding / Renaming variables ------------------------------------------
 # We can change the current variables to make them easier to interpret.
+str(Mothership_post$Education_1)
 
 #recode varaibles
 Mothership <- mutate(Mothership, 
@@ -54,6 +54,17 @@ Mothership <- mutate(Mothership,
                                           "6"="Bachelors Degree",
                                           "7"="Bachelors Degree",
                                           "8"="Grad Degree"),
+                     Some_College = Education_1,
+                     Some_College = recode(Education_1,
+                                          "<Grade 12" = "No College",
+                                          "<Grade 12" = "No College",
+                                          "HS Diploma or GED" = "No College",
+                                          "HS Diploma or GED" = "No College",
+                                          "Some College/Associates Degree" = "Some College",
+                                          "Some College/Associates Degree" = "Some College",
+                                          "Bachelors Degree" = "Some College",
+                                          "Bachelors Degree" = "Some College",
+                                          "Grad Degree" ="Some College"),
                      Gender_1 = as.factor(Gender_1),
                      Gender_1 = recode(Gender_1,
                                        "0"="Female",
@@ -61,7 +72,14 @@ Mothership <- mutate(Mothership,
                                        "2"="Non-Binary",
                                        "3"="Other",
                                        "4"="Other"),
-                     Relationship_1 = ifelse(Relationship_1 == 8, NA, Relationship_1),
+                     Female = Gender_1,
+                     Female= recode(Gender_1,
+                                       "Female" = "Female",
+                                       "Male" = "Not",
+                                       "Non-Binary" = "Not",
+                                       "Other" = "Not",
+                                       "Other" = "Not"),
+                      Relationship_1 = ifelse(Relationship_1 == 8, NA, Relationship_1),
                      Relationship_1 = as.factor(Relationship_1),
                      Relationship_1 = recode(Relationship_1,
                                              "0"="Married or Cohabitating",
@@ -70,12 +88,22 @@ Mothership <- mutate(Mothership,
                                              "3"="Widowed or Separated",
                                              "4"="Divorced",
                                              "5"="Single or Never Married"),
+                     Married = recode(Relationship_1,
+                                             "Married or Cohabitating" = "Married or Cohabitating",
+                                             "Widowed or Separated" = "Not",
+                                             "Divorced" = "Not",
+                                             "Single or Never Married" = "Not"),
                      Sexuality_1 = as.factor(Sexuality_1),
                      Sexuality_1 = recode(Sexuality_1,
                                           "1"="Straight",
                                           "2"="Gay",
                                           "3"="Bisexual",
                                           "4"="Other"),
+                     Straight = recode(Sexuality_1,
+                                         "Straight" = "Straight",
+                                          "Gay" = "Not Straight",
+                                          "Bisexual" = "Not Straight",
+                                          "Other" = "Not Straight"),
                      IPT_track_1 = as.factor(IPT_track_1),
                      IPT_track_1 = recode(IPT_track_1,
                                           "0"="General",
@@ -91,6 +119,13 @@ Mothership <- mutate(Mothership,
                                      "3"="Asian",
                                      "4"="Portugese",
                                      "5"="Other"),
+                     White = recode(Race_1,
+                                     "White" = "White",
+                                     "Black" = "Not White",
+                                     "Hispanic"="Not White",
+                                     "Asian"="Not White",
+                                     "Portugese"="Not White",
+                                     "Other"="Not White"),
                      DC_status_1 = as.factor(DC_status_1),
                      DC_status_1 = recode(DC_status_1,
                                           "1" ="Treatment Complete",
@@ -104,19 +139,19 @@ Mothership <- mutate(Mothership,
                                           "9"= "Other",
                                           "10"="Other",
                                           "0" ="Other"),
-                     Referral_1 = as.factor(Referral_1),
-                     Referral_1 = recode(Referral_1,
-                                         "1" ="Inpatient",
-                                         "2" ="PHP",
-                                         "3" ="APS",
-                                         "4" ="Psychatrist",
-                                         "5" ="PCP",
-                                         "6" ="Another Physican",
-                                         "7" ="Therapist",
-                                         "17"="Other",
-                                         "0" ="Other"),
-                     
-                     #Lets make some new variables 
+                     Discharge = recode(DC_status_1,
+                                          "Treatment Complete" = "Treatment Successful",
+                                          "Treatment nearly complete" = "Treatment Successful",
+                                          "Insurance no longer covering" = "Other",
+                                          "Nonattendance" = "Other",
+                                          "Inappropriate (language)/Referred to another tx setting" ="Other",
+                                          "Transferred to inpatient"="Other",
+                                          "Withdrew due to external limitations"="Other",
+                                          "Withdrew AMA"="Other",
+                                          "Other"="Other",
+                                          "Other"="Other",
+                                          "Other"="Other"),
+#Lets make some new variables 
                      #Duration of treatment
                      Duration = as.factor(
                        ifelse(Days_complete_1>0 & Days_complete_1 <=5, "1",
@@ -128,14 +163,11 @@ Mothership <- mutate(Mothership,
                                                      "1"="1-5",
                                                      "2"="6-10",
                                                      "3"="11-15",
-                                                     "4"="16+"
-                     )),
+                                                     "4"="16+")),
                      Duration_10 = as.factor(
                        ifelse(Duration == 1 | Duration == 2, "1",
                               ifelse(Duration == 3 | Duration == 4, "2", NA)
                        )))
-                     
-
 
 #Extract Year From Intake Date
 #Convert to Date
@@ -149,8 +181,6 @@ Mothership<-mutate(Mothership,
 
 ####  Export as CSV
 write.csv(Mothership,"~/Desktop/Coding/data/Mothership_paper")
-
-
 
 # 2. Creating new diagnostic variables  -----------------------------------
 
@@ -376,10 +406,10 @@ Mothership_Diag <- Mothership |>
   filter(!is.na(Disorder_Type)) |>
   filter(!is.na(TxYear))
 
-Mothership_Diag_treat <- Mothership |>
-  filter(!is.na(Disorder_treat),
-         !is.na(TxYear),
-         !is.na(Duration)) 
+# Mothership_Diag_treat <- Mothership |>
+#   filter(!is.na(Disorder_treat),
+#          !is.na(TxYear),
+#          !is.na(Duration)) 
 
 ### Export as CSV
 write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Diag.csv")
@@ -501,9 +531,9 @@ write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Diag.csv")
 #devtools::install_github("AWKruijt/JT-RCI")
 
 library(JTRCI)
-library(ClinicalSig)
-
-#devtools::install_github("zieglema/ClinicalSig")
+# library(ClinicalSig)
+# 
+# #devtools::install_github("zieglema/ClinicalSig")
 #1. Create df for RCI
 RCI_df_dep <- Mothership_post |>
   mutate(
@@ -699,7 +729,7 @@ AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
 - Table 1 Demographics By Response
 - Table 2: Treatment information - What did treatment look like?
 - Table 3: Scores on measures pre post change? 
-    + I want to show the figure of prepost change???
+    + I want to show the figure of pre-post change???
 - Table 4: demographic breakdown
 ```{r}
 #Demographics Table
@@ -717,89 +747,195 @@ Demo_tab_df <- Mothership_post |>
 Demo_tab<-data.frame(table1::table1(~Age_1+Race_1+Education_1+Gender_1+Relationship_1 | RESPONDER_FIGS, data=Demo_tab_df))
 colnames(Demo_tab) <- c("Demographic","Non-Responder", "Responder","Total Sample")
 Demo_tab
+
+Simple_Demo_tab <-data.frame(table1::table1(~Age_1 + White +IPT_track_1 + Straight + Married + Female +  Some_College + Discharge | RESPONDER_FIGS, data=Demo_tab_df))
+colnames(Simple_Demo_tab) <- c("Demographic","Non-Responder", "Responder","Total Sample")
+Simple_Demo_tab
 ```
 
 ### Treatment information
+Overal look at treatment varaibles by treatment response
 ```{r}
 # PHP Treatment information
 resp_tab <- data.frame(table1::table1(
-  ~Referral_1 + DC_status_1 + RIPT_track_1 + Days_complete_1 + Days_cancel_1 + Days_not_attended_1 + Days_noshow_1 | RESPONDER_FIGS, 
+   ~ DC_status_1 + IPT_track_1 + Days_complete_1 + Days_cancel_1 + Days_not_attended_1 + Days_noshow_1 | RESPONDER_FIGS, 
   data = Mothership_post))
 colnames(resp_tab) <- c("Variable","Non-Responder", "Responder", "Total Sample")
 resp_tab
+```
 
-# Treatment scores 
-Scores_tab <- data.frame(matrix(nrow = 8,ncol=4))
-colnames(Scores_tab) = c("Variables", "Pre M(SD)", "Post M(SD)", "Change M(SD)")
+pre-post scores by treatment response
+```{r}
+# Treatment scores
+#1. Make DF + name columns
+Scores_tab <- data.frame(matrix(nrow = 9 ,ncol=7))
+colnames(Scores_tab) = c("Variables", "N_Pre M(SD)", "N_Post M(SD)", "N_Change M(SD)","R_Pre M(SD)", "R_Post M(SD)", "R_Change M(SD)")
 
-    #CUXOS
-      Scores_tab[1,] = 
-        c("CUXOS",
-          paste0(round(mean(Mothership_post$CUXOS_pre),2), " (", round(sd(Mothership_post$CUXOS_pre),2),")"),
-          paste0(round(mean(Mothership_post$CUXOS_post),2), " (", round(sd(Mothership_post$CUXOS_post),2),")"),
-          paste0(round(mean(Mothership_post$Delta_Anx_DC),2), "(",round(sd(Mothership_post$Delta_Anx_DC),2),")")
+#2. Row 1 - responders
+Scores_tab[1,] = c(NA,"Non-responder","Non-responder","Non-responder","Responder","Responder","Responder")
+
+#3. Get statistics for variables + Assign to table
+  # Anxiety - CUXOS
+    #make df
+      anx_rep_tab <- Mothership_post |>
+        group_by(RESPONDER_FIGS) |>
+        summarize(pre_anx = round(mean(CUXOS_pre, na.rm = TRUE),2),
+                  pre_anx_sd = round(sd(CUXOS_pre, na.rm = TRUE),2),
+                  post_anx = round( mean(CUXOS_post,na.rm = TRUE),2),
+                  post_anx_sd = round( sd(CUXOS_post,na.rm = TRUE),2),
+                  delta_anx = round( mean(Delta_Anx_DC,na.rm = TRUE),2),
+                  delta_anx_sd = round( sd(Delta_Anx_DC, na.rm = TRUE),2)
+                  )
+# add to scores tab
+        Scores_tab[2,] = c(
+          "CUXOS",
+          #Non-responder scores
+          paste0(anx_rep_tab$pre_anx[[1]]," (",anx_rep_tab$pre_anx_sd[[1]],")"),
+          paste0(anx_rep_tab$post_anx[[1]]," (",anx_rep_tab$post_anx_sd[[1]],")"),
+          paste0(anx_rep_tab$delta_anx[[1]]," (",anx_rep_tab$delta_anx_sd[[1]],")"),
+          #responder scores
+          paste0(anx_rep_tab$pre_anx[[2]]," (",anx_rep_tab$pre_anx_sd[[2]],")"),
+          paste0(anx_rep_tab$post_anx[[2]]," (",anx_rep_tab$post_anx_sd[[2]],")"),
+          paste0(anx_rep_tab$delta_anx[[2]]," (",anx_rep_tab$delta_anx_sd[[2]],")")
         )
-     
-    #CUDOS
-      Scores_tab[2,] = 
-        c("CUDOS",
-          paste0(round(mean(Mothership_post$CUDOS_pre),2), " (", round(sd(Mothership_post$CUDOS_pre),2),")"),
-          paste0(round(mean(Mothership_post$CUDOS_post),2), " (", round(sd(Mothership_post$CUDOS_post),2),")"),
-          paste0(round(mean(Mothership_post$Delta_Dep_DC),2), "(",round(sd(Mothership_post$Delta_Dep_DC),2),")")
-        )
-      
-    #RDQ total
-      # Scores_tab[3,] = 
-      #    c("RDQ Total",
-      #     paste0(round(mean(Mothership_post$RDQ_Pre_Total),2), " (", round(sd(Mothership_post$RDQ_Pre_Total),2),")"),
-      #     paste0(round(mean(Mothership_post$RDQ_Post_Total),2), " (", round(sd(Mothership_post$RDQ_Post_Total),2),")"),
-      #     paste0(round(mean(Mothership_post$RDQ_Change_Total),2), "(",round(sd(Mothership_post$RDQ_Change_Total),2),")")
-      #    )
-    
-    #RDQ Subscales
-      Scores_tab[3,] = c ("RDQ Subscales", NA, NA, NA)
-         
-    #Coping
-      Scores_tab[4,] = 
-        c("Coping ability",
-          paste0(round(mean(Mothership_post$rdqPRE_coping, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPRE_coping, na.rm = TRUE),2),")"),
-          paste0(round(mean(Mothership_post$rdqPOST_coping, na.rm = TRUE),2), " (",round(sd(Mothership_post$rdqPOST_coping, na.rm = TRUE),2),")"),
-          paste0(round(mean(Mothership_post$rdq_coping_change, na.rm = TRUE),2),"(",round(sd(Mothership_post$rdq_coping_change, na.rm = TRUE),2),")")
-        )
-    
-    #"PMH"
-        Scores_tab[5,] = 
-        c("Positive mental health",
-          paste0(round(mean(Mothership_post$rdqPRE_coping, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPRE_coping, na.rm = TRUE),2),")"),
-          paste0(round(mean(Mothership_post$rdqPOST_coping, na.rm = TRUE),2), " (",round(sd(Mothership_post$rdqPOST_coping, na.rm = TRUE),2),")"),
-          paste0(round(mean(Mothership_post$rdq_coping_change, na.rm = TRUE),2),"(",round(sd(Mothership_post$rdq_coping_change, na.rm = TRUE),2),")")
-        )
-      
-    # functioning
-            Scores_tab[6,] = 
-        c("Functioning",
-          paste0(round(mean(Mothership_post$rdqPRE_func, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPRE_func, na.rm = TRUE),2),")"),
-          paste0(round(mean(Mothership_post$rdqPOST_func, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPOST_func, na.rm = TRUE),2),")"),
-          paste0(round(mean(Mothership_post$rdq_func_change, na.rm = TRUE),2), "(",round(sd(Mothership_post$rdq_func_change, na.rm = TRUE),2),")")
-        )
-            
+
+  # Depression - CUDOS
+  #Make df
+    dep_rep_tab <- Mothership_post |>
+      group_by(RESPONDER_FIGS) |>
+      summarize(pre_dep = round( mean(CUDOS_pre, na.rm = TRUE),2),
+                pre_dep_sd = round( sd(CUDOS_pre, na.rm = TRUE),2),
+                post_dep = round( mean(CUDOS_post, na.rm = TRUE),2),
+                post_dep_sd = round( sd(CUDOS_post, na.rm = TRUE),2),
+                delta_dep = round( mean(Delta_Dep_DC, na.rm = TRUE),2),
+                delta_dep_sd = round( sd(Delta_Dep_DC, na.rm = TRUE),2)
+                )
+    #Add to Scores_tab
+       Scores_tab[3,] = c(
+        "CUDOS",
+        #Non-responder scores
+        paste0(dep_rep_tab$pre_dep[[1]]," (",dep_rep_tab$pre_dep_sd[[1]],")"),
+        paste0(dep_rep_tab$post_dep[[1]]," (",dep_rep_tab$post_dep_sd[[1]],")"),
+        paste0(dep_rep_tab$delta_dep[[1]]," (",dep_rep_tab$delta_dep_sd[[1]],")"),
+        #responder scores
+        paste0(dep_rep_tab$pre_dep[[2]]," (",dep_rep_tab$pre_dep_sd[[2]],")"),
+        paste0(dep_rep_tab$post_dep[[2]]," (",dep_rep_tab$post_dep_sd[[2]],")"),
+        paste0(dep_rep_tab$delta_dep[[2]]," (",dep_rep_tab$delta_dep_sd[[2]],")")
+      )
+       
+  #RDQ subscales
+       Scores_tab[4,1] = "RDQ Subscales"
+       
+  # Coping
+      cope_rep_tab <- Mothership_post |>
+        group_by(RESPONDER_FIGS) |>
+        summarize(pre_cope = round( mean(rdqPRE_coping, na.rm = TRUE),2),
+                  pre_cope_sd = round( sd(rdqPRE_coping, na.rm = TRUE),2),
+                  post_cope = round( mean(rdqPOST_coping, na.rm = TRUE),2),
+                  post_cope_sd = round( sd(rdqPOST_coping, na.rm = TRUE),2),
+                  delta_cope = round( mean(rdq_coping_change, na.rm = TRUE),2),
+                  delta_cope_sd = round( sd(rdq_coping_change, na.rm = TRUE),2)
+              )
+      Scores_tab[5,] = c(
+        "Coping",
+        #Non-responder scores
+        paste0(cope_rep_tab$pre_cope[[1]]," (",cope_rep_tab$pre_cope_sd[[1]],")"),
+        paste0(cope_rep_tab$post_cope[[1]]," (",cope_rep_tab$post_cope_sd[[1]],")"),
+        paste0(cope_rep_tab$delta_cope[[1]]," (",cope_rep_tab$delta_cope_sd[[1]],")"),
+        #responder scores
+        paste0(cope_rep_tab$pre_cope[[2]]," (",cope_rep_tab$pre_cope_sd[[2]],")"),
+        paste0(cope_rep_tab$post_cope[[2]]," (",cope_rep_tab$post_cope_sd[[2]],")"),
+        paste0(cope_rep_tab$delta_cope[[2]]," (",cope_rep_tab$delta_cope_sd[[2]],")")
+      )
+   # Positive mental health
+  pmh_rep_tab <- Mothership_post |>
+    group_by(RESPONDER_FIGS) |>
+    summarize(pre_pmh = round( mean(rdqPRE_pmh, na.rm = TRUE),2),
+              pre_pmh_sd = round( sd(rdqPRE_pmh, na.rm = TRUE),2),
+              post_pmh = round( mean(rdqPOST_pmh, na.rm = TRUE),2),
+              post_pmh_sd = round( sd(rdqPOST_pmh, na.rm = TRUE),2),
+              delta_pmh = round( mean(rdq_pmh_change, na.rm = TRUE),2),
+              delta_pmh_sd = round( sd(rdq_pmh_change, na.rm = TRUE),2)
+              )
+         Scores_tab[6,] = c(
+              "Positive Mental Health",
+              #Non-responder scores
+              paste0(pmh_rep_tab$pre_pmh[[1]]," (",pmh_rep_tab$pre_pmh_sd[[1]],")"),
+              paste0(pmh_rep_tab$post_pmh[[1]]," (",pmh_rep_tab$post_pmh_sd[[1]],")"),
+              paste0(pmh_rep_tab$delta_pmh[[1]]," (",pmh_rep_tab$delta_pmh_sd[[1]],")"),
+              #responder scores
+              paste0(pmh_rep_tab$pre_pmh[[2]]," (",pmh_rep_tab$pre_pmh_sd[[2]],")"),
+              paste0(pmh_rep_tab$post_pmh[[2]]," (",pmh_rep_tab$post_pmh_sd[[2]],")"),
+              paste0(pmh_rep_tab$delta_pmh[[2]]," (",pmh_rep_tab$delta_pmh_sd[[2]],")")
+            )
+   # Functioning
+  func_rep_tab <- Mothership_post |>
+    group_by(RESPONDER_FIGS) |>
+    summarize(pre_func = round( mean(rdqPRE_func, na.rm = TRUE),2),
+              pre_func_sd = round( sd(rdqPRE_func, na.rm = TRUE),2),
+              post_func = round( mean(rdqPOST_func, na.rm = TRUE),2),
+              post_func_sd = round( sd(rdqPOST_func, na.rm = TRUE),2),
+              delta_func = round( mean(rdq_func_change, na.rm = TRUE),2),
+              delta_func_sd = round( sd(rdq_func_change, na.rm = TRUE),2)
+              )    
+         Scores_tab[7,] = c(
+              "Functioning",
+              #Non-responder scores
+              paste0(func_rep_tab$pre_func[[1]]," (",func_rep_tab$pre_func_sd[[1]],")"),
+              paste0(func_rep_tab$post_func[[1]]," (",func_rep_tab$post_func_sd[[1]],")"),
+              paste0(func_rep_tab$delta_func[[1]]," (",func_rep_tab$delta_func_sd[[1]],")"),
+              #responder scores
+              paste0(func_rep_tab$pre_func[[2]]," (",func_rep_tab$pre_func_sd[[2]],")"),
+              paste0(func_rep_tab$post_func[[2]]," (",func_rep_tab$post_func_sd[[2]],")"),
+              paste0(func_rep_tab$delta_func[[2]]," (",func_rep_tab$delta_func_sd[[2]],")")
+            )
+
     # General sense of wellbeing
-            Scores_tab[7,] = 
-        c("General sense of wellbeing",
-          paste0(round(mean(Mothership_post$rdqPRE_wbs, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPRE_wbs, na.rm = TRUE),2),")"),
-          paste0(round(mean(Mothership_post$rdqPOST_wbs, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPOST_wbs, na.rm = TRUE),2),")"),
-          paste0(round(mean(Mothership_post$rdq_wbs_change, na.rm = TRUE),2), "(",round(sd(Mothership_post$rdq_wbs_change, na.rm = TRUE),2),")")
-        )
-            
-    #Symptoms"
-            Scores_tab[8,] = 
-        c("Symptoms",
-          paste0(round(mean(Mothership_post$rdqPRE_sym, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPRE_sym, na.rm = TRUE),2),")"),
-          paste0(round(mean(Mothership_post$rdqPOST_sym, na.rm = TRUE),2), " (", round(sd(Mothership_post$rdqPOST_sym, na.rm = TRUE),2),")"),
-          paste0(round(mean(Mothership_post$rdq_sym_change, na.rm = TRUE),2), "(",round(sd(Mothership_post$rdq_sym_change, na.rm = TRUE),2),")")
-        )
-
- Scores_tab
+    wbs_rep_tab <- Mothership_post |>
+    group_by(RESPONDER_FIGS) |>
+    summarize(pre_wbs = round( mean(rdqPRE_wbs, na.rm = TRUE),2),
+              pre_wbs_sd = round( sd(rdqPRE_wbs, na.rm = TRUE),2),
+              post_wbs = round( mean(rdqPOST_wbs, na.rm = TRUE),2),
+              post_wbs_sd = round( sd(rdqPOST_wbs, na.rm = TRUE),2),
+              delta_wbs = round( mean(rdq_wbs_change, na.rm = TRUE),2),
+              delta_wbs_sd = round( sd(rdq_wbs_change, na.rm = TRUE),2)
+              )
+    
+     Scores_tab[8,] = c(
+              "General sense of wellbeing",
+              #Non-responder scores
+              paste0(wbs_rep_tab$pre_wbs[[1]]," (",wbs_rep_tab$pre_wbs_sd[[1]],")"),
+              paste0(wbs_rep_tab$post_wbs[[1]]," (",wbs_rep_tab$post_wbs_sd[[1]],")"),
+              paste0(wbs_rep_tab$delta_wbs[[1]]," (",wbs_rep_tab$delta_wbs_sd[[1]],")"),
+              #responder scores
+              paste0(wbs_rep_tab$pre_wbs[[2]]," (",wbs_rep_tab$pre_wbs_sd[[2]],")"),
+              paste0(wbs_rep_tab$post_wbs[[2]]," (",wbs_rep_tab$post_wbs_sd[[2]],")"),
+              paste0(wbs_rep_tab$delta_wbs[[2]]," (",wbs_rep_tab$delta_wbs_sd[[2]],")")
+            )
+    
+    #Symptoms
+    sym_rep_tab <- Mothership_post |>
+    group_by(RESPONDER_FIGS) |>
+    summarize(pre_sym = round( mean(rdqPRE_sym, na.rm = TRUE),2),
+              pre_sym_sd = round( sd(rdqPRE_sym, na.rm = TRUE),2),
+              post_sym = round( mean(rdqPOST_sym, na.rm = TRUE),2),
+              post_sym_sd = round( sd(rdqPOST_sym, na.rm = TRUE),2),
+              delta_sym = round( mean(rdq_sym_change, na.rm = TRUE),2),
+              delta_sym_sd = round( sd(rdq_sym_change, na.rm = TRUE),2)
+              )
+    
+      Scores_tab[9,] = c(
+              "Symptoms",
+              #Non-responder scores
+              paste0(sym_rep_tab$pre_sym[[1]]," (",sym_rep_tab$pre_sym_sd[[1]],")"),
+              paste0(sym_rep_tab$post_sym[[1]]," (",sym_rep_tab$post_sym_sd[[1]],")"),
+              paste0(sym_rep_tab$delta_sym[[1]]," (",sym_rep_tab$delta_sym_sd[[1]],")"),
+              #responder scores
+              paste0(sym_rep_tab$pre_sym[[2]]," (",sym_rep_tab$pre_sym_sd[[2]],")"),
+              paste0(sym_rep_tab$post_sym[[2]]," (",sym_rep_tab$post_sym_sd[[2]],")"),
+              paste0(sym_rep_tab$delta_sym[[2]]," (",sym_rep_tab$delta_sym_sd[[2]],")")
+            )
+Scores_tab
 ```
 
 ### Disorder Breakdowns
@@ -826,84 +962,6 @@ co_dis_tab <- Mothership_Diag_treat |>
 CODis_tab<-data.frame(table1::table1(~`Co Occuring` | Disorder_treat, data = co_dis_tab))
 colnames(CODis_tab)[1] = c("Variables")
 CODis_tab
-```
-
-```{r}
-#Treatment Scores
-
-  # I'm imagining a table that has all of the averages under 3 columns 
-      # Pre, post, delta | (mean, SD)
-  # variables involved = 
-      # CUXOS, CUDOS, RDQ, 
-  # can I make this break up by treatment response?
-
-resp_tab <- data.frame(table1::table1(
-  ~CUXOS_pre + CUXOS_post + Delta_Anx_DC + CUXOS_pre + CUXOS_post + Delta_Anx_DC +   | RESPONDER_FIGS, 
-  data = Mothership_post))
-colnames(resp_tab) <- c("Variable","Non-Responder", "Responder", "Total Sample")
-resp_tab
-
-View(Mothership_post)
-
-#Read in a New Data Set
-Mothership_RDQ<- read_sav("~/Desktop/Coding/data/Mothership_DV.sav")
-Mothership_RDQ<-select(Mothership,ID1:Sexuality_1,MDD_C:Day40_CUXOS)
-Mothership_RDQ<-data.frame(sapply(Mothership_RDQ,FUN=as.numeric))
-
-#Make This Data Set Long Data
-library(tidyr)
-Mothership_Long_RDQ <- gather(Mothership_Diag_treat,rm,RDQ,rdqPRE_coping:rdqPOST_sym,
-                              factor_key = "T")
-Mothership_Long_RDQ <- Mothership_Long_RDQ[order(Mothership_Long_RDQ$ID1),]
-
-
-#Create a Time Variable
-Mothership_Long_RDQ$PrePost <- NA
-Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_coping"]<-"Pre"
-Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_pmh"]<-"Pre"
-Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_func"]<-"Pre"
-Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_wbs"]<-"Pre"
-Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPRE_sym"]<-"Pre"
-Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_coping"]<-"Post"
-Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_pmh"]<-"Post"
-Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_func"]<-"Post"
-Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_wbs"]<-"Post"
-Mothership_Long_RDQ$PrePost[Mothership_Long_RDQ$rm=="rdqPOST_sym"]<-"Post"
-
-#Create a New Data Set with an Average Depression Variable and Race
-Mothership_Mean_RDQ<-Mothership_Long_RDQ %>%
-  group_by(rm,PrePost) %>%
-  summarise(RDQ=mean(RDQ,na.rm=TRUE))
-
-#Add a Paired Variable to the New Data Set
-Mothership_Mean_RDQ<-mutate(Mothership_Mean_RDQ,
-                            paired=case_when(rm=="rdqPRE_coping"~"1",
-                                             rm=="rdqPOST_coping"~"1",
-                                             rm=="rdqPRE_pmh"~"2",
-                                             rm=="rdqPOST_pmh"~"2",
-                                             rm=="rdqPRE_func"~"3",
-                                             rm=="rdqPOST_func"~"3",
-                                             rm=="rdqPRE_wbs"~"4",
-                                             rm=="rdqPOST_wbs"~"4",
-                                             rm=="rdqPRE_sym"~"5",
-                                             rm=="rdqPOST_sym"~"5"))
-  
-
-Mothership_Mean_RDQ[,1] = c("Coping","PMH","Functioning","WBS","Symptoms","Coping","PMH","Functioning","WBS","Symptoms")
-
-
-wide_rdq <- Mothership_Mean_RDQ |>
-  pivot_wider(
-    names_from = PrePost, values_from = RDQ
-  ) |>
-  select(
-    rm,Pre,Post
-  )
-
-#Table
-wide_rdq
-
-
 ```
 
 Figure 1: Pre-post Line Plot
@@ -935,6 +993,37 @@ ggplot(data=AnxDep_response_mean,
 - supplemental table 1: Full diagnostic breakdown of sample 
   + (co-occuring by Disorder)
 ```{r}
+cor_tab<- Mothership_post |>
+  select( c(
+    # Demographics
+    Age_1,Some_College:Discharge,
+    # Treatment info
+    IPT_track_1, Days_complete_1, # Days_noshow_1, Days_not_attended_1, Days_cancel_1,
+    # Disorders
+    Mood_D:Other,Co_Anx:Co_Trauma,Current_Dx,
+    # Pre-Post stuff
+    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
+    # RDQ
+    rdq_coping_change:rdq_sym_change
+    
+  ))
+
+
+
+#comments about what I should do
+      #Should I make a level of anxiety / depression - cuxos cut offs?
+      # should I use the first score or the pre score?
+      # Should I do each individual disorder, or just the overarching classes (i.e., depression)?
+      # should I include co_occuring even if there is a lot of overlap (i.e., depressive P and Co)
+
+# View(cor_tab)
+# View(Mothership_post)
+
+# install.packages("ggcorrplot")
+# library(ggcorrplot)
+model.matrix(~0+., data=cor_tab) %>% 
+  cor(use="pairwise.complete.obs") %>% 
+  ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2)
 
 ```
 
@@ -946,6 +1035,106 @@ Anxiety & Depression = Total response
 - Figure 2 / Supplimetal 2: RCI Analysis figs 
   + Anxeity & Depression
 ```{r}
+DEP_RCI <- JTRCI (data = RCI_df_dep, 
+                  pre = "pre", 
+                  post = "post", 
+                  ppid = "ID1", 
+                  reliability = .74, 
+                  indextype = "RCI", 
+                  #JTcrit = "auto",
+                  plottitle = "Anxeity: JT indices by disorder")
+
+ANX_RCI <- JTRCI (data = RCI_df_anx, 
+                  pre = "pre", 
+                  post = "post", 
+                  ppid = "ID1", 
+                  reliability = .74, 
+                  indextype = "RCI", 
+                  #JTcrit = "auto",
+                  plottitle = "Anxeity: JT indices by disorder")
+
+RCI_DF<- ANX_RCI$data
+colnames(RCI_DF) <- paste0(colnames(RCI_DF),"_anx")
+
+RCI_DF2<- DEP_RCI$data
+colnames(RCI_DF2) <- paste0(colnames(RCI_DF2),"_dep")
+
+RCI_DF <- full_join(RCI_DF,RCI_DF2, by = c("ppid_anx" = "ppid_dep"))
+colnames(RCI_DF)[1] = "ID1"
+
+RCI_DF
+
+###############          Adding RCI to dataset       ####################
+
+Mothership_post <- Mothership_post |>
+  #1. Filter out scores for people not in the program / don't have data
+  filter(!is.na(Days_complete_1)) |>
+  #Having people in the program for more than 40 days means that their scores may be a lot higher, they should be filtered out as result. 
+  filter(!is.na(CUXOS_pre),
+         !is.na(CUXOS_post),
+         CUXOS_pre > 0,
+         CUXOS_post >= 0,
+         !is.na(CUDOS_pre),
+         !is.na(CUDOS_post),
+         CUDOS_pre > 0,
+         CUDOS_post> 0
+         ) |>
+  mutate(
+    Delta_Anx_DC =  CUXOS_post - CUXOS_pre,
+    Delta_Dep_DC = CUDOS_post - CUDOS_pre,
+    Percent_Anx_change = (Delta_Anx_DC/CUXOS_pre)*100,
+    Percent_Dep_Dchange = (Delta_Dep_DC/CUDOS_pre)*100,
+    #Days_complete_W = ifelse(Days_complete_1 > 40, 40, Days_complete_1),
+    Anx_Responder = as.factor(
+      ifelse(CUXOS_pre < 20 & Percent_Anx_change  <= -50, "Responder",
+      ifelse(CUXOS_pre < 20 & Percent_Anx_change  > -50,  "Unresponders", NA)   
+      )),
+    Dep_Responder = as.factor(
+      ifelse(CUDOS_pre < 20 & Percent_Dep_Dchange <= -50, "Responder",
+      ifelse(CUDOS_pre < 20 & Percent_Dep_Dchange > -50,   "Unresponders", NA) 
+      )),
+    Treatment_Responder = as.factor(
+      ifelse(CUXOS_pre > 10 & CUXOS_pre > 10 & Percent_Anx_change  <= -50 & Percent_Anx_change < 0 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange <= -50, "Both_Responder", 
+      ifelse(CUXOS_pre > 10 & Percent_Anx_change  <= -50, "Anx Responder",
+      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange <= -50, "Dep Responder",
+      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange > 0 & CUXOS_pre > 10 & Percent_Anx_change > 0, "Both Worse",
+      ifelse(CUXOS_pre > 10 & Percent_Anx_change > 0, "Anx Worse",
+      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange > 0, "Dep Worse",
+      ifelse(CUXOS_pre > 10 & CUDOS_pre > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Both Unresponder",
+      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Dep Unresponders", 
+      ifelse(CUXOS_pre > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50, "Anx Unresponders", "Low Baseline"
+      )))))))))))
+
+#2. Left join data from the RCI dataset into the Mothership_post df
+Mothership_post <- left_join(Mothership_post,RCI_DF, by = join_by(ID1 == ID1)) |>
+  mutate(
+    Depression_Responder = ifelse(!is.na(class_RCI_dep), class_RCI_dep, NA),
+    Depression_Responder = as.factor(recode(Depression_Responder,
+                                            "1" = "2",
+                                            "2" = "2",
+                                            "3" = "1"
+    )),
+    Depression_Responder = as.factor(ifelse(!is.na(Depression_Responder), Depression_Responder, Dep_Responder)),
+    Depression_Responder = as.factor(recode(Depression_Responder,
+                                            "2" = "Non-Responder",
+                                            "1" = "Responder"
+    )),
+    Anxiety_Responder = ifelse(!is.na(class_RCI_anx), class_RCI_anx, NA),
+    Anxiety_Responder = as.factor(recode(Anxiety_Responder,
+                                         "1" = "2",
+                                         "2" = "2",
+                                         "3" = "1"
+    )),
+    Anxiety_Responder = as.factor(ifelse(!is.na(Anxiety_Responder), Anxiety_Responder, Anx_Responder)),
+    Anxiety_Responder = as.factor(recode(Anxiety_Responder,
+                                         "2" = "Non-Responder",
+                                         "1" = "Responder"
+    )),
+    RESPONDER_FIGS = as.factor(
+      ifelse(Anxiety_Responder == "Responder" | Depression_Responder == "Responder", "Responder",
+             ifelse(Anxiety_Responder == "Non-Responder" & Depression_Responder == "Non-Responder", "Non-Responder", NA)
+      ))) |>
+  filter(!is.na(RESPONDER_FIGS))
 
 ```
 
