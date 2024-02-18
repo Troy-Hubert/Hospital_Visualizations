@@ -21,9 +21,10 @@ library(tidyr)
 ## Read in the dataset. 
 ```{r}
 Mothership <- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
-DF_1<- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
+#DF_1<- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
 
 ```
+
 
 ## Clean, update, and wrangle data
 
@@ -39,7 +40,6 @@ this includes:
 ```{r}
 # 1. Re-coding / Renaming variables ------------------------------------------
 # We can change the current variables to make them easier to interpret.
-str(Mothership_post$Education_1)
 
 #recode varaibles
 Mothership <- mutate(Mothership, 
@@ -56,15 +56,15 @@ Mothership <- mutate(Mothership,
                                           "8"="Grad Degree"),
                      Some_College = Education_1,
                      Some_College = recode(Education_1,
-                                          "<Grade 12" = "No College",
-                                          "<Grade 12" = "No College",
-                                          "HS Diploma or GED" = "No College",
-                                          "HS Diploma or GED" = "No College",
-                                          "Some College/Associates Degree" = "Some College",
-                                          "Some College/Associates Degree" = "Some College",
-                                          "Bachelors Degree" = "Some College",
-                                          "Bachelors Degree" = "Some College",
-                                          "Grad Degree" ="Some College"),
+                                          "<Grade 12" = "0",
+                                          "<Grade 12" = "0",
+                                          "HS Diploma or GED" = "0",
+                                          "HS Diploma or GED" = "0",
+                                          "Some College/Associates Degree" = "1",
+                                          "Some College/Associates Degree" = "1",
+                                          "Bachelors Degree" = "1",
+                                          "Bachelors Degree" = "1",
+                                          "Grad Degree" ="1"),
                      Gender_1 = as.factor(Gender_1),
                      Gender_1 = recode(Gender_1,
                                        "0"="Female",
@@ -74,11 +74,11 @@ Mothership <- mutate(Mothership,
                                        "4"="Other"),
                      Female = Gender_1,
                      Female= recode(Gender_1,
-                                       "Female" = "Female",
-                                       "Male" = "Not",
-                                       "Non-Binary" = "Not",
-                                       "Other" = "Not",
-                                       "Other" = "Not"),
+                                       "Female" = "1",
+                                       "Male" = "0",
+                                       "Non-Binary" = "0",
+                                       "Other" = "0",
+                                       "Other" = "0"),
                       Relationship_1 = ifelse(Relationship_1 == 8, NA, Relationship_1),
                      Relationship_1 = as.factor(Relationship_1),
                      Relationship_1 = recode(Relationship_1,
@@ -89,10 +89,10 @@ Mothership <- mutate(Mothership,
                                              "4"="Divorced",
                                              "5"="Single or Never Married"),
                      Married = recode(Relationship_1,
-                                             "Married or Cohabitating" = "Married or Cohabitating",
-                                             "Widowed or Separated" = "Not",
-                                             "Divorced" = "Not",
-                                             "Single or Never Married" = "Not"),
+                                             "Married or Cohabitating" = "1",
+                                             "Widowed or Separated" = "0",
+                                             "Divorced" = "0",
+                                             "Single or Never Married" = "0"),
                      Sexuality_1 = as.factor(Sexuality_1),
                      Sexuality_1 = recode(Sexuality_1,
                                           "1"="Straight",
@@ -100,10 +100,10 @@ Mothership <- mutate(Mothership,
                                           "3"="Bisexual",
                                           "4"="Other"),
                      Straight = recode(Sexuality_1,
-                                         "Straight" = "Straight",
-                                          "Gay" = "Not Straight",
-                                          "Bisexual" = "Not Straight",
-                                          "Other" = "Not Straight"),
+                                         "Straight" = "1",
+                                          "Gay" = "0",
+                                          "Bisexual" = "0",
+                                          "Other" = "0"),
                      IPT_track_1 = as.factor(IPT_track_1),
                      IPT_track_1 = recode(IPT_track_1,
                                           "0"="General",
@@ -120,12 +120,12 @@ Mothership <- mutate(Mothership,
                                      "4"="Portugese",
                                      "5"="Other"),
                      White = recode(Race_1,
-                                     "White" = "White",
-                                     "Black" = "Not White",
-                                     "Hispanic"="Not White",
-                                     "Asian"="Not White",
-                                     "Portugese"="Not White",
-                                     "Other"="Not White"),
+                                     "White" = "1",
+                                     "Black" = "0",
+                                     "Hispanic"="0",
+                                     "Asian"="0",
+                                     "Portugese"="0",
+                                     "Other"="0"),
                      DC_status_1 = as.factor(DC_status_1),
                      DC_status_1 = recode(DC_status_1,
                                           "1" ="Treatment Complete",
@@ -140,17 +140,17 @@ Mothership <- mutate(Mothership,
                                           "10"="Other",
                                           "0" ="Other"),
                      Discharge = recode(DC_status_1,
-                                          "Treatment Complete" = "Treatment Successful",
-                                          "Treatment nearly complete" = "Treatment Successful",
-                                          "Insurance no longer covering" = "Other",
-                                          "Nonattendance" = "Other",
-                                          "Inappropriate (language)/Referred to another tx setting" ="Other",
-                                          "Transferred to inpatient"="Other",
-                                          "Withdrew due to external limitations"="Other",
-                                          "Withdrew AMA"="Other",
-                                          "Other"="Other",
-                                          "Other"="Other",
-                                          "Other"="Other"),
+                                          "Treatment Complete" = "1",
+                                          "Treatment nearly complete" = "1",
+                                          "Insurance no longer covering" = "0",
+                                          "Nonattendance" = "0",
+                                          "Inappropriate (language)/Referred to another tx setting" ="0",
+                                          "Transferred to inpatient"="0",
+                                          "Withdrew due to external limitations"="0",
+                                          "Withdrew AMA"="0",
+                                          "Other"="0",
+                                          "Other"="0",
+                                          "Other"="0"),
 #Lets make some new variables 
                      #Duration of treatment
                      Duration = as.factor(
@@ -194,10 +194,10 @@ Mothership<-Mothership %>%
     Anxiety_D = as.factor(
       ifelse(
         GAD_P ==1 | Panic_P == 1 | PanicAgor_P == 1 | Agoraphobia_P == 1 |
-          Social_P == 1 | Specific_P == 1, 1, 0)),
+          Social_P == 1 | Specific_P == 1 | OCD_P == 1, 1, 0)),
     # Obsessive Compusive Disorders
     #OCD_P is for current OCD
-    OCD_P = as.factor(OCD_P),
+        #OCD_P = as.factor(OCD_P),
     # Personality Disorders
     #BPD_P is for current BPD
     BPD_P = as.factor(BPD_P),
@@ -224,12 +224,11 @@ Mothership<-Mothership %>%
     Other = as.factor(
       ifelse(
         Somat_P == 1 | UndiffSoma_P == 1| Hypochondriasis_P ==1 |
-          Anorex_P == 1 | Bulim_P == 1 | Binge_P == 1 | Schiz_P == 1 | 
-          Schizaff_P == 1 | Alcohol_P == 1 | Drug_P ==1 | OCD_P ==1,
+          Anorex_P == 1 | Bulim_P == 1 | Binge_P == 1 | 
+          Schiz_P == 1 |  Schizaff_P == 1,  
         1,0)),
     Disorder_Type = as.factor(
       ifelse(Anxiety_D == 1, "Anxiety",
-             ifelse(OCD_P == 1, "OCD",
                     ifelse(BPD_P == 1, "BPD",
                            ifelse(Substance_D == 1, "Substance Use",
                                   ifelse(Trauma_D == 1, "Trauma",
@@ -237,16 +236,18 @@ Mothership<-Mothership %>%
                                                 ifelse(Psychotic_D == 1, "Psychotic", 
                                                        ifelse(Eating_D == 1, "Eating", 
                                                               ifelse(Somatic_D == 1, "Somatic", NA
-                                                              )))))))))),
+                                                              ))))))))),
     Disorder_treat = as.factor(
       ifelse(Anxiety_D == 1, "Anxiety",
              ifelse(BPD_P == 1, "BPD",
                     ifelse(Trauma_D == 1, "Trauma",
                            ifelse(Mood_D == 1, "Mood",
-                                  ifelse(OCD_P == 1, "Other",
+                                  #ifelse(OCD_P == 1, "Anxiety",
+                                     #felse(OCD_P == 1, "Other",
                                          ifelse(Substance_D == 1, "Other",
                                                 ifelse(Psychotic_D == 1, "Other", 
-                                                       ifelse(Eating_D == 1, "Other", NA
+                                                       ifelse(Eating_D == 1, "Other",
+                                                          ifelse(Somatic_D == 1, "Other",NA
                                                        ))))))))),
     Anxiety_C =  as.factor(
       ifelse( GAD_P !=1 & GAD_C ==1 | 
@@ -254,6 +255,7 @@ Mothership<-Mothership %>%
                 PanicAgor_P != 1 & PanicAgor_C == 1 | 
                 Agoraphobia_P != 1 & Agoraphobia_C == 1 |
                 Social_P != 1 & Social_C == 1 | 
+                #OCD_P != 1 & OCD_C == 1 |
                 Specific_P != 1 & Specific_C == 1, 1, 0)),
     Mood_C =  as.factor(
       ifelse( MDD_P != 1 & MDD_C == 1 |
@@ -277,13 +279,16 @@ Mothership<-Mothership %>%
       ifelse(Somat_P != 1 & Somat_C == 1 | 
                UndiffSoma_P != 1 & UndiffSoma_C == 1 | 
                Hypochondriasis_P != 1 &  Hypochondriasis_C == 1, 1,0)),
-    OCD_Co_C = as.factor(
-      ifelse(OCD_P != 1 & OCD_C == 1,1,0)),
+    Other_C = as.factor(
+      ifelse(
+        Somatic_C == 1 | Eating_C == 1 | Psychotic_C == 1, 1, 0)),
+
+    #OCD_Co_C = as.factor(
+     # ifelse(OCD_P != 1 & OCD_C == 1,1,0)),
     BPD_Co_C = as.factor(
       ifelse(BPD_P != 1 & BPD_C ==1,1,0)),
     No_Co = as.factor(
       ifelse(BPD_Co_C == 0 &
-               OCD_Co_C == 0 &
                Somatic_C == 0 & 
                Eating_C == 0 &
                Psychotic_C == 0 &
@@ -292,8 +297,7 @@ Mothership<-Mothership %>%
                Mood_C == 0 &
                Anxiety_C == 0, 1,0)),
     Other_Co = as.factor(
-      ifelse(OCD_Co_C == 1 & 
-               Somatic_C == 1 & 
+      ifelse(  Somatic_C == 1 & 
                Eating_C == 1 &
                Psychotic_C == 1,1,0)),
     
@@ -305,7 +309,6 @@ Mothership<-Mothership %>%
     # co occuring disorders
     Co_Anx = as.factor(
       ifelse(Anxiety_C == 1 & Mood_D == 1 |
-               Anxiety_C == 1 & OCD_P == 1 |
                Anxiety_C == 1 & BPD_P == 1 |
                Anxiety_C == 1 & Substance_D == 1 |
                Anxiety_C == 1 & Trauma_D == 1 |
@@ -314,34 +317,23 @@ Mothership<-Mothership %>%
                Anxiety_C == 1 & Somatic_D ==1, 1, 0)),
     Co_Mood = as.factor(
       ifelse(Mood_C == 1 & Anxiety_D == 1 |
-               Mood_C == 1 & OCD_P == 1 |
                Mood_C == 1 & BPD_P == 1 |
                Mood_C == 1 & Substance_D == 1 |
                Mood_C == 1 & Trauma_D == 1 |
                Mood_C == 1 & Eating_D ==1 |
                Mood_C == 1 & Psychotic_D ==1 |
                Mood_C == 1 & Somatic_D==1 , 1, 0)),
-    Co_OCD = as.factor(
-      ifelse(OCD_C == 1 & Anxiety_D == 1 |
-               OCD_C == 1 & Mood_D == 1 |
-               OCD_C == 1 & BPD_P== 1 |
-               OCD_C == 1 & Substance_D == 1 |
-               OCD_C == 1 & Trauma_D == 1 |
-               OCD_C == 1 & Eating_D ==1 |
-               OCD_C == 1 & Psychotic_D ==1 |
-               OCD_C == 1 & Somatic_D ==1, 1, 0)),
     Co_BPD = as.factor(
-      ifelse(BPD_C == 1 & Anxiety_D == 1 |
-               BPD_C == 1 & Mood_D == 1 |
-               BPD_C == 1 & OCD_P== 1 |
-               BPD_C == 1 & Substance_D == 1 |
-               BPD_C == 1 & Trauma_D == 1 |
-               BPD_C == 1 & Eating_D ==1 |
-               BPD_C == 1 & Psychotic_D ==1 |
-               BPD_C == 1 & Somatic_D ==1 , 1, 0)),
+      ifelse(BPD_Co_C == 1 & Anxiety_D == 1 |
+               BPD_Co_C == 1 & Mood_D == 1 |
+               BPD_Co_C == 1 & Substance_D == 1 |
+               BPD_Co_C == 1 & Trauma_D == 1 |
+               BPD_Co_C == 1 & Eating_D ==1 |
+               BPD_Co_C == 1 & Psychotic_D ==1 |
+               BPD_Co_C == 1 & !BPD_P == 
+               BPD_Co_C == 1 & Somatic_D ==1 , 1, 0)),
     Co_Psychotic = as.factor(
       ifelse(Psychotic_C == 1 & Mood_D == 1 |
-               Psychotic_C == 1 & OCD_P == 1 |
                Psychotic_C == 1 & BPD_P == 1 |
                Psychotic_C == 1 & Substance_D == 1 |
                Psychotic_C == 1 & Trauma_D == 1 |
@@ -350,7 +342,6 @@ Mothership<-Mothership %>%
                Psychotic_C == 1 & Somatic_D ==1, 1, 0)),
     Co_Eating = as.factor(
       ifelse(Eating_C == 1 & Mood_D == 1 |
-               Eating_C == 1 & OCD_P == 1 |
                Eating_C == 1 & BPD_P == 1 |
                Eating_C == 1 & Substance_D == 1 |
                Eating_C == 1 & Trauma_D == 1 |
@@ -359,7 +350,6 @@ Mothership<-Mothership %>%
                Eating_C == 1 & Somatic_D ==1, 1, 0)),
     Co_Somatic =  as.factor(
       ifelse(Somatic_C == 1 & Mood_D == 1 |
-               Somatic_C == 1 & OCD_P == 1 |
                Somatic_C == 1 & BPD_P == 1 |
                Somatic_C == 1 & Substance_D == 1 |
                Somatic_C == 1 & Trauma_D == 1 |
@@ -369,7 +359,6 @@ Mothership<-Mothership %>%
                Somatic_C == 1 & Psychotic_D ==1, 1, 0)),
     Co_Substance = as.factor(
       ifelse(Substance_C == 1 & Mood_D == 1 |
-               Substance_C == 1 & OCD_P == 1 |
                Substance_C == 1 & BPD_P == 1 |
                Substance_C == 1 & Substance_D == 1 |
                Substance_C == 1 & Trauma_D == 1 |
@@ -379,16 +368,22 @@ Mothership<-Mothership %>%
                Substance_C == 1 & Psychotic_D ==1, 1, 0)),
     Co_Trauma = as.factor(
       ifelse(Trauma_C == 1 & Mood_D == 1 |
-               Trauma_C == 1 & OCD_P == 1 |
                Trauma_C == 1 & BPD_P == 1 |
                Trauma_C == 1 & Substance_D == 1 |
                Trauma_C == 1 & Eating_D ==1 |
                Trauma_C == 1 & Anxiety_D ==1 |
                Trauma_C == 1 & Somatic_D ==1 |
                Trauma_C == 1 & Psychotic_D ==1, 1, 0)),
-  )
+    Co_Other = as.factor(
+      ifelse(
+        Co_Substance == 1 |
+        Co_Somatic == 1 |
+        Co_Eating == 1 |
+        Co_Psychotic == 1, 1, 0))
+      )
 
-
+summary(Mothership$Co_Anx)
+table(Mothership$Anxiety_D, Mothership$Co_Anx)
 ##### df for plots 
 
 # only include people that attend treatment & its thier first time attending
@@ -399,25 +394,25 @@ Mothership <- Mothership |>
   ) |>
   mutate(
     dummy = -99
-  )
+  ) |>
+  filter(!is.na(Disorder_treat),
+         !is.na(TxYear),
+         !is.na(Duration))
 
 # df without NAs in date and disorder type
-Mothership_Diag <- Mothership |>
-  filter(!is.na(Disorder_Type)) |>
-  filter(!is.na(TxYear))
 
-# Mothership_Diag_treat <- Mothership |>
-#   filter(!is.na(Disorder_treat),
-#          !is.na(TxYear),
-#          !is.na(Duration)) 
+Mothership_Diag_treat <- Mothership |>
+  filter(!is.na(Disorder_treat),
+         !is.na(TxYear),
+         !is.na(Duration))
 
 ### Export as CSV
-write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Diag.csv")
+write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Diag_treat.csv")
 
 # 3. Functions to create Pre - post scores -----------------------------------
 
 #1. load DF
-  Mothership_post <- Mothership_Diag_treat
+  Mothership_post <- Mothership
 
   # Depression
     CUDOS_Score_post <-  select(Mothership_post, dummy,Day1_CUDOS:Day40_CUDOS)
@@ -600,7 +595,10 @@ RCI_DF <- full_join(RCI_DF,RCI_DF2, by = c("ppid_anx" = "ppid_dep"))
 colnames(RCI_DF)[1] = "ID1"
 
 RCI_DF
+```
 
+
+```{r}
 ###############          Adding RCI to dataset       ####################
 
 Mothership_post <- Mothership_post |>
@@ -723,6 +721,8 @@ AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
 
 
 
+
+# Data analysis 
 ## Part 1: Who is attending?
 
 ### Demographics information
@@ -947,17 +947,26 @@ Dis_tab <- data.frame(table1::table1(~Disorder_Type + Current_Dx | RESPONDER_FIG
 colnames(Dis_tab) = c("Variables","Non Responder", "Responder", "Total")
 Dis_tab
 
+
 #Full demographic break down
-co_dis_tab <- Mothership_Diag_treat |>
+
+co_dis_tab <- Mothership_post |>
+  filter(
+      !is.na(rdq_func_change),
+      !is.na(rdq_pmh_change),
+      !is.na(rdq_coping_change),
+      !is.na(rdq_wbs_change)
+  ) |>
   pivot_longer(
-    cols = c("Co_Anx","Co_Mood","Co_OCD","Co_BPD","Co_Psychotic","Co_Eating","Co_Somatic", "Co_Substance","Co_Trauma", "No_Co"),
+    cols = c("Anxiety_C","Mood_C","BPD_Co_C","Other_C", "Substance_C","Trauma_C", "No_Co"),
     names_to = 'Co Occuring',
     values_to = "Number"
   ) |>
   select(Disorder_treat, `Co Occuring`, Number) |>
   filter(Number != 0,
          !is.na(`Co Occuring`),
-         !is.na(Disorder_treat)) 
+         !is.na(Disorder_treat),
+         ) 
 
 CODis_tab<-data.frame(table1::table1(~`Co Occuring` | Disorder_treat, data = co_dis_tab))
 colnames(CODis_tab)[1] = c("Variables")
@@ -993,38 +1002,29 @@ ggplot(data=AnxDep_response_mean,
 - supplemental table 1: Full diagnostic breakdown of sample 
   + (co-occuring by Disorder)
 ```{r}
-cor_tab<- Mothership_post |>
+Vars_FULL <- Mothership_lasso |>
   select( c(
+    RESPONDER_FIGS,
     # Demographics
-    Age_1,Some_College:Discharge,
+    Age_1,Some_College:Married,White, #Discharge,
     # Treatment info
-    IPT_track_1, Days_complete_1, # Days_noshow_1, Days_not_attended_1, Days_cancel_1,
+    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
     # Disorders
-    Mood_D:Other,Co_Anx:Co_Trauma,Current_Dx,
+    Anxiety_D, Mood_D, BPD_P, Trauma_D, Other,
+    Anxiety_C,Mood_C,BPD_Co_C,Other_C, Substance_C, Trauma_C, No_Co,
+    Current_Dx,
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
-    rdq_coping_change:rdq_sym_change
-    
+    rdq_coping_change:rdq_wbs_change
   ))
-
-
-
-#comments about what I should do
-      #Should I make a level of anxiety / depression - cuxos cut offs?
-      # should I use the first score or the pre score?
-      # Should I do each individual disorder, or just the overarching classes (i.e., depression)?
-      # should I include co_occuring even if there is a lot of overlap (i.e., depressive P and Co)
-
-# View(cor_tab)
-# View(Mothership_post)
+Vars_FULL <- na.omit(Vars_FULL)
 
 # install.packages("ggcorrplot")
-# library(ggcorrplot)
-model.matrix(~0+., data=cor_tab) %>% 
+library(ggcorrplot)
+model.matrix(~0+., data=Vars_FULL) %>% 
   cor(use="pairwise.complete.obs") %>% 
   ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2)
-
 ```
 
 
@@ -1035,259 +1035,515 @@ Anxiety & Depression = Total response
 - Figure 2 / Supplimetal 2: RCI Analysis figs 
   + Anxeity & Depression
 ```{r}
-DEP_RCI <- JTRCI (data = RCI_df_dep, 
-                  pre = "pre", 
-                  post = "post", 
-                  ppid = "ID1", 
-                  reliability = .74, 
-                  indextype = "RCI", 
-                  #JTcrit = "auto",
-                  plottitle = "Anxeity: JT indices by disorder")
 
-ANX_RCI <- JTRCI (data = RCI_df_anx, 
-                  pre = "pre", 
-                  post = "post", 
-                  ppid = "ID1", 
-                  reliability = .74, 
-                  indextype = "RCI", 
-                  #JTcrit = "auto",
-                  plottitle = "Anxeity: JT indices by disorder")
+RCI_table <- data.frame(matrix(NA,nrow = 3,ncol = 3))
+colnames(RCI_table) = c("Varaibles","Responder","Non-Responder")
+#anxiety 
+RCI_table[1,] = c("CUXOS", unlist(summary(Mothership_post$Anxiety_Responder)))
+# Depresssion
+RCI_table[2,] = c("CUDOS", unlist(summary(Mothership_post$Depression_Responder)))
+#Total
+RCI_table[3,] = c("Either", unlist(summary(Mothership_post$RESPONDER_FIGS))[2],unlist(summary(Mothership_post$RESPONDER_FIGS))[1])
 
-RCI_DF<- ANX_RCI$data
-colnames(RCI_DF) <- paste0(colnames(RCI_DF),"_anx")
-
-RCI_DF2<- DEP_RCI$data
-colnames(RCI_DF2) <- paste0(colnames(RCI_DF2),"_dep")
-
-RCI_DF <- full_join(RCI_DF,RCI_DF2, by = c("ppid_anx" = "ppid_dep"))
-colnames(RCI_DF)[1] = "ID1"
-
-RCI_DF
-
-###############          Adding RCI to dataset       ####################
-
-Mothership_post <- Mothership_post |>
-  #1. Filter out scores for people not in the program / don't have data
-  filter(!is.na(Days_complete_1)) |>
-  #Having people in the program for more than 40 days means that their scores may be a lot higher, they should be filtered out as result. 
-  filter(!is.na(CUXOS_pre),
-         !is.na(CUXOS_post),
-         CUXOS_pre > 0,
-         CUXOS_post >= 0,
-         !is.na(CUDOS_pre),
-         !is.na(CUDOS_post),
-         CUDOS_pre > 0,
-         CUDOS_post> 0
-         ) |>
-  mutate(
-    Delta_Anx_DC =  CUXOS_post - CUXOS_pre,
-    Delta_Dep_DC = CUDOS_post - CUDOS_pre,
-    Percent_Anx_change = (Delta_Anx_DC/CUXOS_pre)*100,
-    Percent_Dep_Dchange = (Delta_Dep_DC/CUDOS_pre)*100,
-    #Days_complete_W = ifelse(Days_complete_1 > 40, 40, Days_complete_1),
-    Anx_Responder = as.factor(
-      ifelse(CUXOS_pre < 20 & Percent_Anx_change  <= -50, "Responder",
-      ifelse(CUXOS_pre < 20 & Percent_Anx_change  > -50,  "Unresponders", NA)   
-      )),
-    Dep_Responder = as.factor(
-      ifelse(CUDOS_pre < 20 & Percent_Dep_Dchange <= -50, "Responder",
-      ifelse(CUDOS_pre < 20 & Percent_Dep_Dchange > -50,   "Unresponders", NA) 
-      )),
-    Treatment_Responder = as.factor(
-      ifelse(CUXOS_pre > 10 & CUXOS_pre > 10 & Percent_Anx_change  <= -50 & Percent_Anx_change < 0 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange <= -50, "Both_Responder", 
-      ifelse(CUXOS_pre > 10 & Percent_Anx_change  <= -50, "Anx Responder",
-      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange <= -50, "Dep Responder",
-      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange > 0 & CUXOS_pre > 10 & Percent_Anx_change > 0, "Both Worse",
-      ifelse(CUXOS_pre > 10 & Percent_Anx_change > 0, "Anx Worse",
-      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange > 0, "Dep Worse",
-      ifelse(CUXOS_pre > 10 & CUDOS_pre > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Both Unresponder",
-      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Dep Unresponders", 
-      ifelse(CUXOS_pre > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50, "Anx Unresponders", "Low Baseline"
-      )))))))))))
-
-#2. Left join data from the RCI dataset into the Mothership_post df
-Mothership_post <- left_join(Mothership_post,RCI_DF, by = join_by(ID1 == ID1)) |>
-  mutate(
-    Depression_Responder = ifelse(!is.na(class_RCI_dep), class_RCI_dep, NA),
-    Depression_Responder = as.factor(recode(Depression_Responder,
-                                            "1" = "2",
-                                            "2" = "2",
-                                            "3" = "1"
-    )),
-    Depression_Responder = as.factor(ifelse(!is.na(Depression_Responder), Depression_Responder, Dep_Responder)),
-    Depression_Responder = as.factor(recode(Depression_Responder,
-                                            "2" = "Non-Responder",
-                                            "1" = "Responder"
-    )),
-    Anxiety_Responder = ifelse(!is.na(class_RCI_anx), class_RCI_anx, NA),
-    Anxiety_Responder = as.factor(recode(Anxiety_Responder,
-                                         "1" = "2",
-                                         "2" = "2",
-                                         "3" = "1"
-    )),
-    Anxiety_Responder = as.factor(ifelse(!is.na(Anxiety_Responder), Anxiety_Responder, Anx_Responder)),
-    Anxiety_Responder = as.factor(recode(Anxiety_Responder,
-                                         "2" = "Non-Responder",
-                                         "1" = "Responder"
-    )),
-    RESPONDER_FIGS = as.factor(
-      ifelse(Anxiety_Responder == "Responder" | Depression_Responder == "Responder", "Responder",
-             ifelse(Anxiety_Responder == "Non-Responder" & Depression_Responder == "Non-Responder", "Non-Responder", NA)
-      ))) |>
-  filter(!is.na(RESPONDER_FIGS))
-
+RCI_table
 ```
 
-## Part 3
-Logistic lasso
+
+## Part 3 Logistic lasso
 
 ### Lasso Regression
 https://glmnet.stanford.edu/articles/glmnet.html
 https://www.mygreatlearning.com/blog/understanding-of-lasso-regression/
 https://bookdown.org/tpinto_home/Regularisation/lasso-regression.html
 
+https://github.com/sydeaka/Using-Elastic-net-for-model-Selection-with-missing-data/blob/master/model_selection_missing_data-example.R
+http://www.sthda.com/english/articles/36-classification-methods-essentials/149-penalized-logistic-regression-essentials-in-r-ridge-lasso-and-elastic-net/
+
+Preparing data for Lasso
 \scriptsize
 ```{r, warning=FALSE, message=FALSE}
 library(glmnet)
-ecls2$preds = as.matrix(ecls2[ ,c(1:8,14:22)])
+library(caret)
+#Make sure there are no NAs within the dataset
+Mothership_lasso <- Mothership_post |>
+    filter(
+    !is.na(Some_College),
+    !is.na(Female),
+    !is.na(IPT_track_1),
+    !is.na(White),
+    !is.na(RESPONDER_FIGS)
+  )
 
-# lambda = 0
-lasso1 = glmnet(ecls2$preds, ecls2$g8_sci_tht, alpha=1, lambda=0, 
-                standardize=TRUE, intercept=TRUE)
-lasso1
+# View(Mothership_lasso)
 
-coef(lasso1)
+Vars <- Mothership_lasso |>
+  select( c(
+    RESPONDER_FIGS,
+    # Demographics
+    Age_1,Some_College:Married,White,
+    # Treatment info
+    IPT_track_1, Days_complete_1, Days_not_attended_1, 
+    # Disorders
+    Anxiety_D, Mood_D, BPD_P, Trauma_D, Other,
+    Anxiety_C,Mood_C,BPD_Co_C,Other_C, Substance_C, Trauma_C, No_Co,
+    Current_Dx,
+    # Pre-Post stuff
+    CUDOS_pre,CUXOS_pre, 
+  ))
+
 ```
 
-### Lasso Regression
-\scriptsize
-```{r}
-## lambda = .1
-lasso2 = glmnet(ecls2$preds, ecls2$g8_sci_tht, alpha=1, lambda=.1,
-                standardize=TRUE, intercept=TRUE)
-lasso2
 
-coef(lasso2)
-```
-
-### $k$-fold Cross Validation
-\scriptsize
 ```{r, warning=FALSE, message=FALSE}
-#1. set seed
-set.seed(19860608)
-#2. sample data from the number of rows in els2
-ecls2 = ecls2[sample(nrow(ecls2)),]
-#3. convert ecls2a a new datafraame that is scaled and mean centered.
-ecls2a = as.data.frame(scale(ecls2, center=TRUE, scale=TRUE))
-#4. create a new column of values with predictors
-ecls2a$pred = as.matrix(ecls2a[,c(1:8,14:22)])
+# View(Mothership_lasso)
+# head(Vars)
+# sum(is.na(Vars))
+Vars_FULL <- Mothership_lasso |>
+  select( c(
+    RESPONDER_FIGS,
+    # Demographics
+    Age_1,Some_College:Married,White, #Discharge,
+    # Treatment info
+    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
+    # Disorders
+    Anxiety_D, Mood_D, BPD_P, Trauma_D, Other,
+    Anxiety_C,Mood_C,BPD_Co_C,Other_C, Substance_C, Trauma_C, No_Co,
+    Current_Dx,
+    # Pre-Post stuff
+    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
+    # RDQ
+    rdq_coping_change:rdq_wbs_change
+  ))
 
-#5. define the number of folds: cut a sequence from 1-num rows in ecls2a, broken into 10 equal parts, without labels)
-folds = cut(seq(1,nrow(ecls2a)), breaks=10, labels=FALSE)
+Vars_FULL <- na.omit(Vars_FULL)
+```
+# with RDQ
+```{r}
+# Create Training and testing data
+set.seed(123) 
+training.samples <- Vars_FULL$RESPONDER_FIGS %>% 
+  createDataPartition(p = 0.8, list = FALSE)
+train.data  <- Vars_FULL[training.samples, ]
+test.data <- Vars_FULL[-training.samples, ]
 
-#6. create a grid (Sequence) from 0 - 1 increasing by .001
-grid = seq(0, 1, by=.001)
-#.7 make a matrix full of NAs that is 10 columns wide and the length of grid long? 
-    # I think MSE = mean squared error?
-mse  = matrix(NA, 10, length(grid))
+# Dumy code categorical predictor variables
+x <- model.matrix(RESPONDER_FIGS~., train.data)[,-1]
+# Convert the outcome (class) to a numerical variable
+y <- ifelse(train.data$RESPONDER_FIGS == "Responder", 1, 0)
 
-#8. create a for loop (for each row in the number of columns (1-10))
-for(i in 1:10){
-  #9. the test cases are the first number for each fold
-  testCases = which(folds==i,arr.ind=TRUE)
-  test      = ecls2a[testCases, ]
-  #10. the train cases are the valeus not the test cases
-  train     = ecls2a[-testCases, ]
+#Simplified lasso
+lasso1 <- glmnet(x, y,family = "binomial", alpha = 1, lambda = NULL)
+plot(lasso1, "lambda", label = TRUE)
+```
+
+Find coefficients using cv.lasso
+```{r}
+# Find the best lambda using cross-validation
+set.seed(123) 
+cv.lasso <- cv.glmnet(x, y, alpha = 1, family = "binomial")
+
+#The exact value of lambda can be viewed as follow:
+print(paste0("This is the minimum lambda value: ", round(cv.lasso$lambda.min,5)))
+
+#This value is called lambda.1se.
+print(paste0("This is the 1 standard error lambda value: ", round(cv.lasso$lambda.1se,5)))
+
+# Fit the final model on the training data
+model <- glmnet(x, y, alpha = 1, family = "binomial",
+                lambda = cv.lasso$lambda.min)
+# Display regression coefficients
+coef(model)
+# Make predictions on the test data
+x.test <- model.matrix(RESPONDER_FIGS ~., test.data)[,-1]
+probabilities <- model %>% predict(newx = x.test)
+predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
+# Model accuracy
+observed.classes <- test.data$RESPONDER_FIGS
+mean(predicted.classes == observed.classes)
+
+#Using lambda.min as the best lambda, gives the following regression coefficients:
+coef(cv.lasso, cv.lasso$lambda.min)
+
+#Using lambda.1se as the best lambda, gives the following regression coefficients:
+coef(cv.lasso, cv.lasso$lambda.1se)
+```
+
+Evaluating if we should use Lasso min or 1SE
+```{r}
+####  Using Min
+# Final model with lambda.min
+lasso.model.min <- glmnet(x, y, alpha = 1, family = "binomial",
+                      lambda = cv.lasso$lambda.min)
+
+coef(lasso.model.min)
+# Make prediction on test data
+x.test <- model.matrix(RESPONDER_FIGS ~., test.data)[,-1]
+probabilities <- lasso.model.min %>% predict(newx = x.test)
+predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
+# Model accuracy
+observed.classes <- test.data$RESPONDER_FIGS
+Mean.predict.min <- mean(predicted.classes == observed.classes)
+
+#####  using 1se
+# Final model with lambda.1se
+lasso.model.1se <- glmnet(x, y, alpha = 1, family = "binomial",
+                      lambda = cv.lasso$lambda.1se)
+coef(lasso.model.1se)
+# Make prediction on test data
+x.test <- model.matrix(RESPONDER_FIGS ~., test.data)[,-1]
+probabilities <- lasso.model.1se %>% predict(newx = x.test)
+predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
+
+# Model accuracy rate
+observed.classes <- test.data$RESPONDER_FIGS
+Mean.predict.1se <- mean(predicted.classes == observed.classes)
+
+#### full model
+# Fit the model
+full.model <- glm(RESPONDER_FIGS ~ ., data = train.data, family = "binomial")
+
+# Make predictions
+probabilities <- full.model %>% predict(test.data, type = "response")
+predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
+# Model accuracy
+observed.classes <- test.data$RESPONDER_FIGS
+Mean.predict.full.model <- mean(predicted.classes == observed.classes)
+
+predict.df <- data.frame(
+  model = c("Min", "1se", "Full"),
+  values = c(Mean.predict.min,Mean.predict.1se,Mean.predict.full.model)
+)
+predict.df
+```
+plot the lassos
+If We want to do lasso in ggplot
+https://stackoverflow.com/questions/48978179/plotting-lasso-beta-coefficients
+
+```{r}
+##plot the lambda
+plot(lasso1, "lambda", label = TRUE)
+## Fancy plot
+library(lars)
+lasso_FULL = lars(x, y, type='lasso', 
+              trace=TRUE, normalize=FALSE, intercept=TRUE)
+plot(lasso_FULL, xvar='norm', breaks = FALSE, 
+     plottype = 'coefficients', omit.zeros = TRUE)
+
+#CV k folds cross validation
+plot(cv.lasso)
+```
+
+### Final relaxed lasso
+Minimum
+```{r}
+## install.packages("fuzzySim")
+library(fuzzySim) ## For FDR adjusted p values
+FDR(pvalues = p_values.min)
+
+library(broom)
+# https://cran.r-project.org/web/packages/broom/vignettes/broom.html
+
+## min model
+  glm_min <-  
+      glm(
+      #Outcome varaible
+        RESPONDER_FIGS ~ 
+      # predictors
+        Days_not_attended_1 + Anxiety_D + Mood_D + Substance_C + 
+        rdq_coping_change + rdq_pmh_change + rdq_func_change + rdq_wbs_change,
+      #data
+      data = Vars_FULL, 
+      # type of regression : logistic = binary / binomial
+      family = "binomial")
+# Summary of the model
+  summary.min      <- summary(glm_min)
+
+  tidy.summary.min <- tidy(glm_min)
+
+# Coefficients
+  coefs.min <- abs(coef(glm_min))
   
-  #11. another for loop for each value in 1 - length of grid)
-  for (j in 1:length(grid)){
-    #12. k lambda = the index of grid[j]
-    klambda = grid[j]
-    #13. run a fit train regression model with predictors, for train$g8_Sci_tht.
-    fitTrain = glmnet(train$pred, train$g8_sci_tht, 
-                      alpha=1, lambda=klambda,
-                      standardize=FALSE, intercept=TRUE)
-    #14. predict the test values using predict using the fitTrain model, and using the new x values as test$pred
-    fit_test = predict(fitTrain, newx=test$pred)
-    #15. at each index of mse, take the mean of the differnece between the test value, and the fit test values and square them
-    mse[i,j] = mean((test$g8_sci_tht - fit_test)^2)
-  }
-}
+# Odds ratio
+  OR.min <- exp(coef(glm_min))
+  
+# OR 95% CI
+  CI.min <- data.frame(exp(confint(glm_min)))
+  
+# P values
+  p.values.min <- data.frame(cbind(tidy.summary.min$term,tidy.summary.min$p.value))
+  # FDR Adjusted P Values
+    adj.p.min <- FDR(pvalues = p_values.min)
+    ADJ.p.values.min <- data.frame(rbind(adj.p.min$exclude, adj.p.min$select))
 
-# 16. load matrixStats
-library(matrixStats)
+# R^2 values  
+   R2.min <- performance::r2(glm_min)
 
-#17. assign a varaible that is column means of mse
-mseMeans = colMeans(mse, na.rm=TRUE)
-#18. assign column sd
-mseSds = colSds(mse, na.rm=TRUE)
+# df for Forrest plots
+FP.min <- data.frame(cbind(
+  Variable = tidy.summary.min$term[2:length(tidy.summary.min$term)],
+  OR = OR.min[2:length(OR.min)],
+  OR_low  = CI.min[2:length(CI.min$X2.5..),1],
+  OR_high = CI.min[2:length(CI.min$X97.5..),2],
+  p.values = p.values.min$X2[2:length(p.values.min$X2)]
+                    ))
 
-# Find minimum - find the one which has the minimum mean square error 
-best = which.min(mseMeans)
-grid[best]
-
-# Find simplest model within 1 Standard Error - best close 
-maxMse = mseMeans[best] + mseSds[best]/sqrt(10)
-bestClose = max(which(mseMeans<maxMse))
-grid[bestClose]
+# Left join the FDR adjusted p.value
+FP.min <- left_join(FP.min,ADJ.p.values.min, by = join_by(p.values == p.value))
+FP.min
 ```
 
-K-fold cross-validation can be performed using the cv.glmnet function. In addition to all the glmnet parameters, cv.glmnet has its special parameters including nfolds (the number of folds), foldid (user-supplied folds), and type.measure(the loss used for cross-validation):
-
-“deviance” or “mse” for squared loss, MSE = mean squared loss
-
-### Lasso Regression
-\scriptsize
+1se
 ```{r}
-lasso3 = glmnet(ecls2a$pred, ecls2a$g8_sci_tht, alpha=1, lambda=grid[best],
-                standardize=FALSE, intercept=TRUE)
-coef(lasso3)
+glm_1se <-  
+      glm(
+      #Outcome varaible
+        RESPONDER_FIGS ~ 
+      # predictors
+        Days_not_attended_1 + rdq_coping_change + rdq_pmh_change + rdq_func_change +
+        rdq_wbs_change,
+      #data
+      data = Vars_FULL, 
+      # type of regression : logistic = binary / binomial
+      family = "binomial")
+
+summary(glm_1se)
+
+# Summary of the model
+  summary.1se      <- summary(glm_1se)
+
+  tidy.summary.1se <- tidy(glm_1se)
+
+# Coefficients
+  coefs.1se <- abs(coef(glm_1se))
+  
+# Odds ratio
+  OR.1se <- exp(coef(glm_1se))
+  
+# OR 95% CI
+  CI.1se <- data.frame(exp(confint(glm_1se)))
+  
+# P values
+  p.values.1se <- data.frame(cbind(tidy.summary.1se$term,tidy.summary.1se$p.value))
+ 
+  # FDR Adjusted P Values
+    adj.p.1se <- FDR(pvalues = p.values.1se)
+    ADJ.p.values.1se <- data.frame(rbind(adj.p.1se$exclude, adj.p.1se$select))
+
+# R^2 values  
+   R2.1se <- performance::r2(glm_1se)
+
+# df for Forrest plots
+FP.1se <- data.frame(cbind(
+  Variable = tidy.summary.1se$term[2:length(tidy.summary.1se$term)],
+  OR = OR.1se[2:length(OR.1se)],
+  OR_low  = CI.1se[2:length(CI.1se$X2.5..),1],
+  OR_high = CI.1se[2:length(CI.1se$X97.5..),2],
+  p.values = p.values.1se$X2[2:length(p.values.1se$X2)]
+                    ))
+
+# Left join the FDR adjusted p.value
+FP.1se <- left_join(FP.1se,ADJ.p.values.1se, by = join_by(p.values == p.value))
+FP.1se
 ```
 
-### Lasso Regression
-\scriptsize
+
+
+# Without RDQ
+Evaluating Methods of Assessing “Optimism”  in Regression Models Daniel Thoya1,*, Antony Waititu1, Thomas Magheto1, Antony Ngunyi2 
+- chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/http://article.sciappliedmathematics.com/pdf/ajams-6-4-2.pdf
+
+Validation of prediction models based on lasso regression with multiply imputed data
+- https://bmcmedresmethodol.biomedcentral.com/articles/10.1186/1471-2288-14-116#Sec18
+
+Penalized Logistic Regression Essentials in R: Ridge, Lasso and Elastic Net
+http://www.sthda.com/english/articles/36-classification-methods-essentials/149-penalized-logistic-regression-essentials-in-r-ridge-lasso-and-elastic-net/
+
+### Lasso regression - set variables
 ```{r}
-lasso4 = glmnet(ecls2a$pred, ecls2a$g8_sci_tht, alpha=1, lambda=grid[bestClose],
-                standardize=FALSE, intercept=TRUE)
-coef(lasso4)
+# Create Training and testing data
+set.seed(123) 
+training.samples <- Vars_full$RESPONDER_FIGS %>% 
+  createDataPartition(p = 0.8, list = FALSE)
+train.data  <- Vars[training.samples, ]
+test.data <- Vars[-training.samples, ]
+
+# Dumy code categorical predictor variables
+x <- model.matrix(RESPONDER_FIGS~., train.data)[,-1]
+# Convert the outcome (class) to a numerical variable
+y <- ifelse(train.data$RESPONDER_FIGS == "Responder", 1, 0)
+
+#Simplified lasso
+lasso1 <- glmnet(x, y,family = "binomial", alpha = 1, lambda = NULL)
+
+plot(lasso1, "lambda", label = TRUE)
 ```
 
-### Relaxed Lasso
-\scriptsize
+Find coefficients using cv.lasso
 ```{r}
-rlasso4 = lm(g8_sci_tht~gender+kage+k_math_tht+k_gk_tht+f_mtr+
-             poor, data=ecls2)
-summary(rlasso4)
+# Find the best lambda using cross-validation
+cv.lasso <- cv.glmnet(x, y, alpha = 1, family = "binomial")
+# Fit the final model on the training data
+model <- glmnet(x, y, alpha = 1, family = "binomial",
+                lambda = cv.lasso$lambda.min)
+# Display regression coefficients
+coef(model)
+# Make predictions on the test data
+x.test <- model.matrix(RESPONDER_FIGS ~., test.data)[,-1]
+probabilities <- model %>% predict(newx = x.test)
+predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
+# Model accuracy
+observed.classes <- test.data$RESPONDER_FIGS
+mean(predicted.classes == observed.classes)
+
+### Compute lasso regression
+#Find the optimal value of lambda that minimizes the cross-validation error:
+set.seed(123)
+cv.lasso <- cv.glmnet(x, y, alpha = 1, family = "binomial")
+
+#The exact value of lambda can be viewed as follow:
+cv.lasso$lambda.min
+
+#This value is called lambda.1se.
+cv.lasso$lambda.1se
+
+#Using lambda.min as the best lambda, gives the following regression coefficients:
+coef(cv.lasso, cv.lasso$lambda.min)
+
+#Using lambda.1se as the best lambda, gives the following regression coefficients:
+coef(cv.lasso, cv.lasso$lambda.1se)
 ```
 
-*Relaxed Lasso*
-- I After variable selection using the lasso, an OLS regression model is fit with only the variables selected
-- The estimates for retained variables are not shrunken
-
-
-*Cautions*
-- When performing cross validation, it’s important to standardize
-variables before creating folds
-- Similarly, when creating the final prediction model, it is important for the standardization process to be the same across datasets
-    + Same means and standard deviations are used across datasets
-- Relaxed lasso avoids the standardization process when creating
-final model
-- Built in k-fold cross-validation using glmnet:
-
-
-### $\mathtt{cv.glmnet}$ function in $\mathtt{glmnet}$
- - Built in $k$-fold cross-validation using $\text{glmnet}$
-
-\scriptsize
+Evaluating if we should use Lasso min or SE
 ```{r}
-cvGlmnet = cv.glmnet(ecls2a$pred, ecls2a$g8_sci_tht, 
-                     alpha=1, type.measure='mse', 
-                     nfolds=10)
-cvGlmnet$lambda.min
-cvGlmnet$lambda.1se
+#### Compute the final lasso model:
+# Final model with lambda.min
+lasso.model.min <- glmnet(x, y, alpha = 1, family = "binomial",
+                      lambda = cv.lasso$lambda.min)
 
-plot(cvGlmnet)
+coef(lasso.model.min)
+# Make prediction on test data
+x.test <- model.matrix(RESPONDER_FIGS ~., test.data)[,-1]
+probabilities <- lasso.model.min %>% predict(newx = x.test)
+predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
+# Model accuracy
+observed.classes <- test.data$RESPONDER_FIGS
+mean(predicted.classes == observed.classes)
+
+#####  using 1se
+# Final model with lambda.1se
+lasso.model.1se <- glmnet(x, y, alpha = 1, family = "binomial",
+                      lambda = cv.lasso$lambda.1se)
+
+# Make prediction on test data
+x.test <- model.matrix(RESPONDER_FIGS ~., test.data)[,-1]
+probabilities <- lasso.model.1se %>% predict(newx = x.test)
+predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
+
+# Model accuracy rate
+observed.classes <- test.data$RESPONDER_FIGS
+mean(predicted.classes == observed.classes)
+
+#### full model
+# Fit the model
+full.model <- glm(RESPONDER_FIGS ~ ., data = train.data, family = "binomial")
+
+# Make predictions
+probabilities <- full.model %>% predict(test.data, type = "response")
+predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
+# Model accuracy
+observed.classes <- test.data$RESPONDER_FIGS
+mean(predicted.classes == observed.classes)
 ```
 
+Visualizing it
+```{r}
+library(lars)
 
+lasso5 = lars(x, y, type='lasso', 
+              trace=TRUE, normalize=FALSE, intercept=TRUE)
 
+plot(lasso5, xvar='norm', breaks = FALSE, 
+     plottype = 'coefficients', omit.zeros = TRUE)
+```
+
+### Final relaxed lasso
+```{r}
+## min model
+  glm_1se <-  
+      glm(RESPONDER_FIGS ~ 
+      Days_complete_1 + Days_not_attended_1,
+      data = Vars, family = "binomial")
+# Summary of the model
+  summary.1se      <- summary(glm_1se)
+      library(broom)
+          # https://cran.r-project.org/web/packages/broom/vignettes/broom.html
+  tidy.summary.1se <- tidy(glm_1se)
+  
+# Coefficients
+  coefs.1se <- abs(coef(glm_1se))
+  
+# Odds ratio
+  OR.1se <- exp(coef(glm_1se))
+  
+# OR 95% CI
+  CI.1se <- data.frame(exp(confint(glm_1se)))
+  
+# P values
+  p.values.1se <- tidy.summary.1se$p.value
+  
+# R^2 values  
+   R2.1se <- performance::r2(glm_1se)
+
+# df for Forrest plots
+   
+FP.1se <- data.frame(cbind(
+  Variable = tidy.summary.1se$term[2:length(tidy.summary.1se$term)],
+  OR = OR.1se[2:length(OR.1se)],
+  OR_low  = CI.1se[2:length(CI.1se$X2.5..),1],
+  OR_high = CI.1se[2:length(CI.1se$X97.5..),2],
+  p.values = p.values.1se[2:length(p.values.1se)]
+                    ))
+
+FP.1se
+```
+
+```{r}
+### min model
+  glm_min <-  
+      glm(RESPONDER_FIGS ~ 
+      Age_1 + Some_College + Married + Days_complete_1 + Days_not_attended_1 + 
+      Psychotic_D + Co_Substance + Co_Trauma + CUDOS_pre,
+      data = Vars, family = "binomial")
+# Summary of the model
+  summary.min      <- summary(glm_min)
+      library(broom)
+          # https://cran.r-project.org/web/packages/broom/vignettes/broom.html
+  tidy.summary.min <- tidy(glm_min)
+  
+# Coefficients
+  coefs.min <- abs(coef(glm_min))
+  
+# Odds ratio
+  OR.min <- exp(coef(glm_min))
+  
+# OR 95% CI
+  CI.min <- data.frame(exp(confint(glm_min)))
+  
+# P values
+  p.values.min <- tidy.summary.min$p.value
+  
+# R^2 values  
+   R2.min <- performance::r2(glm_min)
+
+# df for Forrest plots
+   
+FP.min <- data.frame(cbind(
+  Variable = tidy.summary.min$term[2:length(tidy.summary.min$term)],
+  OR = OR.min[2:length(OR.min)],
+  OR_low  = CI.min[2:length(CI.min$X2.5..),1],
+  OR_high = CI.min[2:length(CI.min$X97.5..),2],
+  p.values = p.values.min[2:length(p.values.min)]
+                    ))
+
+FP.min
+```
