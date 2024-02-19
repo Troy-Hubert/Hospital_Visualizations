@@ -224,8 +224,7 @@ Mothership<-Mothership %>%
     Other = as.factor(
       ifelse(
         Somat_P == 1 | UndiffSoma_P == 1| Hypochondriasis_P ==1 |
-          Anorex_P == 1 | Bulim_P == 1 | Binge_P == 1 | 
-          Schiz_P == 1 |  Schizaff_P == 1,  
+          Anorex_P == 1 | Bulim_P == 1 | Binge_P == 1,
         1,0)),
     Disorder_Type = as.factor(
       ifelse(Anxiety_D == 1, "Anxiety",
@@ -298,8 +297,7 @@ Mothership<-Mothership %>%
                Anxiety_C == 0, 1,0)),
     Other_Co = as.factor(
       ifelse(  Somatic_C == 1 & 
-               Eating_C == 1 &
-               Psychotic_C == 1,1,0)),
+               Eating_C == 1, 1,0)),
     
     #emotional disorders
     Emotional_dis = as.factor(
@@ -330,7 +328,7 @@ Mothership<-Mothership %>%
                BPD_Co_C == 1 & Trauma_D == 1 |
                BPD_Co_C == 1 & Eating_D ==1 |
                BPD_Co_C == 1 & Psychotic_D ==1 |
-               BPD_Co_C == 1 & !BPD_P == 
+               BPD_Co_C == 1 & !BPD_P == 1 |
                BPD_Co_C == 1 & Somatic_D ==1 , 1, 0)),
     Co_Psychotic = as.factor(
       ifelse(Psychotic_C == 1 & Mood_D == 1 |
@@ -764,7 +762,7 @@ colnames(resp_tab) <- c("Variable","Non-Responder", "Responder", "Total Sample")
 resp_tab
 ```
 
-pre-post scores by treatment response
+pre-post scores by treatment response - TOGETHER
 ```{r}
 # Treatment scores
 #1. Make DF + name columns
@@ -1004,20 +1002,21 @@ ggplot(data=AnxDep_response_mean,
 ```{r}
 Vars_dep <- Mothership_post |>
   select( c(
-    Depression_Responder,
     # Demographics
     Age_1,Some_College:Married,White, #Discharge,
     # Treatment info
     IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
     # Disorders
-    Anxiety_D, Mood_D, BPD_P, Trauma_D, Other,
-    Anxiety_C,Mood_C,BPD_Co_C,Other_C, Substance_C, Trauma_C, No_Co,
+    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
+    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
     Current_Dx,
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
     rdq_coping_change:rdq_wbs_change
   ))
+
+str(Vars_dep)
 
 Vars_anx <- Mothership_post |>
   select( c(
@@ -1027,8 +1026,8 @@ Vars_anx <- Mothership_post |>
     # Treatment info
     IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
     # Disorders
-    Anxiety_D, Mood_D, BPD_P, Trauma_D, Other,
-    Anxiety_C,Mood_C,BPD_Co_C,Other_C, Substance_C, Trauma_C, No_Co,
+    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
+    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
     Current_Dx,
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
@@ -1043,7 +1042,6 @@ library(ggcorrplot)
 model.matrix(~0+., data=Vars_dep) %>% 
   cor(use="pairwise.complete.obs") %>% 
   ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2)
-
 
 model.matrix(~0+., data=Vars_anx) %>% 
   cor(use="pairwise.complete.obs") %>% 
@@ -1099,18 +1097,23 @@ Vars_dep <- Mothership_lasso_dep |>
   select( c(
     Depression_Responder,
     # Demographics
-    Age_1,Some_College:Married,White, #Discharge,
+    Age_1,Some_College:Married,White, 
     # Treatment info
-    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
+    IPT_track_1, Days_complete_1, Days_not_attended_1, 
     # Disorders
-    Anxiety_D, Mood_D, BPD_P, Trauma_D, Other,
-    Anxiety_C,Mood_C,BPD_Co_C,Other_C, Substance_C, Trauma_C, No_Co,
+    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
+    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
     Current_Dx,
     # Pre-Post stuff
-    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
+    CUDOS_pre,CUXOS_pre,
     # RDQ
     rdq_coping_change:rdq_wbs_change
   ))
+
+old model
+# Anxiety_D, Mood_D, BPD_P,    Trauma_D,  Other,
+#     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
+#     Current_Dx,
 
 Vars_dep <- na.omit(Vars_dep)
 
@@ -1210,7 +1213,7 @@ Mean.predict.full.model.dep <- mean(predicted.classes == observed.classes)
 
 predict.df <- data.frame(
   model = c("Min", "1se", "Full"),
-  values = c(Mean.predict.min.dep,Mean.predict.1se.dep,Mean.predict.full.model.dep)
+  Mean_Predict = c(Mean.predict.min.dep,Mean.predict.1se.dep,Mean.predict.full.model.dep)
 )
 predict.df
 ```
@@ -1238,25 +1241,44 @@ Minimum-
 ## install.packages("fuzzySim")
 library(fuzzySim) ## For FDR adjusted p values
 library(broom) # for tidy regression output
+# Old model
+# ## min model
+#   glm_min_dep <-  
+#       glm(
+#       #Outcome varaible
+#         Depression_Responder ~ 
+#       # predictors
+#         Married + Days_not_attended_1 + Mood_D + Anxiety_C + Substance_C +
+#         CUDOS_pre + CUXOS_pre + rdq_coping_change + rdq_pmh_change + 
+#         rdq_func_change,
+#       #data
+#       data = Vars_dep, 
+#       # type of regression : logistic = binary / binomial
+#       family = "binomial")
+```
 
+
+```{r}
 ## min model
-  glm_min_dep <-  
+  glm_min_dep <-
       glm(
       #Outcome varaible
-        Depression_Responder ~ 
+        Depression_Responder ~
       # predictors
-        Married + Days_not_attended_1 + Mood_D + Anxiety_C + Substance_C +
-        CUDOS_pre + CUXOS_pre + rdq_coping_change + rdq_pmh_change + 
-        rdq_func_change,
+        Married + Days_not_attended_1 + Mood_D + Substance_D + Anxiety_C +
+        Substance_C + CUDOS_pre + CUXOS_pre + rdq_coping_change + 
+        rdq_pmh_change + rdq_func_change,
       #data
-      data = Vars_dep, 
+        data = Vars_dep,
       # type of regression : logistic = binary / binomial
-      family = "binomial")
+        family = "binomial")
+
 # Summary of the model
   summary.min.dep      <- summary(glm_min_dep)
+  summary.min.dep
 
   tidy.summary.min.dep <- tidy(glm_min_dep)
-tidy.summary.min
+  
 # Coefficients
   coefs.min.dep <- abs(coef(glm_min_dep))
 
@@ -1362,8 +1384,8 @@ Vars_anx <- Mothership_lasso_anx |>
     # Treatment info
     IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
     # Disorders
-    Anxiety_D, Mood_D, BPD_P, Trauma_D, Other,
-    Anxiety_C,Mood_C,BPD_Co_C,Other_C, Substance_C, Trauma_C, No_Co,
+    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
+    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
     Current_Dx,
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
@@ -1497,15 +1519,20 @@ Minimum-
 library(fuzzySim) ## For FDR adjusted p values
 library(broom) # for tidy regression output
 
+
+# Some_College + Married + White + Days_complete_1 + Days_not_attended_1 + 
+#         Anxiety_D + Other + Mood_C + BPD_Co_C + Substance_C + Trauma_C + Current_Dx +
+#         CUDOS_pre + CUXOS_pre + rdq_coping_change + rdq_pmh_change + rdq_func_change,
+
 ## min model
   glm_min_anx <-  
       glm(
       #Outcome varaible
         Anxiety_Responder ~ 
       # predictors
-        Some_College + Married + White + Days_complete_1 + Days_not_attended_1 + 
-        Anxiety_D + Other + Mood_C + BPD_Co_C + Substance_C + Trauma_C + Current_Dx +
-        CUDOS_pre + CUXOS_pre + rdq_coping_change + rdq_pmh_change + rdq_func_change,
+        Married + White + Days_complete_1 + Days_not_attended_1 + 
+        Anxiety_D + Mood_C + Substance_C + Trauma_C +  CUDOS_pre + CUXOS_pre + 
+        rdq_coping_change + rdq_pmh_change + rdq_func_change,
       #data
       data = Vars_anx, 
       # type of regression : logistic = binary / binomial
@@ -1555,7 +1582,7 @@ FP.min.anx
       #Outcome varaible
         Anxiety_Responder ~ 
       # predictors
-         Days_not_attended_1 + rdq_coping_change + rdq_pmh_change + rdq_func_change,
+         CUXOS_pre + rdq_coping_change + rdq_pmh_change + rdq_func_change,
       #data
       data = Vars_anx, 
       # type of regression : logistic = binary / binomial
