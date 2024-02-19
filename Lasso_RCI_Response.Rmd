@@ -1002,9 +1002,9 @@ ggplot(data=AnxDep_response_mean,
 - supplemental table 1: Full diagnostic breakdown of sample 
   + (co-occuring by Disorder)
 ```{r}
-Vars_FULL <- Mothership_lasso |>
+Vars_dep <- Mothership_post |>
   select( c(
-    RESPONDER_FIGS,
+    Depression_Responder,
     # Demographics
     Age_1,Some_College:Married,White, #Discharge,
     # Treatment info
@@ -1018,13 +1018,37 @@ Vars_FULL <- Mothership_lasso |>
     # RDQ
     rdq_coping_change:rdq_wbs_change
   ))
-Vars_FULL <- na.omit(Vars_FULL)
+
+Vars_anx <- Mothership_post |>
+  select( c(
+    Anxiety_Responder,
+    # Demographics
+    Age_1,Some_College:Married,White, #Discharge,
+    # Treatment info
+    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
+    # Disorders
+    Anxiety_D, Mood_D, BPD_P, Trauma_D, Other,
+    Anxiety_C,Mood_C,BPD_Co_C,Other_C, Substance_C, Trauma_C, No_Co,
+    Current_Dx,
+    # Pre-Post stuff
+    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
+    # RDQ
+    rdq_coping_change:rdq_wbs_change
+  ))
+
+Vars_FULL <- na.omit(Vars_dep)
 
 # install.packages("ggcorrplot")
 library(ggcorrplot)
-model.matrix(~0+., data=Vars_FULL) %>% 
+model.matrix(~0+., data=Vars_dep) %>% 
   cor(use="pairwise.complete.obs") %>% 
   ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2)
+
+
+model.matrix(~0+., data=Vars_anx) %>% 
+  cor(use="pairwise.complete.obs") %>% 
+  ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2)
+
 ```
 
 
@@ -1059,48 +1083,21 @@ https://bookdown.org/tpinto_home/Regularisation/lasso-regression.html
 https://github.com/sydeaka/Using-Elastic-net-for-model-Selection-with-missing-data/blob/master/model_selection_missing_data-example.R
 http://www.sthda.com/english/articles/36-classification-methods-essentials/149-penalized-logistic-regression-essentials-in-r-ridge-lasso-and-elastic-net/
 
-Preparing data for Lasso
-\scriptsize
-```{r, warning=FALSE, message=FALSE}
-library(glmnet)
-library(caret)
-#Make sure there are no NAs within the dataset
-Mothership_lasso <- Mothership_post |>
+# Depression Lasso 
+Preparing data for lasso - Anxiety
+```{r}
+Mothership_lasso_dep <- Mothership_post |>
     filter(
     !is.na(Some_College),
     !is.na(Female),
     !is.na(IPT_track_1),
     !is.na(White),
-    !is.na(RESPONDER_FIGS)
+    !is.na(Depression_Responder)
   )
 
-# View(Mothership_lasso)
-
-Vars <- Mothership_lasso |>
+Vars_dep <- Mothership_lasso_dep |>
   select( c(
-    RESPONDER_FIGS,
-    # Demographics
-    Age_1,Some_College:Married,White,
-    # Treatment info
-    IPT_track_1, Days_complete_1, Days_not_attended_1, 
-    # Disorders
-    Anxiety_D, Mood_D, BPD_P, Trauma_D, Other,
-    Anxiety_C,Mood_C,BPD_Co_C,Other_C, Substance_C, Trauma_C, No_Co,
-    Current_Dx,
-    # Pre-Post stuff
-    CUDOS_pre,CUXOS_pre, 
-  ))
-
-```
-
-
-```{r, warning=FALSE, message=FALSE}
-# View(Mothership_lasso)
-# head(Vars)
-# sum(is.na(Vars))
-Vars_FULL <- Mothership_lasso |>
-  select( c(
-    RESPONDER_FIGS,
+    Depression_Responder,
     # Demographics
     Age_1,Some_College:Married,White, #Discharge,
     # Treatment info
@@ -1115,435 +1112,499 @@ Vars_FULL <- Mothership_lasso |>
     rdq_coping_change:rdq_wbs_change
   ))
 
-Vars_FULL <- na.omit(Vars_FULL)
+Vars_dep <- na.omit(Vars_dep)
+
 ```
-# with RDQ
+
+Create test and train data - Depression
 ```{r}
 # Create Training and testing data
 set.seed(123) 
-training.samples <- Vars_FULL$RESPONDER_FIGS %>% 
+training.samples <- Vars_dep$Depression_Responder %>% 
   createDataPartition(p = 0.8, list = FALSE)
-train.data  <- Vars_FULL[training.samples, ]
-test.data <- Vars_FULL[-training.samples, ]
+train.data  <- Vars_dep[training.samples, ]
+test.data <- Vars_dep[-training.samples, ]
 
 # Dumy code categorical predictor variables
-x <- model.matrix(RESPONDER_FIGS~., train.data)[,-1]
+x.dep <- model.matrix(Depression_Responder~., train.data)[,-1]
 # Convert the outcome (class) to a numerical variable
-y <- ifelse(train.data$RESPONDER_FIGS == "Responder", 1, 0)
+y.dep <- ifelse(train.data$Depression_Responder == "Responder", 1, 0)
 
 #Simplified lasso
-lasso1 <- glmnet(x, y,family = "binomial", alpha = 1, lambda = NULL)
-plot(lasso1, "lambda", label = TRUE)
+lasso1_dep <- glmnet(x.dep, y.dep,family = "binomial", alpha = 1, lambda = NULL)
+plot(lasso1_dep, "lambda", label = TRUE)
 ```
 
-Find coefficients using cv.lasso
+Find coefficients using cv.lasso- Depression
 ```{r}
 # Find the best lambda using cross-validation
 set.seed(123) 
-cv.lasso <- cv.glmnet(x, y, alpha = 1, family = "binomial")
+cv.lasso.dep <- cv.glmnet(x.dep, y.dep, alpha = 1, family = "binomial")
 
 #The exact value of lambda can be viewed as follow:
-print(paste0("This is the minimum lambda value: ", round(cv.lasso$lambda.min,5)))
+print(paste0("This is the minimum lambda value: ", round(cv.lasso.dep$lambda.min,5)))
 
 #This value is called lambda.1se.
-print(paste0("This is the 1 standard error lambda value: ", round(cv.lasso$lambda.1se,5)))
+print(paste0("This is the 1 standard error lambda value: ", round(cv.lasso.dep$lambda.1se,5)))
 
 # Fit the final model on the training data
-model <- glmnet(x, y, alpha = 1, family = "binomial",
-                lambda = cv.lasso$lambda.min)
+model <- glmnet(x.dep, y.dep, alpha = 1, family = "binomial",
+                lambda = cv.lasso.dep$lambda.min)
 # Display regression coefficients
 coef(model)
 # Make predictions on the test data
-x.test <- model.matrix(RESPONDER_FIGS ~., test.data)[,-1]
+x.test <- model.matrix(Depression_Responder ~., test.data)[,-1]
 probabilities <- model %>% predict(newx = x.test)
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 # Model accuracy
-observed.classes <- test.data$RESPONDER_FIGS
+observed.classes <- test.data$Depression_Responder
 mean(predicted.classes == observed.classes)
 
 #Using lambda.min as the best lambda, gives the following regression coefficients:
-coef(cv.lasso, cv.lasso$lambda.min)
+coef(cv.lasso.dep, cv.lasso.dep$lambda.min)
 
 #Using lambda.1se as the best lambda, gives the following regression coefficients:
-coef(cv.lasso, cv.lasso$lambda.1se)
+coef(cv.lasso.dep, cv.lasso.dep$lambda.1se)
 ```
 
-Evaluating if we should use Lasso min or 1SE
+Evaluating if we should use Lasso min or 1SE- Depression
 ```{r}
 ####  Using Min
 # Final model with lambda.min
-lasso.model.min <- glmnet(x, y, alpha = 1, family = "binomial",
+lasso.model.min.dep <- glmnet(x.dep, y.dep, alpha = 1, family = "binomial",
                       lambda = cv.lasso$lambda.min)
 
-coef(lasso.model.min)
+coef(lasso.model.min.dep)
 # Make prediction on test data
-x.test <- model.matrix(RESPONDER_FIGS ~., test.data)[,-1]
-probabilities <- lasso.model.min %>% predict(newx = x.test)
+x.test <- model.matrix(Depression_Responder ~., test.data)[,-1]
+probabilities <- lasso.model.min.dep %>% predict(newx = x.test)
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 # Model accuracy
-observed.classes <- test.data$RESPONDER_FIGS
-Mean.predict.min <- mean(predicted.classes == observed.classes)
+observed.classes <- test.data$Depression_Responder
+Mean.predict.min.dep <- mean(predicted.classes == observed.classes)
 
 #####  using 1se
 # Final model with lambda.1se
-lasso.model.1se <- glmnet(x, y, alpha = 1, family = "binomial",
+lasso.model.1se.dep <- glmnet(x.dep, y.dep, alpha = 1, family = "binomial",
                       lambda = cv.lasso$lambda.1se)
-coef(lasso.model.1se)
+coef(lasso.model.1se.dep)
 # Make prediction on test data
-x.test <- model.matrix(RESPONDER_FIGS ~., test.data)[,-1]
-probabilities <- lasso.model.1se %>% predict(newx = x.test)
+x.test <- model.matrix(Depression_Responder ~., test.data)[,-1]
+probabilities <- lasso.model.1se.dep %>% predict(newx = x.test)
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 
 # Model accuracy rate
-observed.classes <- test.data$RESPONDER_FIGS
-Mean.predict.1se <- mean(predicted.classes == observed.classes)
+observed.classes <- test.data$Depression_Responder
+Mean.predict.1se.dep <- mean(predicted.classes == observed.classes)
 
 #### full model
 # Fit the model
-full.model <- glm(RESPONDER_FIGS ~ ., data = train.data, family = "binomial")
+full.model.dep <- glm(Depression_Responder ~ ., data = train.data, family = "binomial")
 
 # Make predictions
 probabilities <- full.model %>% predict(test.data, type = "response")
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 # Model accuracy
-observed.classes <- test.data$RESPONDER_FIGS
-Mean.predict.full.model <- mean(predicted.classes == observed.classes)
+observed.classes <- test.data$Depression_Responder
+Mean.predict.full.model.dep <- mean(predicted.classes == observed.classes)
 
 predict.df <- data.frame(
   model = c("Min", "1se", "Full"),
-  values = c(Mean.predict.min,Mean.predict.1se,Mean.predict.full.model)
+  values = c(Mean.predict.min.dep,Mean.predict.1se.dep,Mean.predict.full.model.dep)
 )
 predict.df
 ```
-plot the lassos
+
+plot the lassos- Depression
 If We want to do lasso in ggplot
 https://stackoverflow.com/questions/48978179/plotting-lasso-beta-coefficients
-
 ```{r}
 ##plot the lambda
-plot(lasso1, "lambda", label = TRUE)
+plot(lasso1_dep, "lambda", label = TRUE)
 ## Fancy plot
 library(lars)
-lasso_FULL = lars(x, y, type='lasso', 
+lasso_FULL_dep = lars(x.dep, y.dep, type='lasso', 
               trace=TRUE, normalize=FALSE, intercept=TRUE)
-plot(lasso_FULL, xvar='norm', breaks = FALSE, 
+plot(lasso_FULL_dep, xvar='norm', breaks = FALSE, 
      plottype = 'coefficients', omit.zeros = TRUE)
 
 #CV k folds cross validation
-plot(cv.lasso)
+plot(cv.lasso.dep)
 ```
 
-### Final relaxed lasso
-Minimum
+### Final relaxed lasso- Depression
+Minimum- 
 ```{r}
 ## install.packages("fuzzySim")
 library(fuzzySim) ## For FDR adjusted p values
-FDR(pvalues = p_values.min)
-
-library(broom)
-# https://cran.r-project.org/web/packages/broom/vignettes/broom.html
+library(broom) # for tidy regression output
 
 ## min model
-  glm_min <-  
+  glm_min_dep <-  
       glm(
       #Outcome varaible
-        RESPONDER_FIGS ~ 
+        Depression_Responder ~ 
       # predictors
-        Days_not_attended_1 + Anxiety_D + Mood_D + Substance_C + 
+        Married + Days_not_attended_1 + Mood_D + Anxiety_C + Substance_C +
+        CUDOS_pre + CUXOS_pre + rdq_coping_change + rdq_pmh_change + 
+        rdq_func_change,
+      #data
+      data = Vars_dep, 
+      # type of regression : logistic = binary / binomial
+      family = "binomial")
+# Summary of the model
+  summary.min.dep      <- summary(glm_min_dep)
+
+  tidy.summary.min.dep <- tidy(glm_min_dep)
+tidy.summary.min
+# Coefficients
+  coefs.min.dep <- abs(coef(glm_min_dep))
+
+# Odds ratio
+  OR.min.dep <- exp(coef(glm_min_dep))
+  
+# OR 95% CI
+  CI.min.dep <- data.frame(exp(confint(glm_min_dep)))
+  
+# P values
+  p.values.min.dep <- data.frame(cbind(tidy.summary.min.dep$term,tidy.summary.min.dep$p.value))
+  # FDR Adjusted P Values
+    adj.p.min.dep <- FDR(pvalues = p.values.min.dep)
+    ADJ.p.values.min.dep <- data.frame(rbind(adj.p.min.dep$exclude, adj.p.min.dep$select))
+
+# R^2 values  
+   R2.min.dep <- performance::r2(glm_min_dep)
+
+# df for Forrest plots
+FP.min.dep <- data.frame(cbind(
+  Variable = tidy.summary.min.dep$term[2:length(tidy.summary.min.dep$term)],
+  OR = OR.min.dep [2:length(OR.min.dep)],
+  OR_low  = CI.min.dep [2:length(CI.min.dep$X2.5..),1],
+  OR_high = CI.min.dep [2:length(CI.min.dep$X97.5..),2],
+  p.values = p.values.min.dep $X2[2:length(p.values.min.dep$X2)]
+                    ))
+
+# Left join the FDR adjusted p.value
+FP.min.dep <- left_join(FP.min.dep,ADJ.p.values.min.dep, by = join_by(p.values == p.value))
+FP.min.dep
+```
+1se -
+```{r}
+
+## 1se model
+  glm_1se_dep <-  
+      glm(
+      #Outcome varaible
+        Depression_Responder ~ 
+      # predictors
         rdq_coping_change + rdq_pmh_change + rdq_func_change + rdq_wbs_change,
       #data
-      data = Vars_FULL, 
+      data = Vars_dep, 
       # type of regression : logistic = binary / binomial
       family = "binomial")
 # Summary of the model
-  summary.min      <- summary(glm_min)
+  summary.1se.dep      <- summary(glm_1se_dep)
 
-  tidy.summary.min <- tidy(glm_min)
-
+  tidy.summary.1se.dep <- tidy(glm_1se_dep)
+  tidy.summary.1se.dep
 # Coefficients
-  coefs.min <- abs(coef(glm_min))
-  
+  coefs.1se.dep <- abs(coef(glm_1se_dep))
+
 # Odds ratio
-  OR.min <- exp(coef(glm_min))
+  OR.1se.dep <- exp(coef(glm_1se_dep))
   
 # OR 95% CI
-  CI.min <- data.frame(exp(confint(glm_min)))
+  CI.1se.dep <- data.frame(exp(confint(glm_1se_dep)))
   
 # P values
-  p.values.min <- data.frame(cbind(tidy.summary.min$term,tidy.summary.min$p.value))
+  p.values.1se.dep <- data.frame(cbind(tidy.summary.1se.dep$term,tidy.summary.1se.dep$p.value))
   # FDR Adjusted P Values
-    adj.p.min <- FDR(pvalues = p_values.min)
-    ADJ.p.values.min <- data.frame(rbind(adj.p.min$exclude, adj.p.min$select))
+    adj.p.1se.dep <- FDR(pvalues = p.values.1se.dep)
+    ADJ.p.values.1se.dep <- data.frame(rbind(adj.p.1se.dep$exclude, adj.p.1se.dep$select))
 
 # R^2 values  
-   R2.min <- performance::r2(glm_min)
+   R2.1se.dep <- performance::r2(glm_1se_dep)
 
 # df for Forrest plots
-FP.min <- data.frame(cbind(
-  Variable = tidy.summary.min$term[2:length(tidy.summary.min$term)],
-  OR = OR.min[2:length(OR.min)],
-  OR_low  = CI.min[2:length(CI.min$X2.5..),1],
-  OR_high = CI.min[2:length(CI.min$X97.5..),2],
-  p.values = p.values.min$X2[2:length(p.values.min$X2)]
+FP.1se.dep <- data.frame(cbind(
+  Variable = tidy.summary.1se.dep$term[2:length(tidy.summary.1se.dep$term)],
+  OR = OR.1se.dep [2:length(OR.1se.dep)],
+  OR_low  = CI.1se.dep [2:length(CI.1se.dep$X2.5..),1],
+  OR_high = CI.1se.dep [2:length(CI.1se.dep$X97.5..),2],
+  p.values = p.values.1se.dep$X2[2:length(p.values.1se.dep$X2)]
                     ))
 
 # Left join the FDR adjusted p.value
-FP.min <- left_join(FP.min,ADJ.p.values.min, by = join_by(p.values == p.value))
-FP.min
+FP.1se.dep <- left_join(FP.1se.dep,ADJ.p.values.1se.dep, by = join_by(p.values == p.value))
+FP.1se.dep
 ```
 
-1se
+
+
+
+# Anxiety Lasso 
+Preparing data for lasso - Anxiety
 ```{r}
-glm_1se <-  
-      glm(
-      #Outcome varaible
-        RESPONDER_FIGS ~ 
-      # predictors
-        Days_not_attended_1 + rdq_coping_change + rdq_pmh_change + rdq_func_change +
-        rdq_wbs_change,
-      #data
-      data = Vars_FULL, 
-      # type of regression : logistic = binary / binomial
-      family = "binomial")
+Mothership_lasso_anx <- Mothership_post |>
+    filter(
+    !is.na(Some_College),
+    !is.na(Female),
+    !is.na(IPT_track_1),
+    !is.na(White),
+    !is.na(Anxiety_Responder)
+  )
 
-summary(glm_1se)
+Vars_anx <- Mothership_lasso_anx |>
+  select( c(
+    Anxiety_Responder,
+    # Demographics
+    Age_1,Some_College:Married,White, #Discharge,
+    # Treatment info
+    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
+    # Disorders
+    Anxiety_D, Mood_D, BPD_P, Trauma_D, Other,
+    Anxiety_C,Mood_C,BPD_Co_C,Other_C, Substance_C, Trauma_C, No_Co,
+    Current_Dx,
+    # Pre-Post stuff
+    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
+    # RDQ
+    rdq_coping_change:rdq_wbs_change
+  ))
 
-# Summary of the model
-  summary.1se      <- summary(glm_1se)
-
-  tidy.summary.1se <- tidy(glm_1se)
-
-# Coefficients
-  coefs.1se <- abs(coef(glm_1se))
-  
-# Odds ratio
-  OR.1se <- exp(coef(glm_1se))
-  
-# OR 95% CI
-  CI.1se <- data.frame(exp(confint(glm_1se)))
-  
-# P values
-  p.values.1se <- data.frame(cbind(tidy.summary.1se$term,tidy.summary.1se$p.value))
- 
-  # FDR Adjusted P Values
-    adj.p.1se <- FDR(pvalues = p.values.1se)
-    ADJ.p.values.1se <- data.frame(rbind(adj.p.1se$exclude, adj.p.1se$select))
-
-# R^2 values  
-   R2.1se <- performance::r2(glm_1se)
-
-# df for Forrest plots
-FP.1se <- data.frame(cbind(
-  Variable = tidy.summary.1se$term[2:length(tidy.summary.1se$term)],
-  OR = OR.1se[2:length(OR.1se)],
-  OR_low  = CI.1se[2:length(CI.1se$X2.5..),1],
-  OR_high = CI.1se[2:length(CI.1se$X97.5..),2],
-  p.values = p.values.1se$X2[2:length(p.values.1se$X2)]
-                    ))
-
-# Left join the FDR adjusted p.value
-FP.1se <- left_join(FP.1se,ADJ.p.values.1se, by = join_by(p.values == p.value))
-FP.1se
+Vars_anx <- na.omit(Vars_anx)
 ```
 
-
-
-# Without RDQ
-Evaluating Methods of Assessing “Optimism”  in Regression Models Daniel Thoya1,*, Antony Waititu1, Thomas Magheto1, Antony Ngunyi2 
-- chrome-extension://efaidnbmnnnibpcajpcglclefindmkaj/http://article.sciappliedmathematics.com/pdf/ajams-6-4-2.pdf
-
-Validation of prediction models based on lasso regression with multiply imputed data
-- https://bmcmedresmethodol.biomedcentral.com/articles/10.1186/1471-2288-14-116#Sec18
-
-Penalized Logistic Regression Essentials in R: Ridge, Lasso and Elastic Net
-http://www.sthda.com/english/articles/36-classification-methods-essentials/149-penalized-logistic-regression-essentials-in-r-ridge-lasso-and-elastic-net/
-
-### Lasso regression - set variables
+Create test and train data - ANX
 ```{r}
 # Create Training and testing data
 set.seed(123) 
-training.samples <- Vars_full$RESPONDER_FIGS %>% 
+training.samples <- Vars_anx$Anxiety_Responder %>% 
   createDataPartition(p = 0.8, list = FALSE)
-train.data  <- Vars[training.samples, ]
-test.data <- Vars[-training.samples, ]
+train.data  <- Vars_anx[training.samples, ]
+test.data <- Vars_anx[-training.samples, ]
 
 # Dumy code categorical predictor variables
-x <- model.matrix(RESPONDER_FIGS~., train.data)[,-1]
+x <- model.matrix(Anxiety_Responder~., train.data)[,-1]
 # Convert the outcome (class) to a numerical variable
-y <- ifelse(train.data$RESPONDER_FIGS == "Responder", 1, 0)
+y <- ifelse(train.data$Anxiety_Responder == "Responder", 1, 0)
 
 #Simplified lasso
-lasso1 <- glmnet(x, y,family = "binomial", alpha = 1, lambda = NULL)
-
-plot(lasso1, "lambda", label = TRUE)
+lasso1_anx <- glmnet(x, y,family = "binomial", alpha = 1, lambda = NULL)
+plot(lasso1_anx, "lambda", label = TRUE)
 ```
 
-Find coefficients using cv.lasso
+Find coefficients using cv.lasso- ANX
 ```{r}
 # Find the best lambda using cross-validation
-cv.lasso <- cv.glmnet(x, y, alpha = 1, family = "binomial")
+set.seed(123) 
+cv.lasso.anx <- cv.glmnet(x, y, alpha = 1, family = "binomial")
+
+#The exact value of lambda can be viewed as follow:
+print(paste0("This is the minimum lambda value: ", round(cv.lasso.anx$lambda.min,5)))
+
+#This value is called lambda.1se.
+print(paste0("This is the 1 standard error lambda value: ", round(cv.lasso.anx$lambda.1se,5)))
+
 # Fit the final model on the training data
 model <- glmnet(x, y, alpha = 1, family = "binomial",
-                lambda = cv.lasso$lambda.min)
+                lambda = cv.lasso.anx$lambda.min)
 # Display regression coefficients
 coef(model)
 # Make predictions on the test data
-x.test <- model.matrix(RESPONDER_FIGS ~., test.data)[,-1]
+x.test <- model.matrix(Anxiety_Responder ~., test.data)[,-1]
 probabilities <- model %>% predict(newx = x.test)
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 # Model accuracy
-observed.classes <- test.data$RESPONDER_FIGS
+observed.classes <- test.data$Anxiety_Responder
 mean(predicted.classes == observed.classes)
-
-### Compute lasso regression
-#Find the optimal value of lambda that minimizes the cross-validation error:
-set.seed(123)
-cv.lasso <- cv.glmnet(x, y, alpha = 1, family = "binomial")
-
-#The exact value of lambda can be viewed as follow:
-cv.lasso$lambda.min
-
-#This value is called lambda.1se.
-cv.lasso$lambda.1se
 
 #Using lambda.min as the best lambda, gives the following regression coefficients:
-coef(cv.lasso, cv.lasso$lambda.min)
+coef(cv.lasso.anx, cv.lasso.anx$lambda.min)
 
 #Using lambda.1se as the best lambda, gives the following regression coefficients:
-coef(cv.lasso, cv.lasso$lambda.1se)
+coef(cv.lasso.anx, cv.lasso.anx$lambda.1se)
 ```
 
-Evaluating if we should use Lasso min or SE
+Evaluating if we should use Lasso min or 1SE- ANX
 ```{r}
-#### Compute the final lasso model:
+####  Using Min
 # Final model with lambda.min
-lasso.model.min <- glmnet(x, y, alpha = 1, family = "binomial",
+lasso.model.min.anx <- glmnet(x, y, alpha = 1, family = "binomial",
                       lambda = cv.lasso$lambda.min)
 
-coef(lasso.model.min)
+coef(lasso.model.min.anx)
 # Make prediction on test data
-x.test <- model.matrix(RESPONDER_FIGS ~., test.data)[,-1]
-probabilities <- lasso.model.min %>% predict(newx = x.test)
+x.test <- model.matrix(Anxiety_Responder ~., test.data)[,-1]
+probabilities <- lasso.model.min.anx %>% predict(newx = x.test)
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 # Model accuracy
-observed.classes <- test.data$RESPONDER_FIGS
-mean(predicted.classes == observed.classes)
+observed.classes <- test.data$Anxiety_Responder
+Mean.predict.min.anx <- mean(predicted.classes == observed.classes)
 
 #####  using 1se
 # Final model with lambda.1se
-lasso.model.1se <- glmnet(x, y, alpha = 1, family = "binomial",
+lasso.model.1se.anx <- glmnet(x, y, alpha = 1, family = "binomial",
                       lambda = cv.lasso$lambda.1se)
-
+coef(lasso.model.1se.anx)
 # Make prediction on test data
-x.test <- model.matrix(RESPONDER_FIGS ~., test.data)[,-1]
-probabilities <- lasso.model.1se %>% predict(newx = x.test)
+x.test <- model.matrix(Anxiety_Responder ~., test.data)[,-1]
+probabilities <- lasso.model.1se.anx %>% predict(newx = x.test)
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 
 # Model accuracy rate
-observed.classes <- test.data$RESPONDER_FIGS
-mean(predicted.classes == observed.classes)
+observed.classes <- test.data$Anxiety_Responder
+Mean.predict.1se.anx <- mean(predicted.classes == observed.classes)
 
 #### full model
 # Fit the model
-full.model <- glm(RESPONDER_FIGS ~ ., data = train.data, family = "binomial")
+full.model.anx <- glm(Anxiety_Responder ~ ., data = train.data, family = "binomial")
 
 # Make predictions
 probabilities <- full.model %>% predict(test.data, type = "response")
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 # Model accuracy
-observed.classes <- test.data$RESPONDER_FIGS
-mean(predicted.classes == observed.classes)
+observed.classes <- test.data$Anxiety_Responder
+Mean.predict.full.model.anx <- mean(predicted.classes == observed.classes)
+
+predict.df <- data.frame(
+  model = c("Min", "1se", "Full"),
+  values = c(Mean.predict.min.anx,Mean.predict.1se.anx,Mean.predict.full.model.anx)
+)
+predict.df
 ```
 
-Visualizing it
+plot the lassos- Anx
+If We want to do lasso in ggplot
+https://stackoverflow.com/questions/48978179/plotting-lasso-beta-coefficients
 ```{r}
+##plot the lambda
+plot(lasso1_anx, "lambda", label = TRUE)
+## Fancy plot
 library(lars)
-
-lasso5 = lars(x, y, type='lasso', 
+lasso_FULL_anx = lars(x, y, type='lasso', 
               trace=TRUE, normalize=FALSE, intercept=TRUE)
-
-plot(lasso5, xvar='norm', breaks = FALSE, 
+plot(lasso_FULL_anx, xvar='norm', breaks = FALSE, 
      plottype = 'coefficients', omit.zeros = TRUE)
+
+#CV k folds cross validation
+plot(cv.lasso.anx)
 ```
 
-### Final relaxed lasso
+### Final relaxed lasso- anx
+Minimum- 
 ```{r}
+## install.packages("fuzzySim")
+library(fuzzySim) ## For FDR adjusted p values
+library(broom) # for tidy regression output
+
 ## min model
-  glm_1se <-  
-      glm(RESPONDER_FIGS ~ 
-      Days_complete_1 + Days_not_attended_1,
-      data = Vars, family = "binomial")
+  glm_min_anx <-  
+      glm(
+      #Outcome varaible
+        Anxiety_Responder ~ 
+      # predictors
+        Some_College + Married + White + Days_complete_1 + Days_not_attended_1 + 
+        Anxiety_D + Other + Mood_C + BPD_Co_C + Substance_C + Trauma_C + Current_Dx +
+        CUDOS_pre + CUXOS_pre + rdq_coping_change + rdq_pmh_change + rdq_func_change,
+      #data
+      data = Vars_anx, 
+      # type of regression : logistic = binary / binomial
+      family = "binomial")
 # Summary of the model
-  summary.1se      <- summary(glm_1se)
-      library(broom)
-          # https://cran.r-project.org/web/packages/broom/vignettes/broom.html
-  tidy.summary.1se <- tidy(glm_1se)
-  
+  summary.min.anx      <- summary(glm_min_anx)
+
+  tidy.summary.min.anx <- tidy(glm_min_anx)
+  tidy.summary.min.anx
 # Coefficients
-  coefs.1se <- abs(coef(glm_1se))
-  
+  coefs.min.anx <- abs(coef(glm_min_anx))
+
 # Odds ratio
-  OR.1se <- exp(coef(glm_1se))
+  OR.min.anx <- exp(coef(glm_min_anx))
   
 # OR 95% CI
-  CI.1se <- data.frame(exp(confint(glm_1se)))
+  CI.min.anx <- data.frame(exp(confint(glm_min_anx)))
   
 # P values
-  p.values.1se <- tidy.summary.1se$p.value
-  
+  p.values.min.anx <- data.frame(cbind(tidy.summary.min.anx$term,tidy.summary.min.anx$p.value))
+  # FDR Adjusted P Values
+    adj.p.min.anx <- FDR(pvalues = p.values.min.anx)
+    ADJ.p.values.min.anx <- data.frame(rbind(adj.p.min.anx$exclude, adj.p.min.anx$select))
+
 # R^2 values  
-   R2.1se <- performance::r2(glm_1se)
+   R2.min.anx <- performance::r2(glm_min_anx)
 
 # df for Forrest plots
-   
-FP.1se <- data.frame(cbind(
-  Variable = tidy.summary.1se$term[2:length(tidy.summary.1se$term)],
-  OR = OR.1se[2:length(OR.1se)],
-  OR_low  = CI.1se[2:length(CI.1se$X2.5..),1],
-  OR_high = CI.1se[2:length(CI.1se$X97.5..),2],
-  p.values = p.values.1se[2:length(p.values.1se)]
+FP.min.anx <- data.frame(cbind(
+  Variable = tidy.summary.min.anx$term[2:length(tidy.summary.min.anx$term)],
+  OR = OR.min.anx [2:length(OR.min.anx)],
+  OR_low  = CI.min.anx [2:length(CI.min.anx$X2.5..),1],
+  OR_high = CI.min.anx [2:length(CI.min.anx$X97.5..),2],
+  p.values = p.values.min.anx$X2[2:length(p.values.min.anx$X2)]
                     ))
 
-FP.1se
+# Left join the FDR adjusted p.value
+FP.min.anx <- left_join(FP.min.anx,ADJ.p.values.min.anx, by = join_by(p.values == p.value))
+FP.min.anx
 ```
-
+1se -
 ```{r}
-### min model
-  glm_min <-  
-      glm(RESPONDER_FIGS ~ 
-      Age_1 + Some_College + Married + Days_complete_1 + Days_not_attended_1 + 
-      Psychotic_D + Co_Substance + Co_Trauma + CUDOS_pre,
-      data = Vars, family = "binomial")
+
+## 1se model
+  glm_1se_anx <-  
+      glm(
+      #Outcome varaible
+        Anxiety_Responder ~ 
+      # predictors
+         Days_not_attended_1 + rdq_coping_change + rdq_pmh_change + rdq_func_change,
+      #data
+      data = Vars_anx, 
+      # type of regression : logistic = binary / binomial
+      family = "binomial")
 # Summary of the model
-  summary.min      <- summary(glm_min)
-      library(broom)
-          # https://cran.r-project.org/web/packages/broom/vignettes/broom.html
-  tidy.summary.min <- tidy(glm_min)
-  
+  summary.1se.anx      <- summary(glm_1se_anx)
+
+  tidy.summary.1se.anx <- tidy(glm_1se_anx)
+  tidy.summary.1se.anx
 # Coefficients
-  coefs.min <- abs(coef(glm_min))
-  
+  coefs.1se.anx <- abs(coef(glm_1se_anx))
+
 # Odds ratio
-  OR.min <- exp(coef(glm_min))
+  OR.1se.anx <- exp(coef(glm_1se_anx))
   
 # OR 95% CI
-  CI.min <- data.frame(exp(confint(glm_min)))
+  CI.1se.anx <- data.frame(exp(confint(glm_1se_anx)))
   
 # P values
-  p.values.min <- tidy.summary.min$p.value
-  
+  p.values.1se.anx <- data.frame(cbind(tidy.summary.1se.anx$term,tidy.summary.1se.anx$p.value))
+  # FDR Adjusted P Values
+    adj.p.1se.anx <- FDR(pvalues = p.values.1se.anx)
+    ADJ.p.values.1se.anx <- data.frame(rbind(adj.p.1se.anx$exclude, adj.p.1se.anx$select))
+
 # R^2 values  
-   R2.min <- performance::r2(glm_min)
+   R2.1se.anx <- performance::r2(glm_1se_anx)
 
 # df for Forrest plots
-   
-FP.min <- data.frame(cbind(
-  Variable = tidy.summary.min$term[2:length(tidy.summary.min$term)],
-  OR = OR.min[2:length(OR.min)],
-  OR_low  = CI.min[2:length(CI.min$X2.5..),1],
-  OR_high = CI.min[2:length(CI.min$X97.5..),2],
-  p.values = p.values.min[2:length(p.values.min)]
+FP.1se.anx <- data.frame(cbind(
+  Variable = tidy.summary.1se.anx$term[2:length(tidy.summary.1se.anx$term)],
+  OR = OR.1se.anx [2:length(OR.1se.anx)],
+  OR_low  = CI.1se.anx [2:length(CI.1se.anx$X2.5..),1],
+  OR_high = CI.1se.anx [2:length(CI.1se.anx$X97.5..),2],
+  p.values = p.values.1se.anx$X2[2:length(p.values.1se.anx$X2)]
                     ))
 
-FP.min
+# Left join the FDR adjusted p.value
+FP.1se.anx <- left_join(FP.1se.anx,ADJ.p.values.1se.anx, by = join_by(p.values == p.value))
+FP.1se.anx
 ```
+
+
+
+
+
+
+
+
+
+
+
+

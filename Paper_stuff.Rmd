@@ -19,8 +19,9 @@ library(tidyr)
 
 Read in the dataset. 
 ```{r}
-Mothership <- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
+Mothership1 <- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
 head(df)
+mode(Mothership1$Relationship_1)
 ```
 
 ## Rename and Recode variables 
@@ -1322,6 +1323,35 @@ ggplot(data = subset(Mothership_post, !is.na(Gender_1)),mapping = aes(x = Gender
   scale_y_continuous(name = "Frequency",limits=c(0,6500))
 ```
 
+relationship
+```{r}
+ggplot(data = subset(Mothership_post, !is.na(Gender_1)),mapping = aes(x = Gender_1))+
+  geom_bar(color = "black",fill="darkorange")+
+  ggtitle("Frequency of Gender") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("Gender")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  coord_flip()+
+  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+
+Mothership_post$Relationship_1
+
+ggplot(data = subset(Mothership_post, !is.na(Relationship_1)),mapping = aes(x = Relationship_1))+
+  geom_bar(color = "black",fill="darkorange")+
+  ggtitle("Frequency of Relationship") +
+  theme(axis.text.x = element_text(angle = 45,hjust = 1))+
+  xlab("relationshipr")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  coord_flip()+
+  scale_y_continuous(name = "Frequency",limits=c(0,6500))
+
+summary(Mothership_post$Relationship_1)
+
+```
+
+
 
 
 
@@ -1688,6 +1718,8 @@ ggplot(data = Education_df, mapping = aes(x="", y=Frequency, fill=Category))+
   scale_fill_discrete(name = "Education") +
   coord_polar("y",start=0)+
   theme_void()
+
+Mothership_post
 ```
 
 •	Table or Visualization – Reasons for discharge results.
