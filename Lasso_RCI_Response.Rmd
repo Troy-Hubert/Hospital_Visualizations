@@ -524,7 +524,8 @@ write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Diag_treat.csv")
 #devtools::install_github("AWKruijt/JT-RCI")
 
 library(JTRCI)
-# library(ClinicalSig)
+citation("JTRCI")
+
 # 
 # #devtools::install_github("zieglema/ClinicalSig")
 #1. Create df for RCI
@@ -730,25 +731,68 @@ AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
     + I want to show the figure of pre-post change???
 - Table 4: demographic breakdown
 ```{r}
-#Demographics Table
-Demo_tab_df <- Mothership_post |>
-  #Mothership_Diag_treat |>
-  filter(!is.na(Education_1),
-         !is.na(Race_1),
-         !is.na(Gender_1),
-         !is.na(Disorder_Type),
-         !is.na(Relationship_1),
-         !is.na(RESPONDER_FIGS)
-        )
+# #Demographics Table
+# Demo_tab_df <- Mothership_post |>
+#   #Mothership_Diag_treat |>
+#   filter(!is.na(Education_1),
+#          !is.na(Race_1),
+#          !is.na(Gender_1),
+#          !is.na(Disorder_Type),
+#          !is.na(Relationship_1),
+#          !is.na(RESPONDER_FIGS)
+#         )
 
-#Demographic tab
-Demo_tab<-data.frame(table1::table1(~Age_1+Race_1+Education_1+Gender_1+Relationship_1 | RESPONDER_FIGS, data=Demo_tab_df))
-colnames(Demo_tab) <- c("Demographic","Non-Responder", "Responder","Total Sample")
-Demo_tab
+# #Demographic tab
+# Demo_tab<-data.frame(table1::table1(~Age_1+Race_1+Education_1+Gender_1+Relationship_1 | RESPONDER_FIGS, data=Demo_tab_df))
+# colnames(Demo_tab) <- c("Demographic","Non-Responder", "Responder","Total Sample")
+# Demo_tab
+# 
+# Simple_Demo_tab <-data.frame(table1::table1(~Age_1 + White +IPT_track_1 + Straight + Married + Female +  Some_College + Discharge | RESPONDER_FIGS, data=Demo_tab_df))
+# colnames(Simple_Demo_tab) <- c("Demographic","Non-Responder", "Responder","Total Sample")
+# Simple_Demo_tab
+# 
+# Table
 
-Simple_Demo_tab <-data.frame(table1::table1(~Age_1 + White +IPT_track_1 + Straight + Married + Female +  Some_College + Discharge | RESPONDER_FIGS, data=Demo_tab_df))
-colnames(Simple_Demo_tab) <- c("Demographic","Non-Responder", "Responder","Total Sample")
-Simple_Demo_tab
+library(tableone)
+
+### first gather information based upon anxiety
+
+## Vector of variables to summarize
+table1_vars_anx <- c(colnames(Vars_anx)[-1])
+
+## Vector of categorical variables that need transformation
+catVars <- c("Some_College", "Female" , "Married", "White",
+             "IPT_track_1","Anxiety_D", "Mood_D", "BPD_P" ,"Trauma_D","Substance_D" ,        
+             "Psychotic_D", "Other", "Anxiety_C", "Mood_C" , "BPD_Co_C", "Trauma_C", 
+             "Substance_C", "Other_C" , "No_Co"
+             )
+## Create a TableOne object
+table1_tab_anx <- CreateTableOne(vars = table1_vars_anx, data = Vars_anx,strata ="Anxiety_Responder",  factorVars = catVars)
+table1_tab_anx <- print(table1_tab_anx, formatOptions = list(big.mark = ","))
+tab1_df_anx <- data.frame(table1_tab_anx)
+
+### next gather info based upon depression
+
+## Vector of variables to summarize
+table1_vars_dep <- c(colnames(Vars_dep)[-1])
+
+## Vector of categorical variables that need transformation
+catVars <- c("Some_College", "Female" , "Married", "White",
+             "IPT_track_1","Anxiety_D", "Mood_D", "BPD_P" ,"Trauma_D","Substance_D" ,        
+             "Psychotic_D", "Other", "Anxiety_C", "Mood_C" , "BPD_Co_C", "Trauma_C", 
+             "Substance_C", "Other_C" , "No_Co"
+             )
+## Create a TableOne object
+table1_tab_dep <- CreateTableOne(vars = table1_vars_dep, data = Vars_dep,strata ="Depression_Responder",  factorVars = catVars)
+table1_tab_dep <- print(table1_tab_dep, formatOptions = list(big.mark = ","))
+table1_tab_dep <-data.frame(table1_tab_dep)
+table1_tab_dep 
+
+## lastly get the overal treatment breakdown
+table1_gen <- CreateTableOne(vars = table1_vars_dep, data = Mothership_lasso_anx,  factorVars = catVars)
+table1_gen <- print(table1_gen, formatOptions = list(big.mark = ","))
+table1_gen <-data.frame(table1_gen)
+table1_gen 
 ```
 
 ### Treatment information
@@ -756,7 +800,7 @@ Overal look at treatment varaibles by treatment response
 ```{r}
 # PHP Treatment information
 resp_tab <- data.frame(table1::table1(
-   ~ DC_status_1 + IPT_track_1 + Days_complete_1 + Days_cancel_1 + Days_not_attended_1 + Days_noshow_1 | RESPONDER_FIGS, 
+   ~IPT_track_1 + Days_complete_1 + Days_cancel_1 + Days_not_attended_1 + Days_noshow_1 | RESPONDER_FIGS, 
   data = Mothership_post))
 colnames(resp_tab) <- c("Variable","Non-Responder", "Responder", "Total Sample")
 resp_tab
@@ -1107,20 +1151,23 @@ Vars_dep <- Mothership_lasso_dep |>
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre,
     # RDQ
-    rdq_coping_change:rdq_wbs_change
+    rdqPOST_coping:rdqPOST_wbs
   ))
 
-old model
+# old model
 # Anxiety_D, Mood_D, BPD_P,    Trauma_D,  Other,
 #     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
 #     Current_Dx,
 
 Vars_dep <- na.omit(Vars_dep)
 
+
 ```
 
 Create test and train data - Depression
 ```{r}
+library(glmnet)
+library(caret)
 # Create Training and testing data
 set.seed(123) 
 training.samples <- Vars_dep$Depression_Responder %>% 
@@ -1151,10 +1198,11 @@ print(paste0("This is the minimum lambda value: ", round(cv.lasso.dep$lambda.min
 print(paste0("This is the 1 standard error lambda value: ", round(cv.lasso.dep$lambda.1se,5)))
 
 # Fit the final model on the training data
-model <- glmnet(x.dep, y.dep, alpha = 1, family = "binomial",
+model.min <- glmnet(x.dep, y.dep, alpha = 1, family = "binomial",
                 lambda = cv.lasso.dep$lambda.min)
 # Display regression coefficients
-coef(model)
+coef(model.min)
+
 # Make predictions on the test data
 x.test <- model.matrix(Depression_Responder ~., test.data)[,-1]
 probabilities <- model %>% predict(newx = x.test)
@@ -1205,7 +1253,7 @@ Mean.predict.1se.dep <- mean(predicted.classes == observed.classes)
 full.model.dep <- glm(Depression_Responder ~ ., data = train.data, family = "binomial")
 
 # Make predictions
-probabilities <- full.model %>% predict(test.data, type = "response")
+probabilities <- full.model.dep %>% predict(test.data, type = "response")
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 # Model accuracy
 observed.classes <- test.data$Depression_Responder
@@ -1265,9 +1313,9 @@ library(broom) # for tidy regression output
       #Outcome varaible
         Depression_Responder ~
       # predictors
-        Married + Days_not_attended_1 + Mood_D + Substance_D + Anxiety_C +
-        Substance_C + CUDOS_pre + CUXOS_pre + rdq_coping_change + 
-        rdq_pmh_change + rdq_func_change,
+        White + Days_complete_1 + Days_not_attended_1 + Mood_D + Substance_D + 
+        Other + Anxiety_C + Mood_C + Substance_C + CUDOS_pre + CUXOS_pre + 
+        rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
       #data
         data = Vars_dep,
       # type of regression : logistic = binary / binomial
@@ -1320,7 +1368,8 @@ FP.min.dep
       #Outcome varaible
         Depression_Responder ~ 
       # predictors
-        rdq_coping_change + rdq_pmh_change + rdq_func_change + rdq_wbs_change,
+        Days_not_attended_1+ rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + 
+        rdqPOST_wbs,
       #data
       data = Vars_dep, 
       # type of regression : logistic = binary / binomial
@@ -1392,10 +1441,12 @@ Vars_anx <- Mothership_lasso_anx |>
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
-    rdq_coping_change:rdq_wbs_change
+    rdqPOST_coping:rdqPOST_wbs
   ))
 
 Vars_anx <- na.omit(Vars_anx)
+
+citation("glmnet")
 ```
 
 Create test and train data - ANX
@@ -1433,7 +1484,7 @@ print(paste0("This is the 1 standard error lambda value: ", round(cv.lasso.anx$l
 model <- glmnet(x, y, alpha = 1, family = "binomial",
                 lambda = cv.lasso.anx$lambda.min)
 # Display regression coefficients
-coef(model)
+# coef(model)
 # Make predictions on the test data
 x.test <- model.matrix(Anxiety_Responder ~., test.data)[,-1]
 probabilities <- model %>% predict(newx = x.test)
@@ -1484,7 +1535,7 @@ Mean.predict.1se.anx <- mean(predicted.classes == observed.classes)
 full.model.anx <- glm(Anxiety_Responder ~ ., data = train.data, family = "binomial")
 
 # Make predictions
-probabilities <- full.model %>% predict(test.data, type = "response")
+probabilities <- full.model.anx %>% predict(test.data, type = "response")
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 # Model accuracy
 observed.classes <- test.data$Anxiety_Responder
@@ -1590,7 +1641,7 @@ FP.min.anx
       #Outcome varaible
         Anxiety_Responder ~ 
       # predictors
-         CUXOS_pre + rdq_coping_change + rdq_pmh_change + rdq_func_change,
+        Days_not_attended_1 + CUXOS_pre + rdqPOST_coping + rdqPOST_pmh + rdqPOST_wbs,
       #data
       data = Vars_anx, 
       # type of regression : logistic = binary / binomial
@@ -1630,6 +1681,7 @@ FP.1se.anx <- data.frame(cbind(
 # Left join the FDR adjusted p.value
 FP.1se.anx <- left_join(FP.1se.anx,ADJ.p.values.1se.anx, by = join_by(p.values == p.value))
 FP.1se.anx$type = c("Anxiety")
+FP.1se.anx
 ```
 
 
