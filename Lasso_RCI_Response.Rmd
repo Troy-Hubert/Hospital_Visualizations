@@ -572,8 +572,8 @@ DEP_RCI <- JTRCI (data = RCI_df_dep,
                   ppid = "ID1", 
                   reliability = .74, 
                   indextype = "RCI", 
-                  #JTcrit = "auto",
-                  plottitle = "Anxeity: JT indices by disorder")
+                  JTcrit = "auto",
+                  plottitle = "JT indices for anxiety")
 
 ANX_RCI <- JTRCI (data = RCI_df_anx, 
                   pre = "pre", 
@@ -582,7 +582,7 @@ ANX_RCI <- JTRCI (data = RCI_df_anx,
                   reliability = .74, 
                   indextype = "RCI", 
                   #JTcrit = "auto",
-                  plottitle = "Anxeity: JT indices by disorder")
+                  plottitle = "JT indices for depression")
 
 RCI_DF<- ANX_RCI$data
 colnames(RCI_DF) <- paste0(colnames(RCI_DF),"_anx")
@@ -620,12 +620,12 @@ Mothership_post <- Mothership_post |>
     Percent_Dep_Dchange = (Delta_Dep_DC/CUDOS_pre)*100,
     #Days_complete_W = ifelse(Days_complete_1 > 40, 40, Days_complete_1),
     Anx_Responder = as.factor(
-      ifelse(CUXOS_pre < 20 & Percent_Anx_change  <= -50, "Responder",
-      ifelse(CUXOS_pre < 20 & Percent_Anx_change  > -50,  "Unresponders", NA)   
+      ifelse(CUXOS_pre <= 20 & Percent_Anx_change  <= -50, "Responder",
+      ifelse(CUXOS_pre <= 20 & Percent_Anx_change  > -50,  "Unresponders", NA)   
       )),
     Dep_Responder = as.factor(
-      ifelse(CUDOS_pre < 20 & Percent_Dep_Dchange <= -50, "Responder",
-      ifelse(CUDOS_pre < 20 & Percent_Dep_Dchange > -50,   "Unresponders", NA) 
+      ifelse(CUDOS_pre <= 20 & Percent_Dep_Dchange <= -50, "Responder",
+      ifelse(CUDOS_pre <= 20 & Percent_Dep_Dchange > -50,   "Unresponders", NA) 
       )),
     Treatment_Responder = as.factor(
       ifelse(CUXOS_pre > 10 & CUXOS_pre > 10 & Percent_Anx_change  <= -50 & Percent_Anx_change < 0 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange <= -50, "Both_Responder", 
@@ -718,9 +718,6 @@ AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
   summarise(Score=mean(Score,na.rm=TRUE))
 ```
 
-
-
-
 # Data analysis 
 ## Part 1: Who is attending?
 
@@ -753,6 +750,70 @@ AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
 # 
 # Table
 
+Mothership_lasso <- Mothership_post |>
+    filter(
+    !is.na(Some_College),
+    !is.na(Female),
+    !is.na(IPT_track_1),
+    !is.na(White),
+    !is.na(Anxiety_Responder),
+    !is.na(Depression_Responder),
+    CUXOS_pre >= 20,
+    CUDOS_pre >= 20
+  )
+
+
+
+Vars_anx <- Mothership_lasso |>
+  select( c(
+    Anxiety_Responder,
+    # Demographics
+    Age_1,Some_College:Married,White, #Discharge,
+    # Treatment info
+    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
+    # Disorders
+    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
+    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
+    Current_Dx,
+    # Pre-Post stuff
+    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
+    # RDQ
+    rdqPOST_coping:rdqPOST_wbs
+  ))
+
+# Mothership_lasso_dep <- Mothership_post |>
+#     filter(
+#     !is.na(Some_College),
+#     !is.na(Female),
+#     !is.na(IPT_track_1),
+#     !is.na(White),
+#     !is.na(Depression_Responder),
+#     CUXOS_pre >= 20,
+#     CUDOS_pre >= 20
+#   )
+
+
+
+Vars_dep <- Mothership_lasso |>
+  select( c(
+    Depression_Responder,
+    # Demographics
+    Age_1,Some_College:Married,White, 
+    # Treatment info
+    IPT_track_1, Days_complete_1, Days_not_attended_1, 
+    # Disorders
+    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
+    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
+    Current_Dx,
+    # Pre-Post stuff
+    CUDOS_pre,CUXOS_pre,
+    # RDQ
+    rdqPOST_coping:rdqPOST_wbs
+  ))
+
+Vars_anx <- na.omit(Vars_anx)
+Vars_dep <- na.omit(Vars_dep)
+
 library(tableone)
 
 ### first gather information based upon anxiety
@@ -770,7 +831,7 @@ catVars <- c("Some_College", "Female" , "Married", "White",
 table1_tab_anx <- CreateTableOne(vars = table1_vars_anx, data = Vars_anx,strata ="Anxiety_Responder",  factorVars = catVars)
 table1_tab_anx <- print(table1_tab_anx, formatOptions = list(big.mark = ","))
 tab1_df_anx <- data.frame(table1_tab_anx)
-
+tab1_df_anx
 ### next gather info based upon depression
 
 ## Vector of variables to summarize
@@ -789,38 +850,43 @@ table1_tab_dep <-data.frame(table1_tab_dep)
 table1_tab_dep 
 
 ## lastly get the overal treatment breakdown
-table1_gen <- CreateTableOne(vars = table1_vars_dep, data = Mothership_lasso_anx,  factorVars = catVars)
+table1_gen <- CreateTableOne(vars = table1_vars_dep, data = Mothership_lasso,  factorVars = catVars)
 table1_gen <- print(table1_gen, formatOptions = list(big.mark = ","))
 table1_gen <-data.frame(table1_gen)
 table1_gen 
+
+
+summary(Mothership_lasso$Depression_Responder)
+
 ```
 
 ### Treatment information
 Overal look at treatment varaibles by treatment response
 ```{r}
 # PHP Treatment information
-resp_tab <- data.frame(table1::table1(
-   ~IPT_track_1 + Days_complete_1 + Days_cancel_1 + Days_not_attended_1 + Days_noshow_1 | RESPONDER_FIGS, 
-  data = Mothership_post))
-colnames(resp_tab) <- c("Variable","Non-Responder", "Responder", "Total Sample")
-resp_tab
+# resp_tab <- data.frame(table1::table1(
+#    ~IPT_track_1 + Days_complete_1 + Days_cancel_1 + Days_not_attended_1 + Days_noshow_1 | RESPONDER_FIGS, 
+#   data = Mothership_post))
+# colnames(resp_tab) <- c("Variable","Non-Responder", "Responder", "Total Sample")
+# resp_tab
 ```
 
-pre-post scores by treatment response - TOGETHER
+# RCI analysis Table
+pre-post scores by treatment response, cut off, and RCI threshold
 ```{r}
 # Treatment scores
 #1. Make DF + name columns
-Scores_tab <- data.frame(matrix(nrow = 9 ,ncol=7))
-colnames(Scores_tab) = c("Variables", "N_Pre M(SD)", "N_Post M(SD)", "N_Change M(SD)","R_Pre M(SD)", "R_Post M(SD)", "R_Change M(SD)")
+Scores_tab <- data.frame(matrix(nrow = 2 ,ncol=9))
+colnames(Scores_tab) = c("Instrument", "N_Pre M(SD)", "N_Post M(SD)", "N_Change M(SD)","R_Pre M(SD)", "R_Post M(SD)", "R_Change M(SD)", "Cut Off", "RCI")
 
 #2. Row 1 - responders
-Scores_tab[1,] = c(NA,"Non-responder","Non-responder","Non-responder","Responder","Responder","Responder")
+Scores_tab[1,] = c(NA,"M (sd)","M (sd)","M (sd)","M (sd)","M (sd)","M (sd)",NA,NA)
 
 #3. Get statistics for variables + Assign to table
   # Anxiety - CUXOS
     #make df
       anx_rep_tab <- Mothership_post |>
-        group_by(RESPONDER_FIGS) |>
+        group_by(Anxiety_Responder) |>
         summarize(pre_anx = round(mean(CUXOS_pre, na.rm = TRUE),2),
                   pre_anx_sd = round(sd(CUXOS_pre, na.rm = TRUE),2),
                   post_anx = round( mean(CUXOS_post,na.rm = TRUE),2),
@@ -832,19 +898,21 @@ Scores_tab[1,] = c(NA,"Non-responder","Non-responder","Non-responder","Responder
         Scores_tab[2,] = c(
           "CUXOS",
           #Non-responder scores
+          paste0(anx_rep_tab$pre_anx[[2]]," (",anx_rep_tab$pre_anx_sd[[2]],")"),
+          paste0(anx_rep_tab$post_anx[[2]]," (",anx_rep_tab$post_anx_sd[[2]],")"),
+          paste0(anx_rep_tab$delta_anx[[2]]," (",anx_rep_tab$delta_anx_sd[[2]],")"),
+          #responder scores
           paste0(anx_rep_tab$pre_anx[[1]]," (",anx_rep_tab$pre_anx_sd[[1]],")"),
           paste0(anx_rep_tab$post_anx[[1]]," (",anx_rep_tab$post_anx_sd[[1]],")"),
           paste0(anx_rep_tab$delta_anx[[1]]," (",anx_rep_tab$delta_anx_sd[[1]],")"),
-          #responder scores
-          paste0(anx_rep_tab$pre_anx[[2]]," (",anx_rep_tab$pre_anx_sd[[2]],")"),
-          paste0(anx_rep_tab$post_anx[[2]]," (",anx_rep_tab$post_anx_sd[[2]],")"),
-          paste0(anx_rep_tab$delta_anx[[2]]," (",anx_rep_tab$delta_anx_sd[[2]],")")
+          20,
+          20
         )
-
-  # Depression - CUDOS
+        
+# Depression - CUDOS
   #Make df
     dep_rep_tab <- Mothership_post |>
-      group_by(RESPONDER_FIGS) |>
+      group_by(Depression_Responder) |>
       summarize(pre_dep = round( mean(CUDOS_pre, na.rm = TRUE),2),
                 pre_dep_sd = round( sd(CUDOS_pre, na.rm = TRUE),2),
                 post_dep = round( mean(CUDOS_post, na.rm = TRUE),2),
@@ -856,129 +924,46 @@ Scores_tab[1,] = c(NA,"Non-responder","Non-responder","Non-responder","Responder
        Scores_tab[3,] = c(
         "CUDOS",
         #Non-responder scores
+        paste0(dep_rep_tab$pre_dep[[2]]," (",dep_rep_tab$pre_dep_sd[[2]],")"),
+        paste0(dep_rep_tab$post_dep[[2]]," (",dep_rep_tab$post_dep_sd[[2]],")"),
+        paste0(dep_rep_tab$delta_dep[[2]]," (",dep_rep_tab$delta_dep_sd[[2]],")"),
+        #responder scores
         paste0(dep_rep_tab$pre_dep[[1]]," (",dep_rep_tab$pre_dep_sd[[1]],")"),
         paste0(dep_rep_tab$post_dep[[1]]," (",dep_rep_tab$post_dep_sd[[1]],")"),
         paste0(dep_rep_tab$delta_dep[[1]]," (",dep_rep_tab$delta_dep_sd[[1]],")"),
-        #responder scores
-        paste0(dep_rep_tab$pre_dep[[2]]," (",dep_rep_tab$pre_dep_sd[[2]],")"),
-        paste0(dep_rep_tab$post_dep[[2]]," (",dep_rep_tab$post_dep_sd[[2]],")"),
-        paste0(dep_rep_tab$delta_dep[[2]]," (",dep_rep_tab$delta_dep_sd[[2]],")")
+        20,
+        13
       )
        
-  #RDQ subscales
-       Scores_tab[4,1] = "RDQ Subscales"
-       
-  # Coping
-      cope_rep_tab <- Mothership_post |>
-        group_by(RESPONDER_FIGS) |>
-        summarize(pre_cope = round( mean(rdqPRE_coping, na.rm = TRUE),2),
-                  pre_cope_sd = round( sd(rdqPRE_coping, na.rm = TRUE),2),
-                  post_cope = round( mean(rdqPOST_coping, na.rm = TRUE),2),
-                  post_cope_sd = round( sd(rdqPOST_coping, na.rm = TRUE),2),
-                  delta_cope = round( mean(rdq_coping_change, na.rm = TRUE),2),
-                  delta_cope_sd = round( sd(rdq_coping_change, na.rm = TRUE),2)
-              )
-      Scores_tab[5,] = c(
-        "Coping",
-        #Non-responder scores
-        paste0(cope_rep_tab$pre_cope[[1]]," (",cope_rep_tab$pre_cope_sd[[1]],")"),
-        paste0(cope_rep_tab$post_cope[[1]]," (",cope_rep_tab$post_cope_sd[[1]],")"),
-        paste0(cope_rep_tab$delta_cope[[1]]," (",cope_rep_tab$delta_cope_sd[[1]],")"),
-        #responder scores
-        paste0(cope_rep_tab$pre_cope[[2]]," (",cope_rep_tab$pre_cope_sd[[2]],")"),
-        paste0(cope_rep_tab$post_cope[[2]]," (",cope_rep_tab$post_cope_sd[[2]],")"),
-        paste0(cope_rep_tab$delta_cope[[2]]," (",cope_rep_tab$delta_cope_sd[[2]],")")
-      )
-   # Positive mental health
-  pmh_rep_tab <- Mothership_post |>
-    group_by(RESPONDER_FIGS) |>
-    summarize(pre_pmh = round( mean(rdqPRE_pmh, na.rm = TRUE),2),
-              pre_pmh_sd = round( sd(rdqPRE_pmh, na.rm = TRUE),2),
-              post_pmh = round( mean(rdqPOST_pmh, na.rm = TRUE),2),
-              post_pmh_sd = round( sd(rdqPOST_pmh, na.rm = TRUE),2),
-              delta_pmh = round( mean(rdq_pmh_change, na.rm = TRUE),2),
-              delta_pmh_sd = round( sd(rdq_pmh_change, na.rm = TRUE),2)
-              )
-         Scores_tab[6,] = c(
-              "Positive Mental Health",
-              #Non-responder scores
-              paste0(pmh_rep_tab$pre_pmh[[1]]," (",pmh_rep_tab$pre_pmh_sd[[1]],")"),
-              paste0(pmh_rep_tab$post_pmh[[1]]," (",pmh_rep_tab$post_pmh_sd[[1]],")"),
-              paste0(pmh_rep_tab$delta_pmh[[1]]," (",pmh_rep_tab$delta_pmh_sd[[1]],")"),
-              #responder scores
-              paste0(pmh_rep_tab$pre_pmh[[2]]," (",pmh_rep_tab$pre_pmh_sd[[2]],")"),
-              paste0(pmh_rep_tab$post_pmh[[2]]," (",pmh_rep_tab$post_pmh_sd[[2]],")"),
-              paste0(pmh_rep_tab$delta_pmh[[2]]," (",pmh_rep_tab$delta_pmh_sd[[2]],")")
-            )
-   # Functioning
-  func_rep_tab <- Mothership_post |>
-    group_by(RESPONDER_FIGS) |>
-    summarize(pre_func = round( mean(rdqPRE_func, na.rm = TRUE),2),
-              pre_func_sd = round( sd(rdqPRE_func, na.rm = TRUE),2),
-              post_func = round( mean(rdqPOST_func, na.rm = TRUE),2),
-              post_func_sd = round( sd(rdqPOST_func, na.rm = TRUE),2),
-              delta_func = round( mean(rdq_func_change, na.rm = TRUE),2),
-              delta_func_sd = round( sd(rdq_func_change, na.rm = TRUE),2)
-              )    
-         Scores_tab[7,] = c(
-              "Functioning",
-              #Non-responder scores
-              paste0(func_rep_tab$pre_func[[1]]," (",func_rep_tab$pre_func_sd[[1]],")"),
-              paste0(func_rep_tab$post_func[[1]]," (",func_rep_tab$post_func_sd[[1]],")"),
-              paste0(func_rep_tab$delta_func[[1]]," (",func_rep_tab$delta_func_sd[[1]],")"),
-              #responder scores
-              paste0(func_rep_tab$pre_func[[2]]," (",func_rep_tab$pre_func_sd[[2]],")"),
-              paste0(func_rep_tab$post_func[[2]]," (",func_rep_tab$post_func_sd[[2]],")"),
-              paste0(func_rep_tab$delta_func[[2]]," (",func_rep_tab$delta_func_sd[[2]],")")
-            )
-
-    # General sense of wellbeing
-    wbs_rep_tab <- Mothership_post |>
-    group_by(RESPONDER_FIGS) |>
-    summarize(pre_wbs = round( mean(rdqPRE_wbs, na.rm = TRUE),2),
-              pre_wbs_sd = round( sd(rdqPRE_wbs, na.rm = TRUE),2),
-              post_wbs = round( mean(rdqPOST_wbs, na.rm = TRUE),2),
-              post_wbs_sd = round( sd(rdqPOST_wbs, na.rm = TRUE),2),
-              delta_wbs = round( mean(rdq_wbs_change, na.rm = TRUE),2),
-              delta_wbs_sd = round( sd(rdq_wbs_change, na.rm = TRUE),2)
-              )
-    
-     Scores_tab[8,] = c(
-              "General sense of wellbeing",
-              #Non-responder scores
-              paste0(wbs_rep_tab$pre_wbs[[1]]," (",wbs_rep_tab$pre_wbs_sd[[1]],")"),
-              paste0(wbs_rep_tab$post_wbs[[1]]," (",wbs_rep_tab$post_wbs_sd[[1]],")"),
-              paste0(wbs_rep_tab$delta_wbs[[1]]," (",wbs_rep_tab$delta_wbs_sd[[1]],")"),
-              #responder scores
-              paste0(wbs_rep_tab$pre_wbs[[2]]," (",wbs_rep_tab$pre_wbs_sd[[2]],")"),
-              paste0(wbs_rep_tab$post_wbs[[2]]," (",wbs_rep_tab$post_wbs_sd[[2]],")"),
-              paste0(wbs_rep_tab$delta_wbs[[2]]," (",wbs_rep_tab$delta_wbs_sd[[2]],")")
-            )
-    
-    #Symptoms
-    sym_rep_tab <- Mothership_post |>
-    group_by(RESPONDER_FIGS) |>
-    summarize(pre_sym = round( mean(rdqPRE_sym, na.rm = TRUE),2),
-              pre_sym_sd = round( sd(rdqPRE_sym, na.rm = TRUE),2),
-              post_sym = round( mean(rdqPOST_sym, na.rm = TRUE),2),
-              post_sym_sd = round( sd(rdqPOST_sym, na.rm = TRUE),2),
-              delta_sym = round( mean(rdq_sym_change, na.rm = TRUE),2),
-              delta_sym_sd = round( sd(rdq_sym_change, na.rm = TRUE),2)
-              )
-    
-      Scores_tab[9,] = c(
-              "Symptoms",
-              #Non-responder scores
-              paste0(sym_rep_tab$pre_sym[[1]]," (",sym_rep_tab$pre_sym_sd[[1]],")"),
-              paste0(sym_rep_tab$post_sym[[1]]," (",sym_rep_tab$post_sym_sd[[1]],")"),
-              paste0(sym_rep_tab$delta_sym[[1]]," (",sym_rep_tab$delta_sym_sd[[1]],")"),
-              #responder scores
-              paste0(sym_rep_tab$pre_sym[[2]]," (",sym_rep_tab$pre_sym_sd[[2]],")"),
-              paste0(sym_rep_tab$post_sym[[2]]," (",sym_rep_tab$post_sym_sd[[2]],")"),
-              paste0(sym_rep_tab$delta_sym[[2]]," (",sym_rep_tab$delta_sym_sd[[2]],")")
-            )
 Scores_tab
 ```
+
+Figure 1: Pre-post Line Plot
+```{r}
+#### Redo and recreate dataset for Anxiety or depression response.
+AnxDep_response_mean<-AnxDep_PrePost_Long %>%
+  filter(!is.na(RESPONDER_FIGS)) |>
+  group_by(Test,RESPONDER_FIGS,PrePost) %>%
+  summarise(Score=mean(Score,na.rm=TRUE))
+
+ggplot(data=AnxDep_response_mean,
+       aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
+           group=Test,color=fct_rev(Test)))+
+  geom_point(size=2.5) +
+  geom_line(group=AnxDep_response_mean$PrePost,size=1.5)+
+  scale_x_discrete(name="Time Point")+
+  scale_y_continuous(name="CUDOS/CUXOS Score")+
+  ggtitle("Mean Pre and Post Scores of the Anxiety and Depression")+
+  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+  theme(panel.background=NULL)+
+  theme(legend.title = element_blank()) +
+  facet_wrap(~RESPONDER_FIGS,labeller = labeller(RESPONDER_FIGS =
+      c("1" = "Non-Responders", 
+        "2" = "Responders")
+      ))
+```
+
+
 
 ### Disorder Breakdowns
 Here are some tables displaying info on the psychiatric disorders treated at the PHP
@@ -1105,11 +1090,12 @@ Anxiety & Depression = Total response
 RCI_table <- data.frame(matrix(NA,nrow = 3,ncol = 3))
 colnames(RCI_table) = c("Varaibles","Responder","Non-Responder")
 #anxiety 
-RCI_table[1,] = c("CUXOS", unlist(summary(Mothership_post$Anxiety_Responder)))
+
+RCI_table[,1] = c("CUXOS", unlist(summary(Mothership_post$Anxiety_Responder)))
 # Depresssion
-RCI_table[2,] = c("CUDOS", unlist(summary(Mothership_post$Depression_Responder)))
-#Total
-RCI_table[3,] = c("Either", unlist(summary(Mothership_post$RESPONDER_FIGS))[2],unlist(summary(Mothership_post$RESPONDER_FIGS))[1])
+RCI_table[,2] = c("CUDOS", unlist(summary(Mothership_post$Depression_Responder)))
+# #Total
+# RCI_table[3,] = c("Either", unlist(summary(Mothership_post$RESPONDER_FIGS))[2],unlist(summary(Mothership_post$RESPONDER_FIGS))[1])
 
 RCI_table
 ```
