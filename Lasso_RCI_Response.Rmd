@@ -224,7 +224,9 @@ Mothership<-Mothership %>%
     Other = as.factor(
       ifelse(
         Somat_P == 1 | UndiffSoma_P == 1| Hypochondriasis_P ==1 |
-          Anorex_P == 1 | Bulim_P == 1 | Binge_P == 1,
+          Anorex_P == 1 | Bulim_P == 1 | Binge_P == 1 |
+            Schiz_P == 1 | Schizaff_P == 1 |
+              Alcohol_P == 1 | Drug_P ==1,
         1,0)),
     Disorder_Type = as.factor(
       ifelse(Anxiety_D == 1, "Anxiety",
@@ -380,8 +382,6 @@ Mothership<-Mothership %>%
         Co_Psychotic == 1, 1, 0))
       )
 
-summary(Mothership$Co_Anx)
-table(Mothership$Anxiety_D, Mothership$Co_Anx)
 ##### df for plots 
 
 # only include people that attend treatment & its thier first time attending
@@ -566,6 +566,7 @@ RCI_df_anx <- data.frame(RCI_df_anx)
 RCI_df_anx1<-RCI_df_anx |>
   select(ID1,pre,post)
 
+## Using RCI only (respond/nonrespond/deteriorated)
 DEP_RCI <- JTRCI (data = RCI_df_dep, 
                   pre = "pre", 
                   post = "post", 
@@ -583,7 +584,6 @@ ANX_RCI <- JTRCI (data = RCI_df_anx,
                   indextype = "RCI", 
                   #JTcrit = "auto",
                   plottitle = "JT indices for depression")
-
 RCI_DF<- ANX_RCI$data
 colnames(RCI_DF) <- paste0(colnames(RCI_DF),"_anx")
 
@@ -594,6 +594,50 @@ RCI_DF <- full_join(RCI_DF,RCI_DF2, by = c("ppid_anx" = "ppid_dep"))
 colnames(RCI_DF)[1] = "ID1"
 
 RCI_DF
+```
+
+
+```{r}
+#Using JT citeria (recovered/improved/nonresponse/deteriorated)
+
+#1. JT classification for depression
+JTRCI (data = RCI_df_dep, 
+                  pre = "pre", 
+                  post = "post", 
+                  ppid = "ID1", 
+                  reliability = .74, 
+                  indextype = "JT", 
+                  JTcrit = "auto",
+                  plottitle = "JT indices for anxiety")
+
+DEP_JT <- JTRCIdf
+
+#2. JT classification for anxiety
+JTRCI (data = RCI_df_anx, 
+                  pre = "pre", 
+                  post = "post", 
+                  ppid = "ID1", 
+                  reliability = .74, 
+                  indextype = "JT", 
+                  #JTcrit = "auto",
+                  plottitle = "JT indices for depression")
+
+ANX_JT<- JTRCIdf
+
+#3. Make combined JT table for anxiety and depression
+
+JT_DF<- ANX_JT
+
+colnames(JT_DF) <- paste0(colnames(JT_DF),"_anx")
+
+JT_DF2<- DEP_JT
+colnames(JT_DF2) <- paste0(colnames(JT_DF2),"_dep")
+
+JT_DF <- full_join(JT_DF,JT_DF2, by = c("ppid_anx" = "ppid_dep"))
+colnames(JT_DF)[1] = "ID1"
+
+JT_DF
+
 ```
 
 
@@ -639,37 +683,75 @@ Mothership_post <- Mothership_post |>
       ifelse(CUXOS_pre > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50, "Anx Unresponders", "Low Baseline"
       )))))))))))
 
+
+
 #2. Left join data from the RCI dataset into the Mothership_post df
-Mothership_post <- left_join(Mothership_post,RCI_DF, by = join_by(ID1 == ID1)) |>
+# Mothership_post <- left_join(Mothership_post,RCI_DF, by = join_by(ID1 == ID1)) |>
+#   mutate(
+#     Depression_Responder = ifelse(!is.na(class_RCI_dep), class_RCI_dep, NA),
+#     Depression_Responder = as.factor(recode(Depression_Responder,
+#                                             "1" = "2",
+#                                             "2" = "2",
+#                                             "3" = "1"
+#     )),
+#     Depression_Responder = as.factor(ifelse(!is.na(Depression_Responder), Depression_Responder, Dep_Responder)),
+#     Depression_Responder = as.factor(recode(Depression_Responder,
+#                                             "2" = "Non-Responder",
+#                                             "1" = "Responder"
+#     )),
+#     Anxiety_Responder = ifelse(!is.na(class_RCI_anx), class_RCI_anx, NA),
+#     Anxiety_Responder = as.factor(recode(Anxiety_Responder,
+#                                          "1" = "2",
+#                                          "2" = "2",
+#                                          "3" = "1"
+#     )),
+#     Anxiety_Responder = as.factor(ifelse(!is.na(Anxiety_Responder), Anxiety_Responder, Anx_Responder)),
+#     Anxiety_Responder = as.factor(recode(Anxiety_Responder,
+#                                          "2" = "Non-Responder",
+#                                          "1" = "Responder"
+#     )),
+#     RESPONDER_FIGS = as.factor(
+#       ifelse(Anxiety_Responder == "Responder" | Depression_Responder == "Responder", "Responder",
+#              ifelse(Anxiety_Responder == "Non-Responder" & Depression_Responder == "Non-Responder", "Non-Responder", NA)
+#       ))) |>
+#   filter(!is.na(RESPONDER_FIGS))
+
+Mothership_post <- left_join(Mothership_post,JT_DF, by = join_by(ID1 == ID1)) |>
   mutate(
-    Depression_Responder = ifelse(!is.na(class_RCI_dep), class_RCI_dep, NA),
+    Depression_Responder = ifelse(!is.na(class_JTRCI_dep), class_JTRCI_dep, NA),
     Depression_Responder = as.factor(recode(Depression_Responder,
                                             "1" = "2",
                                             "2" = "2",
-                                            "3" = "1"
+                                            "3" = "1",
+                                            "4" = "1",
+                                            "5" = "1"
     )),
     Depression_Responder = as.factor(ifelse(!is.na(Depression_Responder), Depression_Responder, Dep_Responder)),
     Depression_Responder = as.factor(recode(Depression_Responder,
                                             "2" = "Non-Responder",
                                             "1" = "Responder"
     )),
-    Anxiety_Responder = ifelse(!is.na(class_RCI_anx), class_RCI_anx, NA),
+    Anxiety_Responder = ifelse(!is.na(class_JTRCI_anx), class_JTRCI_anx, NA),
     Anxiety_Responder = as.factor(recode(Anxiety_Responder,
                                          "1" = "2",
                                          "2" = "2",
-                                         "3" = "1"
+                                         "3" = "1",
+                                         "4" = "1",
+                                         "5" = "1"
     )),
     Anxiety_Responder = as.factor(ifelse(!is.na(Anxiety_Responder), Anxiety_Responder, Anx_Responder)),
     Anxiety_Responder = as.factor(recode(Anxiety_Responder,
                                          "2" = "Non-Responder",
                                          "1" = "Responder"
-    )),
-    RESPONDER_FIGS = as.factor(
-      ifelse(Anxiety_Responder == "Responder" | Depression_Responder == "Responder", "Responder",
-             ifelse(Anxiety_Responder == "Non-Responder" & Depression_Responder == "Non-Responder", "Non-Responder", NA)
-      ))) |>
-  filter(!is.na(RESPONDER_FIGS))
+    ))) |>
+  filter(
+    !is.na(Anxiety_Responder),
+    !is.na(Depression_Responder)
+    )
+```
 
+
+```{r}
 #############            AnxDep_PrePost                 ##################
 
 #7. create new DF with Varaibles we want
@@ -684,13 +766,14 @@ AnxDep_PrePost <- data.frame(cbind(Mothership_post$ID1,
                                    Mothership_post$CUXOS_post,
                                    #Extra stuff?
                                    Mothership_post$Depression_Responder,
-                                   Mothership_post$Anxiety_Responder,
-                                   Mothership_post$RESPONDER_FIGS
+                                   Mothership_post$Anxiety_Responder
+                                   #Mothership_post$RESPONDER_FIGS
 )) #%>%
 #filter(!is.na(Mothership_post$Disorder_treat))
 
 colnames(AnxDep_PrePost) = c("ID1","Disorder_Type", "BL_CUDOS", "BL_CUXOS", "CUDOS_pre","CUDOS_post","CUXOS_pre","CUXOS_post","Depression_Responder",
-                             "Anxiety_Responder", "RESPONDER_FIGS")
+                             "Anxiety_Responder")
+#, "RESPONDER_FIGS")
 
 #8. Create long data frame
 
@@ -855,9 +938,6 @@ table1_gen <- print(table1_gen, formatOptions = list(big.mark = ","))
 table1_gen <-data.frame(table1_gen)
 table1_gen 
 
-
-summary(Mothership_lasso$Depression_Responder)
-
 ```
 
 ### Treatment information
@@ -885,7 +965,7 @@ Scores_tab[1,] = c(NA,"M (sd)","M (sd)","M (sd)","M (sd)","M (sd)","M (sd)",NA,N
 #3. Get statistics for variables + Assign to table
   # Anxiety - CUXOS
     #make df
-      anx_rep_tab <- Mothership_post |>
+      anx_rep_tab <- Mothership_lasso |>
         group_by(Anxiety_Responder) |>
         summarize(pre_anx = round(mean(CUXOS_pre, na.rm = TRUE),2),
                   pre_anx_sd = round(sd(CUXOS_pre, na.rm = TRUE),2),
@@ -911,7 +991,7 @@ Scores_tab[1,] = c(NA,"M (sd)","M (sd)","M (sd)","M (sd)","M (sd)","M (sd)",NA,N
         
 # Depression - CUDOS
   #Make df
-    dep_rep_tab <- Mothership_post |>
+    dep_rep_tab <- Mothership_lasso |>
       group_by(Depression_Responder) |>
       summarize(pre_dep = round( mean(CUDOS_pre, na.rm = TRUE),2),
                 pre_dep_sd = round( sd(CUDOS_pre, na.rm = TRUE),2),
@@ -940,27 +1020,51 @@ Scores_tab
 
 Figure 1: Pre-post Line Plot
 ```{r}
-#### Redo and recreate dataset for Anxiety or depression response.
-AnxDep_response_mean<-AnxDep_PrePost_Long %>%
-  filter(!is.na(RESPONDER_FIGS)) |>
-  group_by(Test,RESPONDER_FIGS,PrePost) %>%
-  summarise(Score=mean(Score,na.rm=TRUE))
+#1. Create long data frame for pre/post depression
+dep_prepost <- dep_rep_tab |>
+  pivot_longer(
+    cols = c("pre_dep", "post_dep"),
+    names_to = "PrePost",
+    values_to = "Score"
+  ) |>
+  select(Depression_Responder,PrePost,Score) |>
+  mutate(
+    Test = "CUDOS",
+    PrePost = ifelse(PrePost == "pre_dep", "Pre", "Post")
+  )
+colnames(dep_prepost)[1] = "Responder"
 
-ggplot(data=AnxDep_response_mean,
+#2. Create long data frame for pre/post anxiety
+anx_prepost <- anx_rep_tab |>
+  pivot_longer(
+    cols = c("pre_anx", "post_anx"),
+    names_to = "PrePost",
+    values_to = "Score"
+  ) |>
+  select(Anxiety_Responder,PrePost,Score) |>
+  mutate(
+    Test = "CUXOS",
+    PrePost = ifelse(PrePost == "pre_anx", "Pre", "Post"),
+  )
+colnames(anx_prepost)[1] = "Responder"
+
+#3. Combine dataset
+AnxDep_fig_response <- rbind(dep_prepost,anx_prepost)
+  
+#4. Plot pre post scores by treatment response
+ggplot(data=AnxDep_fig_response,
        aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
            group=Test,color=fct_rev(Test)))+
   geom_point(size=2.5) +
-  geom_line(group=AnxDep_response_mean$PrePost,size=1.5)+
+  geom_line(group=AnxDep_fig_response$PrePost,size=1.5)+
+  ### ADD confidience intervals??
   scale_x_discrete(name="Time Point")+
   scale_y_continuous(name="CUDOS/CUXOS Score")+
-  ggtitle("Mean Pre and Post Scores of the Anxiety and Depression")+
+  ggtitle("Mean Pre and Post Scores of Anxiety and Depression")+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   theme(legend.title = element_blank()) +
-  facet_wrap(~RESPONDER_FIGS,labeller = labeller(RESPONDER_FIGS =
-      c("1" = "Non-Responders", 
-        "2" = "Responders")
-      ))
+  facet_wrap(~Responder)
 ```
 
 
@@ -969,15 +1073,19 @@ ggplot(data=AnxDep_response_mean,
 Here are some tables displaying info on the psychiatric disorders treated at the PHP
 ```{r}
 # Disorders by treatment response
-Dis_tab <- data.frame(table1::table1(~Disorder_Type + Current_Dx | RESPONDER_FIGS, 
-                                     data = Mothership_post))
-colnames(Dis_tab) = c("Variables","Non Responder", "Responder", "Total")
-Dis_tab
+Dis_tab <- data.frame(table1::table1(~Disorder_Type + Current_Dx | Anxiety_Responder, 
+                                     data = Mothership_lasso))
+colnames(Dis_tab) = c("Variables","Anxiety Non Responder", "Anxiety Responder", "Total")
 
+Dis_tab1 <- data.frame(table1::table1(~Disorder_Type + Current_Dx | Depression_Responder, 
+                                     data = Mothership_lasso))
+colnames(Dis_tab1) = c("Variables","Depression Non Responder", "Depression Responder", "Total")
+Dis_tab <- cbind(Dis_tab1[,1:3],Dis_tab[,2:4])
+Dis_tab
 
 #Full demographic break down
 
-co_dis_tab <- Mothership_post |>
+co_dis_tab <- Mothership_lasso |>
   filter(
       !is.na(rdq_func_change),
       !is.na(rdq_pmh_change),
@@ -1000,69 +1108,44 @@ colnames(CODis_tab)[1] = c("Variables")
 CODis_tab
 ```
 
-Figure 1: Pre-post Line Plot
-```{r}
-
-AnxDep_response_mean<-AnxDep_PrePost_Long %>%
-  filter(!is.na(RESPONDER_FIGS)) |>
-  group_by(Test,RESPONDER_FIGS,PrePost) %>%
-  summarise(Score=mean(Score,na.rm=TRUE))
-
-ggplot(data=AnxDep_response_mean,
-       aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
-           group=Test,color=fct_rev(Test)))+
-  geom_point(size=2.5) +
-  geom_line(group=AnxDep_response_mean$PrePost,size=1.5)+
-  scale_x_discrete(name="Time Point")+
-  scale_y_continuous(name="CUDOS/CUXOS Score")+
-  ggtitle("Mean Pre and Post Scores of the Anxiety and Depression")+
-  theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
-  theme(panel.background=NULL)+
-  theme(legend.title = element_blank()) +
-  facet_wrap(~RESPONDER_FIGS,labeller = labeller(RESPONDER_FIGS =
-      c("1" = "Non-Responders", 
-        "2" = "Responders")
-      ))
-```
-
-- Table 3: Correlation table?
+Table 3: Correlation table?
 - supplemental table 1: Full diagnostic breakdown of sample 
   + (co-occuring by Disorder)
 ```{r}
-Vars_dep <- Mothership_post |>
-  select( c(
-    # Demographics
-    Age_1,Some_College:Married,White, #Discharge,
-    # Treatment info
-    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
-    # Disorders
-    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
-    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
-    Current_Dx,
-    # Pre-Post stuff
-    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
-    # RDQ
-    rdq_coping_change:rdq_wbs_change
-  ))
-
-str(Vars_dep)
-
-Vars_anx <- Mothership_post |>
-  select( c(
-    Anxiety_Responder,
-    # Demographics
-    Age_1,Some_College:Married,White, #Discharge,
-    # Treatment info
-    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
-    # Disorders
-    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
-    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
-    Current_Dx,
-    # Pre-Post stuff
-    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
-    # RDQ
-    rdq_coping_change:rdq_wbs_change
-  ))
+# Vars_dep <- Mothership_post |>
+#   select( c(
+#     # Demographics
+#     Age_1,Some_College:Married,White, #Discharge,
+#     # Treatment info
+#     IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
+#     # Disorders
+#     Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
+#     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
+#     Current_Dx,
+#     # Pre-Post stuff
+#     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
+#     # RDQ
+#     rdq_coping_change:rdq_wbs_change
+#   ))
+# 
+# str(Vars_dep)
+# 
+# Vars_anx <- Mothership_post |>
+#   select( c(
+#     Anxiety_Responder,
+#     # Demographics
+#     Age_1,Some_College:Married,White, #Discharge,
+#     # Treatment info
+#     IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
+#     # Disorders
+#     Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
+#     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
+#     Current_Dx,
+#     # Pre-Post stuff
+#     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
+#     # RDQ
+#     rdq_coping_change:rdq_wbs_change
+#   ))
 
 Vars_FULL <- na.omit(Vars_dep)
 
@@ -1086,20 +1169,30 @@ Anxiety & Depression = Total response
 - Figure 2 / Supplimetal 2: RCI Analysis figs 
   + Anxeity & Depression
 ```{r}
+# RCI STUFF
+# RCI_table <- data.frame(matrix(NA,nrow = 3,ncol = 3))
+# colnames(RCI_table) = c("Varaibles","Responder","Non-Responder")
+# #anxiety 
+# 
+# RCI_table[,1] = c("CUXOS", unlist(summary(Mothership_lasso$Anxiety_Responder)))
+# # Depresssion
+# RCI_table[,2] = c("CUDOS", unlist(summary(Mothership_lasso$Depression_Responder)))
+# # #Total
+# # RCI_table[3,] = c("Either", unlist(summary(Mothership_post$RESPONDER_FIGS))[2],unlist(summary(Mothership_post$RESPONDER_FIGS))[1])
+# 
+# RCI_table
 
-RCI_table <- data.frame(matrix(NA,nrow = 3,ncol = 3))
-colnames(RCI_table) = c("Varaibles","Responder","Non-Responder")
+# JT Table
+JT_table <- data.frame(matrix(NA,nrow = 2,ncol = 3))
+colnames(JT_table) = c("Varaibles","Responder","Non-Responder")
 #anxiety 
 
-RCI_table[,1] = c("CUXOS", unlist(summary(Mothership_post$Anxiety_Responder)))
+JT_table[1,] = c("CUXOS", unlist(summary(Mothership_lasso$Anxiety_Responder)))
 # Depresssion
-RCI_table[,2] = c("CUDOS", unlist(summary(Mothership_post$Depression_Responder)))
-# #Total
-# RCI_table[3,] = c("Either", unlist(summary(Mothership_post$RESPONDER_FIGS))[2],unlist(summary(Mothership_post$RESPONDER_FIGS))[1])
+JT_table[2,] = c("CUDOS", unlist(summary(Mothership_lasso$Depression_Responder)))
 
-RCI_table
+JT_table
 ```
-
 
 ## Part 3 Logistic lasso
 
@@ -1114,7 +1207,7 @@ http://www.sthda.com/english/articles/36-classification-methods-essentials/149-p
 # Depression Lasso 
 Preparing data for lasso - Anxiety
 ```{r}
-Mothership_lasso_dep <- Mothership_post |>
+Mothership_lasso_dep <- Mothership_lasso |>
     filter(
     !is.na(Some_College),
     !is.na(Female),
@@ -1131,7 +1224,8 @@ Vars_dep <- Mothership_lasso_dep |>
     # Treatment info
     IPT_track_1, Days_complete_1, Days_not_attended_1, 
     # Disorders
-    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
+    Anxiety_D, Mood_D, BPD_P,    Trauma_D, #Substance_D, Psychotic_D,  
+    Other,
     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
     Current_Dx,
     # Pre-Post stuff
@@ -1178,10 +1272,10 @@ set.seed(123)
 cv.lasso.dep <- cv.glmnet(x.dep, y.dep, alpha = 1, family = "binomial")
 
 #The exact value of lambda can be viewed as follow:
-print(paste0("This is the minimum lambda value: ", round(cv.lasso.dep$lambda.min,5)))
+print(paste0("The minimum lambda value is: ", round(cv.lasso.dep$lambda.min,5)))
 
 #This value is called lambda.1se.
-print(paste0("This is the 1 standard error lambda value: ", round(cv.lasso.dep$lambda.1se,5)))
+print(paste0("The 1 standard error lambda value is: ", round(cv.lasso.dep$lambda.1se,5)))
 
 # Fit the final model on the training data
 model.min <- glmnet(x.dep, y.dep, alpha = 1, family = "binomial",
@@ -1191,7 +1285,7 @@ coef(model.min)
 
 # Make predictions on the test data
 x.test <- model.matrix(Depression_Responder ~., test.data)[,-1]
-probabilities <- model %>% predict(newx = x.test)
+probabilities <- model.min %>% predict(newx = x.test)
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 # Model accuracy
 observed.classes <- test.data$Depression_Responder
@@ -1209,7 +1303,8 @@ Evaluating if we should use Lasso min or 1SE- Depression
 ####  Using Min
 # Final model with lambda.min
 lasso.model.min.dep <- glmnet(x.dep, y.dep, alpha = 1, family = "binomial",
-                      lambda = cv.lasso$lambda.min)
+                      lambda = cv.lasso.dep$lambda.min)
+
 
 coef(lasso.model.min.dep)
 # Make prediction on test data
@@ -1223,7 +1318,7 @@ Mean.predict.min.dep <- mean(predicted.classes == observed.classes)
 #####  using 1se
 # Final model with lambda.1se
 lasso.model.1se.dep <- glmnet(x.dep, y.dep, alpha = 1, family = "binomial",
-                      lambda = cv.lasso$lambda.1se)
+                      lambda = cv.lasso.dep$lambda.1se)
 coef(lasso.model.1se.dep)
 # Make prediction on test data
 x.test <- model.matrix(Depression_Responder ~., test.data)[,-1]
@@ -1299,9 +1394,8 @@ library(broom) # for tidy regression output
       #Outcome varaible
         Depression_Responder ~
       # predictors
-        White + Days_complete_1 + Days_not_attended_1 + Mood_D + Substance_D + 
-        Other + Anxiety_C + Mood_C + Substance_C + CUDOS_pre + CUXOS_pre + 
-        rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
+        Days_complete_1 + Days_not_attended_1 + Other + Mood_C + CUDOS_pre +  
+        CUXOS_pre + rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
       #data
         data = Vars_dep,
       # type of regression : logistic = binary / binomial
@@ -1347,6 +1441,7 @@ FP.min.dep
 ```
 1se -
 ```{r}
+
 
 ## 1se model
   glm_1se_dep <-  
@@ -1404,7 +1499,7 @@ FP.1se.dep
 # Anxiety Lasso 
 Preparing data for lasso - Anxiety
 ```{r}
-Mothership_lasso_anx <- Mothership_post |>
+Mothership_lasso_anx <- Mothership_lasso |>
     filter(
     !is.na(Some_College),
     !is.na(Female),
@@ -1421,7 +1516,8 @@ Vars_anx <- Mothership_lasso_anx |>
     # Treatment info
     IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
     # Disorders
-    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
+    Anxiety_D, Mood_D, BPD_P,    Trauma_D, #Substance_D, Psychotic_D,  
+    Other,
     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
     Current_Dx,
     # Pre-Post stuff
@@ -1432,7 +1528,6 @@ Vars_anx <- Mothership_lasso_anx |>
 
 Vars_anx <- na.omit(Vars_anx)
 
-citation("glmnet")
 ```
 
 Create test and train data - ANX
@@ -1491,7 +1586,7 @@ Evaluating if we should use Lasso min or 1SE- ANX
 ####  Using Min
 # Final model with lambda.min
 lasso.model.min.anx <- glmnet(x, y, alpha = 1, family = "binomial",
-                      lambda = cv.lasso$lambda.min)
+                      lambda = cv.lasso.anx$lambda.min)
 
 coef(lasso.model.min.anx)
 # Make prediction on test data
@@ -1505,7 +1600,7 @@ Mean.predict.min.anx <- mean(predicted.classes == observed.classes)
 #####  using 1se
 # Final model with lambda.1se
 lasso.model.1se.anx <- glmnet(x, y, alpha = 1, family = "binomial",
-                      lambda = cv.lasso$lambda.1se)
+                      lambda = cv.lasso.anx$lambda.1se)
 coef(lasso.model.1se.anx)
 # Make prediction on test data
 x.test <- model.matrix(Anxiety_Responder ~., test.data)[,-1]
@@ -1569,13 +1664,14 @@ library(broom) # for tidy regression output
       #Outcome varaible
         Anxiety_Responder ~ 
       # predictors
-        Married + White + Days_complete_1 + Days_not_attended_1 + 
-        Anxiety_D + Mood_C + Substance_C + Trauma_C +  CUDOS_pre + CUXOS_pre + 
-        rdq_coping_change + rdq_pmh_change + rdq_func_change,
+        Age_1 + Married + Days_complete_1 + Days_not_attended_1 + 
+        Anxiety_D + Trauma_D + Substance_C + BPD_Co_C +
+        rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
       #data
       data = Vars_anx, 
       # type of regression : logistic = binary / binomial
       family = "binomial")
+
 # Summary of the model
   summary.min.anx      <- summary(glm_min_anx)
 
@@ -1616,6 +1712,8 @@ FP.min.anx$p.adjusted = round(as.numeric(FP.min.anx$p.adjusted),3)
 FP.min.anx$type = c("Anxiety")
 FP.min.anx
 
+write_csv(FP.min.anx, "~/Downloads/FP.min.anx")
+
 
 ```
 1se -
@@ -1633,6 +1731,9 @@ FP.min.anx
       # type of regression : logistic = binary / binomial
       family = "binomial")
 # Summary of the model
+
+
+
   summary.1se.anx      <- summary(glm_1se_anx)
 
   tidy.summary.1se.anx <- tidy(glm_1se_anx)
@@ -1675,40 +1776,141 @@ FP.1se.anx
 
 ```{r}
 #Create order varaible in dataset to keep it the same as the regression
-FP.min.anx$order = c(rev(seq(length(FP.min.anx$Variable),1)))
-FP.min.anx
 
+FP_test <- read_csv("~/Downloads/FP.min.anx")
 
+FP_test$order = c(seq(from=2, to=length(FP.min.anx$Variable) + 1,1))
+
+FP_test <- FP_test |>
+  mutate(
+    sig = ifelse(p.adjusted <= 0.05, 16,1)
+  )
+FP_test
 ```
 
 ```{r}
-FP.min.anx |>
-  ggplot(aes(y = reorder(Variable, -order))) +
+FP_test_m <- FP_test |>
+  ggplot(aes(y = reorder(Variable, -order), color = as.factor(sig))) +
   #take away background
   theme_classic() +
   #make the forrest plot
-  geom_point(aes(x=OR), shape=10, size=2.5,show.legend = FALSE) +
-    geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
+  geom_point(aes(x=OR), shape= FP_test$sig,
+               # ifelse(FP_test$p.adjusted <= 0.05, 
+               #                        16, # colored ones for significant varaibles
+               #                        1), # uncolored ones for insignificant varaibles
+             size=4,show.legend = FALSE) +
   geom_linerange(aes(xmin=OR_low, xmax=OR_high),size = .4, show.legend = FALSE) +
-  geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.5)+
+  geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.35, show.legend = FALSE)+
+  scale_color_manual(values = c("darkgrey","red"))+
   #change x axis name
   labs(
     x="Odds Ratio",
-    # title = "Odds of Reporting Medical Conditions",
-    # subtitle = "Based Upon Probable TBI/concussion") +
-       ) 
+    title = "Odds of Anxiety Treatment Non-Response",
+    subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
   #adjust the dimentions. 
-  #coord_cartesian(ylim = c(1,length(FP.min.anx$Variable))) +
-  #add a line at 0 for reference 
-    
+  coord_cartesian(ylim = c(1,length(FP_test$Variable) + 1)) +
+  #add a line at 1 for reference 
+   geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
   #add anotations to help suggests what each side means.
-  # annotate("text", x = .5, y = 14, label = "Less Likely", size= 3) +
-  # annotate("text", x = 1.5, y = 14, label = "More Likely",size= 3) +
+  annotate("text", x = .8, y = length(FP_test$Variable) + 1, label = "Less Likely", size= 3) +
+  annotate("text", x = 1.2, y = length(FP_test$Variable) + 1, label = "More Likely",size= 3) +
   #Git rid of the Y - Axis
     theme(axis.line.y = element_blank(),
         axis.ticks.y= element_blank(),
         axis.text.y= element_blank(),
         axis.title.y= element_blank())
+
+FP_test_m
+```
+
+
+```{r}
+FP_test <- FP_test |>
+  # round estimates and 95% CIs to 2 decimal places for journal specifications
+  mutate(across(
+    c(OR, OR_low, OR_high),
+    ~ str_pad(
+      round(.x, 2),
+      width = 4,
+      pad = "0",
+      side = "right"
+    )
+  ),
+  # add an "-" between HR estimate confidence intervals
+  estimate_lab = paste0(OR, " (", OR_low, "-", OR_high, ")")) |>
+  # round p-values to two decimal places, except in cases where p < .001
+  mutate(p.adjusted_fig = case_when(
+    p.adjusted < .001 ~ "<0.001",
+    round(p.adjusted, 2) == .05 ~ as.character(round(p.adjusted,3)),
+    p.adjusted < .01 ~ str_pad( # if less than .01, go one more decimal place
+      as.character(round(p.adjusted, 3)),
+      width = 4,
+      pad = "0",
+      side = "right"
+    ),
+    TRUE ~ str_pad( # otherwise just round to 2 decimal places and pad string so that .2 reads as 0.20
+      as.character(round(p.adjusted, 2)),
+      width = 4,
+      pad = "0",
+      side = "right"
+    )
+  )) |>
+  # add a row of data that are actually column names which will be shown on the plot in the next step
+  bind_rows(
+    data.frame(
+      Variable = "Variable",
+      estimate_lab = "Odd Ratio (95% CI)",
+      OR_low = "",
+      OR_high = "",
+      p.adjusted_fig = "p value"
+    )
+  ) 
+
+FP_test[14,8] = 1
+FP_test
+```
+
+
+```{r}
+#arange the labels on top
+      FP_test<-mutate(FP_test, top_row = 0)
+      FP_test[14,12] = 1
+      FP_test <- arrange(FP_test,order)
+FP_test
+    # plot the left side of the plot 
+      FP_test_L <- FP_test %>% 
+        ggplot(aes(y = reorder(Variable, -order))) +
+        geom_text(aes(x = 0, label = Variable), hjust = 0, fontface = "bold")+
+        geom_text(aes(x = 1, label = estimate_lab),
+        hjust = 0,
+        fontface = ifelse(FP_test$estimate_lab == "Odds Ratio (95% CI)", "bold","plain")) +
+        theme_void() +
+        coord_cartesian(ylim = c(1,length(FP_test$Variable) + 1), xlim = c(0, 4))
+
+FP_test_L
+
+FP_test_R <-  
+      FP_test |>
+      ggplot() +
+        geom_text(aes(x = 0, y = reorder(Variable, -order), label = p.adjusted_fig), hjust = 0,
+        fontface = ifelse(FP_test$p.adjusted_fig == "p value", "bold", "plain")) +
+        theme_void() +
+        coord_cartesian(ylim = c(1,length(FP_test$Variable) + 1))
+        
+FP_test
+```
+
+
+```{r}
+library("patchwork")
+
+layout <- c(
+  patchwork::area(t = 0, l = 0, b = 30, r = 25),
+  patchwork::area(t = 0, l = 14, b = 30, r = 25),
+  patchwork::area(t = 0, l = 23, b = 30, r = 30) 
+  )
+
+FP_test_L + FP_test_m + FP_test_R + plot_layout(design = layout)
 
 ```
 
