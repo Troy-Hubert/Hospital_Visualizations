@@ -809,28 +809,6 @@ AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
     + I want to show the figure of pre-post change???
 - Table 4: demographic breakdown
 ```{r}
-# #Demographics Table
-# Demo_tab_df <- Mothership_post |>
-#   #Mothership_Diag_treat |>
-#   filter(!is.na(Education_1),
-#          !is.na(Race_1),
-#          !is.na(Gender_1),
-#          !is.na(Disorder_Type),
-#          !is.na(Relationship_1),
-#          !is.na(RESPONDER_FIGS)
-#         )
-
-# #Demographic tab
-# Demo_tab<-data.frame(table1::table1(~Age_1+Race_1+Education_1+Gender_1+Relationship_1 | RESPONDER_FIGS, data=Demo_tab_df))
-# colnames(Demo_tab) <- c("Demographic","Non-Responder", "Responder","Total Sample")
-# Demo_tab
-# 
-# Simple_Demo_tab <-data.frame(table1::table1(~Age_1 + White +IPT_track_1 + Straight + Married + Female +  Some_College + Discharge | RESPONDER_FIGS, data=Demo_tab_df))
-# colnames(Simple_Demo_tab) <- c("Demographic","Non-Responder", "Responder","Total Sample")
-# Simple_Demo_tab
-# 
-# Table
-
 Mothership_lasso <- Mothership_post |>
     filter(
     !is.na(Some_College),
@@ -841,66 +819,53 @@ Mothership_lasso <- Mothership_post |>
     !is.na(Depression_Responder),
     CUXOS_pre >= 20,
     CUDOS_pre >= 20
-  )
-
-
-
-Vars_anx <- Mothership_lasso |>
+  ) |>
   select( c(
-    Anxiety_Responder,
+    Anxiety_Responder, Depression_Responder,
     # Demographics
     Age_1,Some_College:Married,White, #Discharge,
     # Treatment info
     IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
     # Disorders
-    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
+    Anxiety_D, Mood_D, BPD_P, Trauma_D, 
     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
     Current_Dx,
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
-    rdqPOST_coping:rdqPOST_wbs
+    rdqPOST_coping:rdqPOST_wbs,
+    #For table 3 - RCI info
+    CUXOS_pre, CUXOS_post, Delta_Anx_DC, CUDOS_pre, CUDOS_post, Delta_Dep_DC
   ))
 
-# Mothership_lasso_dep <- Mothership_post |>
-#     filter(
-#     !is.na(Some_College),
-#     !is.na(Female),
-#     !is.na(IPT_track_1),
-#     !is.na(White),
-#     !is.na(Depression_Responder),
-#     CUXOS_pre >= 20,
-#     CUDOS_pre >= 20
-#   )
 
+Mothership_lasso <- na.omit(Mothership_lasso)
 
+summary(Mothership_lasso$Anxiety_Responder)
 
-Vars_dep <- Mothership_lasso |>
-  select( c(
-    Depression_Responder,
-    # Demographics
-    Age_1,Some_College:Married,White, 
-    # Treatment info
-    IPT_track_1, Days_complete_1, Days_not_attended_1, 
-    # Disorders
-    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
-    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
-    Current_Dx,
-    # Pre-Post stuff
-    CUDOS_pre,CUXOS_pre,
-    # RDQ
-    rdqPOST_coping:rdqPOST_wbs
-  ))
-
-Vars_anx <- na.omit(Vars_anx)
-Vars_dep <- na.omit(Vars_dep)
+# Vars_dep <- Mothership_lasso |>
+#   select( c(
+#     Depression_Responder,
+#     # Demographics
+#     Age_1,Some_College:Married,White, 
+#     # Treatment info
+#     IPT_track_1, Days_complete_1, Days_not_attended_1, 
+#     # Disorders
+#     Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
+#     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
+#     Current_Dx,
+#     # Pre-Post stuff
+#     CUDOS_pre,CUXOS_pre,
+#     # RDQ
+#     rdqPOST_coping:rdqPOST_wbs
+#   ))
 
 library(tableone)
 
 ### first gather information based upon anxiety
 
 ## Vector of variables to summarize
-table1_vars_anx <- c(colnames(Vars_anx)[-1])
+table1_vars_anx <- c(colnames(Mothership_lasso)[-1])
 
 ## Vector of categorical variables that need transformation
 catVars <- c("Some_College", "Female" , "Married", "White",
@@ -911,8 +876,9 @@ catVars <- c("Some_College", "Female" , "Married", "White",
 ## Create a TableOne object
 table1_tab_anx <- CreateTableOne(vars = table1_vars_anx, data = Vars_anx,strata ="Anxiety_Responder",  factorVars = catVars)
 table1_tab_anx <- print(table1_tab_anx, formatOptions = list(big.mark = ","))
-tab1_df_anx <- data.frame(table1_tab_anx)
-tab1_df_anx
+table1_tab_anx <- data.frame(table1_tab_anx)
+write_csv(table1_tab_anx,"~/Downloads/table1_tab_anx.csv")
+table1_tab_anx
 ### next gather info based upon depression
 
 ## Vector of variables to summarize
@@ -920,7 +886,7 @@ table1_vars_dep <- c(colnames(Vars_dep)[-1])
 
 ## Vector of categorical variables that need transformation
 catVars <- c("Some_College", "Female" , "Married", "White",
-             "IPT_track_1","Anxiety_D", "Mood_D", "BPD_P" ,"Trauma_D", "Substance_D" ,        
+             "IPT_track_1","Anxiety_D", "Mood_D", "BPD_P" ,"Trauma_D",        
              "Psychotic_D", "Other", "Anxiety_C", "Mood_C" , "BPD_Co_C", "Trauma_C", 
              "Substance_C", "Other_C" , "No_Co"
              )
@@ -928,12 +894,14 @@ catVars <- c("Some_College", "Female" , "Married", "White",
 table1_tab_dep <- CreateTableOne(vars = table1_vars_dep, data = Vars_dep,strata ="Depression_Responder",  factorVars = catVars)
 table1_tab_dep <- print(table1_tab_dep, formatOptions = list(big.mark = ","))
 table1_tab_dep <-data.frame(table1_tab_dep)
-table1_tab_dep 
+write_csv(table1_tab_dep,"~/Downloads/table1_tab_dep.csv")
+table1_tab_dep
 
 ## lastly get the overal treatment breakdown
 table1_gen <- CreateTableOne(vars = table1_vars_dep, data = Mothership_lasso,  factorVars = catVars)
 table1_gen <- print(table1_gen, formatOptions = list(big.mark = ","))
 table1_gen <-data.frame(table1_gen)
+write_csv(table1_gen,"~/Downloads/table1_gen.csv")
 table1_gen 
 
 ```
@@ -1185,9 +1153,9 @@ JT_table <- data.frame(matrix(NA,nrow = 2,ncol = 3))
 colnames(JT_table) = c("Varaibles","Responder","Non-Responder")
 #anxiety 
 
-JT_table[1,] = c("CUXOS", unlist(summary(Mothership_lasso$Anxiety_Responder)))
+JT_table[1,] = c("CUXOS", unlist(summary(Vars_anx$Anxiety_Responder)))
 # Depresssion
-JT_table[2,] = c("CUDOS", unlist(summary(Mothership_lasso$Depression_Responder)))
+JT_table[2,] = c("CUDOS", unlist(summary(Vars_dep$Depression_Responder)))
 
 JT_table
 ```
@@ -1232,14 +1200,14 @@ Vars_dep <- Mothership_lasso_dep |>
     rdqPOST_coping:rdqPOST_wbs
   ))
 
+summary(Vars_dep$Depression_Responder)
+
 # old model
 # Anxiety_D, Mood_D, BPD_P,    Trauma_D,  Other,
 #     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
 #     Current_Dx,
 
 Vars_dep <- na.omit(Vars_dep)
-
-
 ```
 
 Create test and train data - Depression
