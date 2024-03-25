@@ -226,7 +226,7 @@ Mothership<-Mothership %>%
         Somat_P == 1 | UndiffSoma_P == 1| Hypochondriasis_P ==1 |
           Anorex_P == 1 | Bulim_P == 1 | Binge_P == 1 |
             Schiz_P == 1 | Schizaff_P == 1 |
-              Alcohol_P == 1 | Drug_P ==1,
+            Alcohol_P == 1 | Drug_P ==1,
         1,0)),
     Disorder_Type = as.factor(
       ifelse(Anxiety_D == 1, "Anxiety",
@@ -243,8 +243,6 @@ Mothership<-Mothership %>%
              ifelse(BPD_P == 1, "BPD",
                     ifelse(Trauma_D == 1, "Trauma",
                            ifelse(Mood_D == 1, "Mood",
-                                  #ifelse(OCD_P == 1, "Anxiety",
-                                     #felse(OCD_P == 1, "Other",
                                          ifelse(Substance_D == 1, "Other",
                                                 ifelse(Psychotic_D == 1, "Other", 
                                                        ifelse(Eating_D == 1, "Other",
@@ -922,7 +920,7 @@ table1_vars_dep <- c(colnames(Vars_dep)[-1])
 
 ## Vector of categorical variables that need transformation
 catVars <- c("Some_College", "Female" , "Married", "White",
-             "IPT_track_1","Anxiety_D", "Mood_D", "BPD_P" ,"Trauma_D","Substance_D" ,        
+             "IPT_track_1","Anxiety_D", "Mood_D", "BPD_P" ,"Trauma_D", "Substance_D" ,        
              "Psychotic_D", "Other", "Anxiety_C", "Mood_C" , "BPD_Co_C", "Trauma_C", 
              "Substance_C", "Other_C" , "No_Co"
              )
@@ -1205,7 +1203,7 @@ https://github.com/sydeaka/Using-Elastic-net-for-model-Selection-with-missing-da
 http://www.sthda.com/english/articles/36-classification-methods-essentials/149-penalized-logistic-regression-essentials-in-r-ridge-lasso-and-elastic-net/
 
 # Depression Lasso 
-Preparing data for lasso - Anxiety
+Preparing data for lasso - depression
 ```{r}
 Mothership_lasso_dep <- Mothership_lasso |>
     filter(
@@ -1224,8 +1222,8 @@ Vars_dep <- Mothership_lasso_dep |>
     # Treatment info
     IPT_track_1, Days_complete_1, Days_not_attended_1, 
     # Disorders
-    Anxiety_D, Mood_D, BPD_P,    Trauma_D, #Substance_D, Psychotic_D,  
-    Other,
+    Anxiety_D, Mood_D, BPD_P,    Trauma_D, #Substance_D, #Psychotic_D,  
+    #Other,
     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
     Current_Dx,
     # Pre-Post stuff
@@ -1280,8 +1278,6 @@ print(paste0("The 1 standard error lambda value is: ", round(cv.lasso.dep$lambda
 # Fit the final model on the training data
 model.min <- glmnet(x.dep, y.dep, alpha = 1, family = "binomial",
                 lambda = cv.lasso.dep$lambda.min)
-# Display regression coefficients
-coef(model.min)
 
 # Make predictions on the test data
 x.test <- model.matrix(Depression_Responder ~., test.data)[,-1]
@@ -1370,36 +1366,52 @@ Minimum-
 ## install.packages("fuzzySim")
 library(fuzzySim) ## For FDR adjusted p values
 library(broom) # for tidy regression output
-# Old model
-# ## min model
-#   glm_min_dep <-  
-#       glm(
-#       #Outcome varaible
-#         Depression_Responder ~ 
-#       # predictors
-#         Married + Days_not_attended_1 + Mood_D + Anxiety_C + Substance_C +
-#         CUDOS_pre + CUXOS_pre + rdq_coping_change + rdq_pmh_change + 
-#         rdq_func_change,
-#       #data
-#       data = Vars_dep, 
-#       # type of regression : logistic = binary / binomial
-#       family = "binomial")
 ```
 
 
 ```{r}
 ## min model
   glm_min_dep <-
-      glm(
+            glm(
       #Outcome varaible
         Depression_Responder ~
       # predictors
-        Days_complete_1 + Days_not_attended_1 + Other + Mood_C + CUDOS_pre +  
+        Days_complete_1 + Days_not_attended_1 + Mood_C + CUDOS_pre +
         CUXOS_pre + rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
       #data
         data = Vars_dep,
       # type of regression : logistic = binary / binomial
         family = "binomial")
+
+
+####### JT - substance disorder seperate    
+  # glm(
+  #     #Outcome varaible
+  #       Depression_Responder ~
+  #     # predictors
+  #       Age_1 + Some_College + Married + White + Days_complete_1 +  
+  #       Mood_D + Substance_D + Mood_C + Substance_C + CUDOS_pre + 
+  #       CUXOS_pre + rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
+  #     #data
+  #       data = Vars_dep,
+  #     # type of regression : logistic = binary / binomial
+  #       family = "binomial")
+
+
+###### JT + substance in other
+      # glm(
+      # #Outcome varaible
+      #   Depression_Responder ~
+      # # predictors
+      #   Days_complete_1 + Days_not_attended_1 + Other + Mood_C + CUDOS_pre +
+      #   CUXOS_pre + rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
+      # #data
+      #   data = Vars_dep,
+      # # type of regression : logistic = binary / binomial
+      #   family = "binomial")
+##############
+
+
 
 # Summary of the model
   summary.min.dep      <- summary(glm_min_dep)
@@ -1416,12 +1428,13 @@ library(broom) # for tidy regression output
 # OR 95% CI
   CI.min.dep <- data.frame(exp(confint(glm_min_dep)))
   
+  
 # P values
   p.values.min.dep <- data.frame(cbind(tidy.summary.min.dep$term,tidy.summary.min.dep$p.value))
   # FDR Adjusted P Values
     adj.p.min.dep <- FDR(pvalues = p.values.min.dep)
     ADJ.p.values.min.dep <- data.frame(rbind(adj.p.min.dep$exclude, adj.p.min.dep$select))
-
+    
 # R^2 values  
    R2.min.dep <- performance::r2(glm_min_dep)
 
@@ -1436,8 +1449,15 @@ FP.min.dep <- data.frame(cbind(
 
 # Left join the FDR adjusted p.value
 FP.min.dep <- left_join(FP.min.dep,ADJ.p.values.min.dep, by = join_by(p.values == p.value))
+FP.min.dep$OR = round(as.numeric(FP.min.dep$OR),3)
+FP.min.dep$OR_low = round(as.numeric(FP.min.dep$OR_low),3)
+FP.min.dep$OR_high = round(as.numeric(FP.min.dep$OR_high),3)
+FP.min.dep$p.values = round(as.numeric(FP.min.dep$p.values),3)
+FP.min.dep$p.adjusted = round(as.numeric(FP.min.dep$p.adjusted),3)
 FP.min.dep$type = c("Depression")
 FP.min.dep
+
+write_csv(FP.min.dep, "~/Downloads/FP.min.dep")
 ```
 1se -
 ```{r}
@@ -1512,12 +1532,11 @@ Vars_anx <- Mothership_lasso_anx |>
   select( c(
     Anxiety_Responder,
     # Demographics
-    Age_1,Some_College:Married,White, #Discharge,
+    Age_1,Some_College:Married,White, 
     # Treatment info
-    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
+    IPT_track_1, Days_complete_1, Days_not_attended_1, 
     # Disorders
-    Anxiety_D, Mood_D, BPD_P,    Trauma_D, #Substance_D, Psychotic_D,  
-    Other,
+    Anxiety_D, Mood_D, BPD_P,    Trauma_D, 
     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
     Current_Dx,
     # Pre-Post stuff
@@ -1664,14 +1683,28 @@ library(broom) # for tidy regression output
       #Outcome varaible
         Anxiety_Responder ~ 
       # predictors
-        Age_1 + Married + Days_complete_1 + Days_not_attended_1 + 
-        Anxiety_D + Trauma_D + Substance_C + BPD_Co_C +
+        Age_1 + Married + Days_complete_1 + Days_not_attended_1 +
+        Anxiety_D + Trauma_D +  BPD_Co_C + 
         rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
       #data
       data = Vars_anx, 
       # type of regression : logistic = binary / binomial
       family = "binomial")
+  
 
+####### JT - wo/Substance_D
+  # glm_min_anx <-  
+  #     glm(
+  #     #Outcome varaible
+  #       Anxiety_Responder ~ 
+  #     # predictors
+  #       Age_1 + Married + Days_complete_1 + Days_not_attended_1 + 
+  #       Anxiety_D + Trauma_D + BPD_Co_C +
+  #       rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
+  #     #data
+  #     data = Vars_anx, 
+  #     # type of regression : logistic = binary / binomial
+  #     family = "binomial")
 # Summary of the model
   summary.min.anx      <- summary(glm_min_anx)
 
@@ -1705,7 +1738,7 @@ FP.min.anx <- data.frame(cbind(
                     ))
 
 
-# Left join the FDR adjusted p.value
+# Left join the FDR adjusted p.value and round
 FP.min.anx <- left_join(FP.min.anx,ADJ.p.values.min.anx, by = join_by(p.values == p.value))
 FP.min.anx$p.values = round(as.numeric(FP.min.anx$p.values),3)
 FP.min.anx$p.adjusted = round(as.numeric(FP.min.anx$p.adjusted),3)
@@ -1731,8 +1764,6 @@ write_csv(FP.min.anx, "~/Downloads/FP.min.anx")
       # type of regression : logistic = binary / binomial
       family = "binomial")
 # Summary of the model
-
-
 
   summary.1se.anx      <- summary(glm_1se_anx)
 
@@ -1774,28 +1805,38 @@ FP.1se.anx
 
 # Forrest Plot 
 
+Anxiety Plot
 ```{r}
 #Create order varaible in dataset to keep it the same as the regression
 
-FP_test <- read_csv("~/Downloads/FP.min.anx")
+FP_anx <- read_csv("~/Downloads/FP.min.anx")
 
-FP_test$order = c(seq(from=2, to=length(FP.min.anx$Variable) + 1,1))
+#Change the names of variables
+FP_anx$Variable
 
-FP_test <- FP_test |>
+
+FP_anx$order = c(seq(from=2, to=length(FP_anx$Variable) + 1,1))
+
+FP_anx <- FP_anx |>
   mutate(
     sig = ifelse(p.adjusted <= 0.05, 16,1)
   )
-FP_test
-```
+FP_anx
 
-```{r}
-FP_test_m <- FP_test |>
+FP_anx$Variable = c(
+                    "Age", "Married", "Days Completed", "Days Not Attended", 
+                    "Anxiety Disorder", "Trauma Disorder", "Co-Occuring BPD",
+                    "Coping Ability", "Positive Mental Health", "Functioning", 
+                    "Sense of Well Being"
+                    )
+
+FP_anx_m <- FP_anx |>
   ggplot(aes(y = reorder(Variable, -order), color = as.factor(sig))) +
   #take away background
   theme_classic() +
   #make the forrest plot
-  geom_point(aes(x=OR), shape= FP_test$sig,
-               # ifelse(FP_test$p.adjusted <= 0.05, 
+  geom_point(aes(x=OR), shape= FP_anx$sig,
+               # ifelse(FP_anx$p.adjusted <= 0.05, 
                #                        16, # colored ones for significant varaibles
                #                        1), # uncolored ones for insignificant varaibles
              size=4,show.legend = FALSE) +
@@ -1804,28 +1845,25 @@ FP_test_m <- FP_test |>
   scale_color_manual(values = c("darkgrey","red"))+
   #change x axis name
   labs(
-    x="Odds Ratio",
-    title = "Odds of Anxiety Treatment Non-Response",
-    subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
+    x="Odds Ratio") +
+    # title = "Odds of Anxiety Treatment Non-Response",
+    # subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
   #adjust the dimentions. 
-  coord_cartesian(ylim = c(1,length(FP_test$Variable) + 1)) +
+  coord_cartesian(ylim = c(1,length(FP_anx$Variable) + 1)) +
   #add a line at 1 for reference 
    geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
   #add anotations to help suggests what each side means.
-  annotate("text", x = .8, y = length(FP_test$Variable) + 1, label = "Less Likely", size= 3) +
-  annotate("text", x = 1.2, y = length(FP_test$Variable) + 1, label = "More Likely",size= 3) +
+  annotate("text", x = .75, y = length(FP_anx$Variable) + 1, label = "Less Likely", size= 3) +
+  annotate("text", x = 1.25, y = length(FP_anx$Variable) + 1, label = "More Likely",size= 3) +
   #Git rid of the Y - Axis
     theme(axis.line.y = element_blank(),
         axis.ticks.y= element_blank(),
         axis.text.y= element_blank(),
         axis.title.y= element_blank())
 
-FP_test_m
-```
+FP_anx_m
 
-
-```{r}
-FP_test <- FP_test |>
+FP_anx <- FP_anx |>
   # round estimates and 95% CIs to 2 decimal places for journal specifications
   mutate(across(
     c(OR, OR_low, OR_high),
@@ -1859,61 +1897,190 @@ FP_test <- FP_test |>
   bind_rows(
     data.frame(
       Variable = "Variable",
-      estimate_lab = "Odd Ratio (95% CI)",
+      estimate_lab = "Odds Ratio (95% CI)",
       OR_low = "",
       OR_high = "",
       p.adjusted_fig = "p value"
     )
   ) 
 
-FP_test[14,8] = 1
-FP_test
-```
+FP_anx[length(FP_anx$Variable),8] = 1
+FP_anx
 
-
-```{r}
 #arange the labels on top
-      FP_test<-mutate(FP_test, top_row = 0)
-      FP_test[14,12] = 1
-      FP_test <- arrange(FP_test,order)
-FP_test
+      FP_anx<-mutate(FP_anx, top_row = 0)
+      FP_anx[length(FP_anx$Variable),12] = 1
+      FP_anx <- arrange(FP_anx,order)
+FP_anx
     # plot the left side of the plot 
-      FP_test_L <- FP_test %>% 
+      FP_anx_L <- FP_anx %>% 
         ggplot(aes(y = reorder(Variable, -order))) +
         geom_text(aes(x = 0, label = Variable), hjust = 0, fontface = "bold")+
         geom_text(aes(x = 1, label = estimate_lab),
         hjust = 0,
-        fontface = ifelse(FP_test$estimate_lab == "Odds Ratio (95% CI)", "bold","plain")) +
+        fontface = ifelse(FP_anx$estimate_lab == "Odds Ratio (95% CI)", "bold","plain")) +
         theme_void() +
-        coord_cartesian(ylim = c(1,length(FP_test$Variable) + 1), xlim = c(0, 4))
+        coord_cartesian(ylim = c(1,length(FP_anx$Variable)), xlim = c(0, 4))
 
-FP_test_L
+FP_anx_L
 
-FP_test_R <-  
-      FP_test |>
+FP_anx_R <-  
+      FP_anx |>
       ggplot() +
         geom_text(aes(x = 0, y = reorder(Variable, -order), label = p.adjusted_fig), hjust = 0,
-        fontface = ifelse(FP_test$p.adjusted_fig == "p value", "bold", "plain")) +
+        fontface = ifelse(FP_anx$p.adjusted_fig == "p value", "bold", "plain")) +
         theme_void() +
-        coord_cartesian(ylim = c(1,length(FP_test$Variable) + 1))
+        coord_cartesian(ylim = c(1,length(FP_anx$Variable)))
         
-FP_test
-```
+FP_anx
 
-
-```{r}
 library("patchwork")
 
 layout <- c(
-  patchwork::area(t = 0, l = 0, b = 30, r = 25),
-  patchwork::area(t = 0, l = 14, b = 30, r = 25),
-  patchwork::area(t = 0, l = 23, b = 30, r = 30) 
+  patchwork::area(t = 0, l = 0, b = 30, r = 30),
+  patchwork::area(t = 0, l = 15, b = 30, r = 25),
+  patchwork::area(t = 0, l = 22, b = 30, r = 30) 
   )
 
-FP_test_L + FP_test_m + FP_test_R + plot_layout(design = layout)
+FP_anx_L + FP_anx_m + FP_anx_R + plot_layout(design = layout)
 
 ```
+## Depression Plot
+```{r}
+#Create order varaible in dataset to keep it the same as the regression
 
+FP_dep <- read_csv("~/Downloads/FP.min.dep")
+
+#rename the variables for the figure
+FP_dep$Variable = c(
+                    "Days Completed", "Days Not Attended", 
+                    "Co-Ocurring Mood Disorder", "CUXOS Pre-Score", "CUDOS Pre-Score",
+                    "Coping Ability", "Positive Mental Health", "Functioning", 
+                    "Sense of Well Being"
+                    )
+
+FP_dep$order = c(seq(from=2, to=length(FP_dep$Variable) + 1,1))
+
+FP_dep <- FP_dep |>
+  mutate(
+    sig = ifelse(p.adjusted <= 0.05, 16,1)
+  )
+FP_dep
+
+FP_dep_m <- FP_dep |>
+  ggplot(aes(y = reorder(Variable, -order), color = as.factor(sig))) +
+  #take away background
+  theme_classic() +
+  #make the forrest plot
+  geom_point(aes(x=OR), shape= FP_dep$sig,
+               # ifelse(FP_dep$p.adjusted <= 0.05, 
+               #                        16, # colored ones for significant varaibles
+               #                        1), # uncolored ones for insignificant varaibles
+             size=4,show.legend = FALSE) +
+  geom_linerange(aes(xmin=OR_low, xmax=OR_high),size = .4, show.legend = FALSE) +
+  geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.35, show.legend = FALSE)+
+  scale_color_manual(values = c("darkgrey","blue"))+
+  #change x axis name
+  labs(
+    x="Odds Ratio") +
+    # title = "Odds of Anxiety Treatment Non-Response",
+    # subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
+  #adjust the dimentions. 
+  coord_cartesian(ylim = c(1,length(FP_dep$Variable) + 1)) +
+  #add a line at 1 for reference 
+   geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
+  #add anotations to help suggests what each side means.
+  annotate("text", x = .8, y = length(FP_dep$Variable) + 1, label = "Less Likely", size= 4) +
+  annotate("text", x = 1.2, y = length(FP_dep$Variable) + 1, label = "More Likely",size= 4) +
+  #Git rid of the Y - Axis
+    theme(axis.line.y = element_blank(),
+        axis.ticks.y= element_blank(),
+        axis.text.y= element_blank(),
+        axis.title.y= element_blank())
+
+FP_dep_m
+
+FP_dep <- FP_dep |>
+  # round estimates and 95% CIs to 2 decimal places for journal specifications
+  mutate(across(
+    c(OR, OR_low, OR_high),
+    ~ str_pad(
+      round(.x, 2),
+      width = 4,
+      pad = "0",
+      side = "right"
+    )
+  ),
+  # add an "-" between HR estimate confidence intervals
+  estimate_lab = paste0(OR, " (", OR_low, "-", OR_high, ")")) |>
+  # round p-values to two decimal places, except in cases where p < .001
+  mutate(p.adjusted_fig = case_when(
+    p.adjusted < .001 ~ "<0.001",
+    round(p.adjusted, 2) == .05 ~ as.character(round(p.adjusted,3)),
+    p.adjusted < .01 ~ str_pad( # if less than .01, go one more decimal place
+      as.character(round(p.adjusted, 3)),
+      width = 4,
+      pad = "0",
+      side = "right"
+    ),
+    TRUE ~ str_pad( # otherwise just round to 2 decimal places and pad string so that .2 reads as 0.20
+      as.character(round(p.adjusted, 2)),
+      width = 4,
+      pad = "0",
+      side = "right"
+    )
+  )) |>
+  # add a row of data that are actually column names which will be shown on the plot in the next step
+  bind_rows(
+    data.frame(
+      Variable = "Variable",
+      estimate_lab = "Odds Ratio (95% CI)",
+      OR_low = "",
+      OR_high = "",
+      p.adjusted_fig = "p value"
+    )
+  ) 
+
+FP_dep[length(FP_dep$Variable),8] = 1
+FP_dep
+
+#arange the labels on top
+      FP_dep<-mutate(FP_dep, top_row = 0)
+      FP_dep[length(FP_dep$Variable),12] = 1
+      FP_dep <- arrange(FP_dep,order)
+FP_dep
+    # plot the left side of the plot 
+      FP_dep_L <- FP_dep %>% 
+        ggplot(aes(y = reorder(Variable, -order))) +
+        geom_text(aes(x = 0, label = Variable), hjust = 0, fontface = "bold")+
+        geom_text(aes(x = 1, label = estimate_lab),
+        hjust = 0,
+        fontface = ifelse(FP_dep$estimate_lab == "Odds Ratio (95% CI)", "bold","plain")) +
+        theme_void() +
+        coord_cartesian(ylim = c(1,length(FP_dep$Variable)), xlim = c(0, 4))
+
+FP_dep_L
+
+FP_dep_R <-  
+      FP_dep |>
+      ggplot() +
+        geom_text(aes(x = 0, y = reorder(Variable, -order), label = p.adjusted_fig), hjust = 0,
+        fontface = ifelse(FP_dep$p.adjusted_fig == "p value", "bold", "plain")) +
+        theme_void() +
+        coord_cartesian(ylim = c(1,length(FP_dep$Variable)))
+        
+FP_dep
+
+library("patchwork")
+
+layout <- c(
+  patchwork::area(t = 0, l = 0, b = 30, r = 30),
+  patchwork::area(t = 0, l = 15, b = 30, r = 25),
+  patchwork::area(t = 0, l = 22, b = 30, r = 30) 
+  )
+
+FP_dep_L + FP_dep_m + FP_dep_R + plot_layout(design = layout)
+```
 
 
 
