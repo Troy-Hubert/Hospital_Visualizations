@@ -634,7 +634,7 @@ colnames(JT_DF2) <- paste0(colnames(JT_DF2),"_dep")
 JT_DF <- full_join(JT_DF,JT_DF2, by = c("ppid_anx" = "ppid_dep"))
 colnames(JT_DF)[1] = "ID1"
 
-JT_DF
+View(JT_DF)
 
 ```
 
@@ -713,10 +713,49 @@ Mothership_post <- Mothership_post |>
 #              ifelse(Anxiety_Responder == "Non-Responder" & Depression_Responder == "Non-Responder", "Non-Responder", NA)
 #       ))) |>
 #   filter(!is.na(RESPONDER_FIGS))
+```
 
-Mothership_post <- left_join(Mothership_post,JT_DF, by = join_by(ID1 == ID1)) |>
+JT Numbers
+```{r}
+# Mothership_post <- left_join(Mothership_post,JT_DF, by = join_by(ID1 == ID1)) |>
+#   mutate(
+#     Depression_Responder = ifelse(!is.na(class_JTRCI_dep), class_JTRCI_dep, NA),
+#     Depression_Responder = as.factor(recode(Depression_Responder,
+#                                             "1" = "2",
+#                                             "2" = "2",
+#                                             "3" = "1",
+#                                             "4" = "1",
+#                                             "5" = "1"
+#     )),
+#     Depression_Responder = as.factor(ifelse(!is.na(Depression_Responder), Depression_Responder, Dep_Responder)),
+#     Depression_Responder = as.factor(recode(Depression_Responder,
+#                                             "2" = "Non-Responder",
+#                                             "1" = "Responder"
+#     )),
+#     Anxiety_Responder = ifelse(!is.na(class_JTRCI_anx), class_JTRCI_anx, NA),
+#     Anxiety_Responder = as.factor(recode(Anxiety_Responder,
+#                                          "1" = "2",
+#                                          "2" = "2",
+#                                          "3" = "1",
+#                                          "4" = "1",
+#                                          "5" = "1"
+#     )),
+#     Anxiety_Responder = as.factor(ifelse(!is.na(Anxiety_Responder), Anxiety_Responder, Anx_Responder)),
+#     Anxiety_Responder = as.factor(recode(Anxiety_Responder,
+#                                          "2" = "Non-Responder",
+#                                          "1" = "Responder"
+#     ))) |>
+#   filter(
+#     !is.na(Anxiety_Responder),
+#     !is.na(Depression_Responder)
+#     )
+```
+
+RCI numbers
+```{r}
+Mothership_post <- left_join(Mothership_post,RCI_DF, by = join_by(ID1 == ID1)) |>
   mutate(
-    Depression_Responder = ifelse(!is.na(class_JTRCI_dep), class_JTRCI_dep, NA),
+    Depression_Responder = ifelse(!is.na(class_RCI_dep), class_RCI_dep, NA),
     Depression_Responder = as.factor(recode(Depression_Responder,
                                             "1" = "2",
                                             "2" = "2",
@@ -729,7 +768,7 @@ Mothership_post <- left_join(Mothership_post,JT_DF, by = join_by(ID1 == ID1)) |>
                                             "2" = "Non-Responder",
                                             "1" = "Responder"
     )),
-    Anxiety_Responder = ifelse(!is.na(class_JTRCI_anx), class_JTRCI_anx, NA),
+    Anxiety_Responder = ifelse(!is.na(class_RCI_anx), class_RCI_anx, NA),
     Anxiety_Responder = as.factor(recode(Anxiety_Responder,
                                          "1" = "2",
                                          "2" = "2",
@@ -821,13 +860,13 @@ Mothership_lasso <- Mothership_post |>
     CUDOS_pre >= 20
   ) |>
   select( c(
-    Anxiety_Responder, Depression_Responder,
+    Anxiety_Responder, Depression_Responder,Disorder_treat,
     # Demographics
     Age_1,Some_College:Married,White, #Discharge,
     # Treatment info
     IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
     # Disorders
-    Anxiety_D, Mood_D, BPD_P, Trauma_D, 
+    Anxiety_D, Mood_D, BPD_P, Trauma_D, Other,
     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
     Current_Dx,
     # Pre-Post stuff
@@ -841,40 +880,26 @@ Mothership_lasso <- Mothership_post |>
 
 Mothership_lasso <- na.omit(Mothership_lasso)
 
-summary(Mothership_lasso$Anxiety_Responder)
-
-# Vars_dep <- Mothership_lasso |>
-#   select( c(
-#     Depression_Responder,
-#     # Demographics
-#     Age_1,Some_College:Married,White, 
-#     # Treatment info
-#     IPT_track_1, Days_complete_1, Days_not_attended_1, 
-#     # Disorders
-#     Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
-#     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
-#     Current_Dx,
-#     # Pre-Post stuff
-#     CUDOS_pre,CUXOS_pre,
-#     # RDQ
-#     rdqPOST_coping:rdqPOST_wbs
-#   ))
-
 library(tableone)
 
 ### first gather information based upon anxiety
 
 ## Vector of variables to summarize
-table1_vars_anx <- c(colnames(Mothership_lasso)[-1])
+table1_vars_anx <- c("Anxiety_Responder",colnames(Mothership_lasso)[-1:-3])
+table1_vars_anx <- table1_vars_anx[1:28]
 
+
+colnames(Mothership_lasso)[-1]
 ## Vector of categorical variables that need transformation
 catVars <- c("Some_College", "Female" , "Married", "White",
              "IPT_track_1","Anxiety_D", "Mood_D", "BPD_P" ,"Trauma_D","Substance_D" ,        
              "Psychotic_D", "Other", "Anxiety_C", "Mood_C" , "BPD_Co_C", "Trauma_C", 
              "Substance_C", "Other_C" , "No_Co"
              )
+
+
 ## Create a TableOne object
-table1_tab_anx <- CreateTableOne(vars = table1_vars_anx, data = Vars_anx,strata ="Anxiety_Responder",  factorVars = catVars)
+table1_tab_anx <- CreateTableOne(vars = table1_vars_anx, data = Mothership_lasso,strata ="Anxiety_Responder",  factorVars = catVars)
 table1_tab_anx <- print(table1_tab_anx, formatOptions = list(big.mark = ","))
 table1_tab_anx <- data.frame(table1_tab_anx)
 write_csv(table1_tab_anx,"~/Downloads/table1_tab_anx.csv")
@@ -882,27 +907,31 @@ table1_tab_anx
 ### next gather info based upon depression
 
 ## Vector of variables to summarize
-table1_vars_dep <- c(colnames(Vars_dep)[-1])
+table1_vars_dep <- c("Depression_Responder",colnames(Mothership_lasso)[-1:-3])
+table1_vars_dep <- table1_vars_dep[1:28]
 
-## Vector of categorical variables that need transformation
-catVars <- c("Some_College", "Female" , "Married", "White",
-             "IPT_track_1","Anxiety_D", "Mood_D", "BPD_P" ,"Trauma_D",        
-             "Psychotic_D", "Other", "Anxiety_C", "Mood_C" , "BPD_Co_C", "Trauma_C", 
-             "Substance_C", "Other_C" , "No_Co"
-             )
 ## Create a TableOne object
-table1_tab_dep <- CreateTableOne(vars = table1_vars_dep, data = Vars_dep,strata ="Depression_Responder",  factorVars = catVars)
+table1_tab_dep <- CreateTableOne(vars = table1_vars_dep, data = Mothership_lasso,strata ="Depression_Responder",  factorVars = catVars)
 table1_tab_dep <- print(table1_tab_dep, formatOptions = list(big.mark = ","))
 table1_tab_dep <-data.frame(table1_tab_dep)
 write_csv(table1_tab_dep,"~/Downloads/table1_tab_dep.csv")
 table1_tab_dep
 
+## Vector of variables to summarize
+table1_vars_gen <- c(colnames(Mothership_lasso)[-1:-3])
+table1_vars_gen<- table1_vars_gen[1:27]
+
 ## lastly get the overal treatment breakdown
-table1_gen <- CreateTableOne(vars = table1_vars_dep, data = Mothership_lasso,  factorVars = catVars)
+table1_gen <- CreateTableOne(vars = table1_vars_gen, data = Mothership_lasso,  factorVars = catVars)
 table1_gen <- print(table1_gen, formatOptions = list(big.mark = ","))
 table1_gen <-data.frame(table1_gen)
 write_csv(table1_gen,"~/Downloads/table1_gen.csv")
 table1_gen 
+
+mean(Mothership_lasso$CUDOS_pre)
+sd(Mothership_lasso$CUDOS_pre)
+mean(Mothership_lasso$CUDOS_post)
+sd(Mothership_lasso$CUDOS_post)
 
 ```
 
@@ -1039,25 +1068,20 @@ ggplot(data=AnxDep_fig_response,
 Here are some tables displaying info on the psychiatric disorders treated at the PHP
 ```{r}
 # Disorders by treatment response
-Dis_tab <- data.frame(table1::table1(~Disorder_Type + Current_Dx | Anxiety_Responder, 
+Dis_tab <- data.frame(table1::table1(~Disorder_treat + Current_Dx | Anxiety_Responder, 
                                      data = Mothership_lasso))
 colnames(Dis_tab) = c("Variables","Anxiety Non Responder", "Anxiety Responder", "Total")
 
-Dis_tab1 <- data.frame(table1::table1(~Disorder_Type + Current_Dx | Depression_Responder, 
+Dis_tab1 <- data.frame(table1::table1(~Disorder_treat + Current_Dx | Depression_Responder, 
                                      data = Mothership_lasso))
 colnames(Dis_tab1) = c("Variables","Depression Non Responder", "Depression Responder", "Total")
 Dis_tab <- cbind(Dis_tab1[,1:3],Dis_tab[,2:4])
 Dis_tab
 
 #Full demographic break down
+dim(Mothership_lasso)
 
 co_dis_tab <- Mothership_lasso |>
-  filter(
-      !is.na(rdq_func_change),
-      !is.na(rdq_pmh_change),
-      !is.na(rdq_coping_change),
-      !is.na(rdq_wbs_change)
-  ) |>
   pivot_longer(
     cols = c("Anxiety_C","Mood_C","BPD_Co_C","Other_C", "Substance_C","Trauma_C", "No_Co"),
     names_to = 'Co Occuring',
@@ -1078,52 +1102,52 @@ Table 3: Correlation table?
 - supplemental table 1: Full diagnostic breakdown of sample 
   + (co-occuring by Disorder)
 ```{r}
-# Vars_dep <- Mothership_post |>
-#   select( c(
-#     # Demographics
-#     Age_1,Some_College:Married,White, #Discharge,
-#     # Treatment info
-#     IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
-#     # Disorders
-#     Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
-#     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
-#     Current_Dx,
-#     # Pre-Post stuff
-#     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
-#     # RDQ
-#     rdq_coping_change:rdq_wbs_change
-#   ))
-# 
-# str(Vars_dep)
-# 
-# Vars_anx <- Mothership_post |>
-#   select( c(
-#     Anxiety_Responder,
-#     # Demographics
-#     Age_1,Some_College:Married,White, #Discharge,
-#     # Treatment info
-#     IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
-#     # Disorders
-#     Anxiety_D, Mood_D, BPD_P,    Trauma_D, Substance_D, Psychotic_D,  Other,
-#     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
-#     Current_Dx,
-#     # Pre-Post stuff
-#     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
-#     # RDQ
-#     rdq_coping_change:rdq_wbs_change
-#   ))
 
-Vars_FULL <- na.omit(Vars_dep)
+Vars_dep <- Mothership_lasso |>
+  select( c(
+    Depression_Responder,
+    # Demographics
+    Age_1,Some_College:Married,White, #Discharge,
+    # Treatment info
+    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
+    # Disorders
+    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Other,
+    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
+    Current_Dx,
+    # Pre-Post stuff
+    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
+    # RDQ
+    rdqPOST_coping:rdqPOST_wbs  
+    ))
+
+Vars_anx <- Mothership_lasso |>
+  select( c(
+    Anxiety_Responder,
+    # Demographics
+    Age_1,Some_College:Married,White, #Discharge,
+    # Treatment info
+    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
+    # Disorders
+    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Other,
+    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
+    Current_Dx,
+    # Pre-Post stuff
+    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
+    # RDQ
+    rdqPOST_coping:rdqPOST_wbs  
+  ))
+
+#Make a correlation table???
 
 # install.packages("ggcorrplot")
-library(ggcorrplot)
-model.matrix(~0+., data=Vars_dep) %>% 
-  cor(use="pairwise.complete.obs") %>% 
-  ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2)
-
-model.matrix(~0+., data=Vars_anx) %>% 
-  cor(use="pairwise.complete.obs") %>% 
-  ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2)
+# library(ggcorrplot)
+# model.matrix(~0+., data=Mothership_lasso) %>% 
+#   cor(use="pairwise.complete.obs") %>% 
+#   ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2)
+# 
+# model.matrix(~0+., data=Vars_anx) %>% 
+#   cor(use="pairwise.complete.obs") %>% 
+#   ggcorrplot(show.diag=FALSE, type="lower", lab=TRUE, lab_size=2)
 
 ```
 
@@ -1334,10 +1358,8 @@ Minimum-
 ## install.packages("fuzzySim")
 library(fuzzySim) ## For FDR adjusted p values
 library(broom) # for tidy regression output
-```
 
 
-```{r}
 ## min model
   glm_min_dep <-
             glm(
@@ -1504,7 +1526,7 @@ Vars_anx <- Mothership_lasso_anx |>
     # Treatment info
     IPT_track_1, Days_complete_1, Days_not_attended_1, 
     # Disorders
-    Anxiety_D, Mood_D, BPD_P,    Trauma_D, 
+    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Other,
     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
     Current_Dx,
     # Pre-Post stuff
@@ -1652,8 +1674,8 @@ library(broom) # for tidy regression output
         Anxiety_Responder ~ 
       # predictors
         Age_1 + Married + Days_complete_1 + Days_not_attended_1 +
-        Anxiety_D + Trauma_D +  BPD_Co_C + 
-        rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
+        Anxiety_D + Trauma_D +  BPD_Co_C + CUXOS_pre +
+        rdqPOST_coping + rdqPOST_pmh + rdqPOST_func,
       #data
       data = Vars_anx, 
       # type of regression : logistic = binary / binomial
@@ -1726,7 +1748,7 @@ write_csv(FP.min.anx, "~/Downloads/FP.min.anx")
       #Outcome varaible
         Anxiety_Responder ~ 
       # predictors
-        Days_not_attended_1 + CUXOS_pre + rdqPOST_coping + rdqPOST_pmh + rdqPOST_wbs,
+        Days_complete_1 + Days_not_attended_1 + Anxiety_D +CUXOS_pre + rdqPOST_coping + rdqPOST_pmh + rdqPOST_func,
       #data
       data = Vars_anx, 
       # type of regression : logistic = binary / binomial
@@ -1768,6 +1790,8 @@ FP.1se.anx <- data.frame(cbind(
 FP.1se.anx <- left_join(FP.1se.anx,ADJ.p.values.1se.anx, by = join_by(p.values == p.value))
 FP.1se.anx$type = c("Anxiety")
 FP.1se.anx
+
+write_csv(FP.1se.anx, "~/Downloads/FP.1se.anx")
 ```
 
 
@@ -1778,6 +1802,7 @@ Anxiety Plot
 #Create order varaible in dataset to keep it the same as the regression
 
 FP_anx <- read_csv("~/Downloads/FP.min.anx")
+# FP_anx <- read_csv("~/Downloads/FP.1se.anx")
 
 #Change the names of variables
 FP_anx$Variable
@@ -1792,11 +1817,15 @@ FP_anx <- FP_anx |>
 FP_anx
 
 FP_anx$Variable = c(
-                    "Age", "Married", "Days Completed", "Days Not Attended", 
+                    "Age", "Unmarried", "Days Completed", "Days Not Attended",
                     "Anxiety Disorder", "Trauma Disorder", "Co-Occuring BPD",
-                    "Coping Ability", "Positive Mental Health", "Functioning", 
-                    "Sense of Well Being"
+                    "CUXOS Pre-Score",
+                    "Coping Ability", "Positive Mental Health", "Functioning"
                     )
+# FP_anx$Variable = c(                      
+#                     "Days Completed","Days Not Attended","Anxiety Disroder","CUXOS Pre-score",
+#                     "Coping Ability","Positive Mental Health", "Functioning"   
+#                     )
 
 FP_anx_m <- FP_anx |>
   ggplot(aes(y = reorder(Variable, -order), color = as.factor(sig))) +
