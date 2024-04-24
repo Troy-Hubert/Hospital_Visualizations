@@ -22,7 +22,7 @@ library(tidyr)
 ```{r}
 Mothership <- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
 #DF_1<- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
-
+dim(Mothership)
 ```
 
 
@@ -532,10 +532,9 @@ RCI_df_dep <- Mothership_post |>
     ID1  = as.integer(ID1),
     pre  = as.numeric(CUDOS_pre),
     post = as.numeric(CUDOS_post),
-    Disorder = Disorder_treat
   ) |>
   select(
-    ID1,pre,post,Disorder
+    ID1,pre,post
   ) |>
   filter(!is.na(pre),
          !is.na(post),
@@ -546,10 +545,9 @@ RCI_df_anx <- Mothership_post |>
     ID1  = as.integer(ID1),
     pre  = as.numeric(CUXOS_pre),
     post = as.numeric(CUXOS_post),
-    Disorder = Disorder_treat
   ) |>
   select(
-    ID1,pre,post,Disorder
+    ID1,pre,post
   ) |>
   filter(!is.na(pre),
          !is.na(post),
@@ -609,6 +607,8 @@ JTRCI (data = RCI_df_dep,
                   plottitle = "JT indices for anxiety")
 
 DEP_JT <- JTRCIdf
+colnames(DEP_JT) <- paste0(colnames(DEP_JT),"_dep")
+head(DEP_JT)
 
 #2. JT classification for anxiety
 JTRCI (data = RCI_df_anx, 
@@ -624,17 +624,102 @@ ANX_JT<- JTRCIdf
 
 #3. Make combined JT table for anxiety and depression
 
-JT_DF<- ANX_JT
+# JT_DF<- ANX_JT
 
-colnames(JT_DF) <- paste0(colnames(JT_DF),"_anx")
+colnames(ANX_JT) <- paste0(colnames(ANX_JT),"_anx")
 
-JT_DF2<- DEP_JT
-colnames(JT_DF2) <- paste0(colnames(JT_DF2),"_dep")
+# 
+# JT_DF2<- DEP_JT
 
-JT_DF <- full_join(JT_DF,JT_DF2, by = c("ppid_anx" = "ppid_dep"))
-colnames(JT_DF)[1] = "ID1"
+# 
+# JT_DF <- full_join(JT_DF,JT_DF2, by = c("ppid_anx" = "ppid_dep"))
+# colnames(JT_DF)[1] = "ID1"
 
-head(JT_DF)
+head(ANX_JT)
+```
+
+
+JTRCI with less people
+```{r}
+
+RCI_df_anx2 <- Mothership_post |>
+  filter(
+    !is.na(Some_College),
+    !is.na(Female),
+    !is.na(IPT_track_1),
+    !is.na(White),
+    !is.na(CUXOS_pre),
+    !is.na(CUXOS_post),
+    CUXOS_pre > 20,
+  )|>
+  mutate(
+    ID1  = as.integer(ID1),
+    pre  = as.numeric(CUDOS_pre),
+    post = as.numeric(CUDOS_post),
+  ) |>
+  select(
+    ID1,pre,post
+  ) |>
+  filter(!is.na(pre),
+         !is.na(post),
+         pre > 20)
+
+RCI_df_dep2 <- Mothership_post |>
+  filter(
+    !is.na(Some_College),
+    !is.na(Female),
+    !is.na(IPT_track_1),
+    !is.na(White),
+    !is.na(CUDOS_pre),
+    !is.na(CUDOS_post),
+    CUDOS_pre > 20,
+  ) |>
+  mutate(
+    ID1  = as.integer(ID1),
+    pre  = as.numeric(CUXOS_pre),
+    post = as.numeric(CUXOS_post),
+  ) |>
+  select(
+    ID1,pre,post
+  ) |>
+  filter(!is.na(pre),
+         !is.na(post),
+         pre > 20)
+
+RCI_df_dep2 <- data.frame(RCI_df_dep2)
+RCI_df_anx2 <- data.frame(RCI_df_anx2)
+
+#1. JT classification for depression
+JTRCI (data = RCI_df_dep2, 
+                  pre = "pre", 
+                  post = "post", 
+                  ppid = "ID1", 
+                  reliability = .74, 
+                  indextype = "JT", 
+                  JTcrit = "auto",
+                  plottitle = "JT indices for Depression")
+
+DEP_JT_smol <- JTRCIdf
+colnames(DEP_JT_smol) <- paste0(colnames(DEP_JT_smol),"_dep")
+head(DEP_JT_smol)
+
+#2. JT classification for anxiety
+JTRCI (data = RCI_df_anx2, 
+                  pre = "pre", 
+                  post = "post", 
+                  ppid = "ID1", 
+                  reliability = .74, 
+                  indextype = "JT", 
+                  #JTcrit = "auto",
+                  plottitle = "JT Indices For Anxiety")
+
+ANX_JT_smol<- JTRCIdf
+
+colnames(ANX_JT_smol) <- paste0(colnames(ANX_JT_smol),"_anx")
+
+head(ANX_JT_smol)
+
+view(ANX_JT_smol)
 ```
 
 
@@ -716,21 +801,8 @@ Mothership_post <- Mothership_post |>
 
 JT Numbers
 ```{r}
-Mothership_post <- left_join(Mothership_post,JT_DF, by = join_by(ID1 == ID1)) |>
+Mothership_post_anx <- left_join(Mothership_post,ANX_JT_smol, by = join_by(ID1 == ppid_anx)) |>
   mutate(
-    Depression_Responder = ifelse(!is.na(class_JTRCI_dep), class_JTRCI_dep, NA),
-    Depression_Responder = as.factor(recode(Depression_Responder,
-                                            "1" = "2",
-                                            "2" = "2",
-                                            "3" = "1",
-                                            "4" = "1",
-                                            "5" = "1"
-    )),
-    Depression_Responder = as.factor(ifelse(!is.na(Depression_Responder), Depression_Responder, Dep_Responder)),
-    Depression_Responder = as.factor(recode(Depression_Responder,
-                                            "2" = "Non-Responder",
-                                            "1" = "Responder"
-    )),
     Anxiety_Responder = ifelse(!is.na(class_JTRCI_anx), class_JTRCI_anx, NA),
     Anxiety_Responder = as.factor(recode(Anxiety_Responder,
                                          "1" = "2",
@@ -746,8 +818,37 @@ Mothership_post <- left_join(Mothership_post,JT_DF, by = join_by(ID1 == ID1)) |>
     ))) |>
   filter(
     !is.na(Anxiety_Responder),
+    )
+
+
+
+
+Mothership_post_dep <- left_join(Mothership_post,DEP_JT_smol, by = join_by(ID1 == ppid_dep)) |>
+  mutate(
+    Depression_Responder = ifelse(!is.na(class_JTRCI_dep), class_JTRCI_dep, NA),
+    Depression_Responder = as.factor(recode(Depression_Responder,
+                                            "1" = "2",
+                                            "2" = "2",
+                                            "3" = "1",
+                                            "4" = "1",
+                                            "5" = "1"
+    )),
+    Depression_Responder = as.factor(ifelse(!is.na(Depression_Responder), Depression_Responder, Dep_Responder)),
+    Depression_Responder = as.factor(recode(Depression_Responder,
+                                            "2" = "Non-Responder",
+                                            "1" = "Responder"
+    ))) |>
+  filter(
     !is.na(Depression_Responder)
     )
+
+Mothership_post_joined <- full_join(Mothership_post_dep,Mothership_post_anx, by = join_by(ID1 == ID1), suffix = c(".x",".y")) |>
+  select(-ends_with(".y"))
+
+
+#It saves everything colname.x, so I'm going to remove the .x from everything
+names.x <- colnames(Mothership_post_joined)[2:248]
+colnames(Mothership_post_joined)[2:248] <- substr(names.x,1,nchar(names.x)-2)
 ```
 
 RCI numbers
@@ -790,55 +891,38 @@ RCI numbers
 ```{r}
 #############            AnxDep_PrePost                 ##################
 
+
+
+
 #7. create new DF with Varaibles we want
 
-AnxDep_PrePost <- data.frame(cbind(Mothership_post$ID1,
-                                   Mothership_post$Disorder_treat,
-                                   Mothership_post$BL_CUDOS,
-                                   Mothership_post$BL_CUXOS,
-                                   Mothership_post$CUDOS_pre,
-                                   Mothership_post$CUDOS_post,
-                                   Mothership_post$CUXOS_pre,
-                                   Mothership_post$CUXOS_post,
+AnxDep_PrePost <- data.frame(cbind(Mothership_post_joined$ID1,
+                                   Mothership_post_joined$Disorder_treat,
+                                   Mothership_post_joined$BL_CUDOS,
+                                   Mothership_post_joined$BL_CUXOS,
+                                   Mothership_post_joined$CUDOS_pre,
+                                   Mothership_post_joined$CUDOS_post,
+                                   Mothership_post_joined$CUXOS_pre,
+                                   Mothership_post_joined$CUXOS_post,
                                    #Extra stuff?
-                                   Mothership_post$Depression_Responder,
-                                   Mothership_post$Anxiety_Responder
+                                   Mothership_post_joined$Depression_Responder,
+                                   Mothership_post_joined$Anxiety_Responder
                                    #Mothership_post$RESPONDER_FIGS
 )) #%>%
-#filter(!is.na(Mothership_post$Disorder_treat))
 
-colnames(AnxDep_PrePost) = c("ID1","Disorder_Type", "BL_CUDOS", "BL_CUXOS", "CUDOS_pre","CUDOS_post","CUXOS_pre","CUXOS_post","Depression_Responder",
-                             "Anxiety_Responder")
-#, "RESPONDER_FIGS")
 
-#8. Create long data frame
-
-AnxDep_PrePost_Long <- AnxDep_PrePost %>% 
-  pivot_longer(
-    cols = CUDOS_pre:CUXOS_post, 
-    names_to = "Test",
-    values_to = "Score"
-  )
-AnxDep_PrePost_Long <-AnxDep_PrePost_Long %>%
-  mutate(
-    PrePost = ifelse(
-      Test == "CUDOS_pre", "Pre",
-      ifelse(Test == "CUXOS_pre" , "Pre", "Post"
-      )),
-    Score = as.integer(Score),
-    Test = as.factor(Test),
-    Test = as.factor(ifelse(Test == "CUDOS_pre",  "CUDOS",
-                            ifelse(Test == "CUDOS_post", "CUDOS", "CUXOS"
-                            ))))  
-
-#9. Convert to data frame with means of values to be plotted
-AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
-  group_by(Test,PrePost) %>%
-  summarise(Score=mean(Score,na.rm=TRUE))
 ```
 
+
 # Data analysis 
-## Part 1: Who is attending?
+## Part 1: Methods information
+```{r}
+
+```
+
+
+
+## Part 2: Who is attending?
 
 ### Demographics information
 - Table 1 Demographics By Response
@@ -846,20 +930,23 @@ AnxDep_PrePost_mean<-AnxDep_PrePost_Long %>%
 - Table 3: Scores on measures pre post change? 
     + I want to show the figure of pre-post change???
 - Table 4: demographic breakdown
+
+
+First greate dfs for analyses
+
 ```{r}
-Mothership_lasso <- Mothership_post |>
-    filter(
-    !is.na(Some_College),
-    !is.na(Female),
-    !is.na(IPT_track_1),
-    !is.na(White),
-    !is.na(Anxiety_Responder),
-    !is.na(Depression_Responder),
-    CUXOS_pre >= 20,
-    CUDOS_pre >= 20
+### Anxeity 
+Mothership_lasso_anx <- Mothership_post_anx |>
+  filter(
+  !is.na(Some_College),
+  !is.na(Female),
+  !is.na(IPT_track_1),
+  !is.na(White),
+  !is.na(Anxiety_Responder),
+  CUXOS_pre >= 20,
   ) |>
   select( c(
-    Anxiety_Responder, Depression_Responder,Disorder_treat,
+    ID1,Anxiety_Responder,Disorder_treat,
     # Demographics
     Age_1,Some_College:Married,White, #Discharge,
     # Treatment info
@@ -875,245 +962,282 @@ Mothership_lasso <- Mothership_post |>
     #For table 3 - RCI info
     CUXOS_pre, CUXOS_post, Delta_Anx_DC, CUDOS_pre, CUDOS_post, Delta_Dep_DC
   ))
+Mothership_lasso_anx <- na.omit(Mothership_lasso_anx)
 
+### depression
+Mothership_lasso_dep <- Mothership_post_dep |>
+    filter(
+    !is.na(Some_College),
+    !is.na(Female),
+    !is.na(IPT_track_1),
+    !is.na(White),
+    !is.na(Depression_Responder),
+    CUDOS_pre >= 20,
+  ) |>
+  select( c(
+    ID1, Depression_Responder,Disorder_treat,
+    # Demographics
+    Age_1,Some_College:Married,White, #Discharge,
+    # Treatment info
+    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
+    # Disorders
+    Anxiety_D, Mood_D, BPD_P, Trauma_D, Other,
+    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
+    Current_Dx,
+    # Pre-Post stuff
+    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
+    # RDQ
+    rdqPOST_coping:rdqPOST_wbs,
+    #For table 3 - RCI info
+    CUXOS_pre, CUXOS_post, Delta_Anx_DC, CUDOS_pre, CUDOS_post, Delta_Dep_DC
+  ))
+Mothership_lasso_dep <- na.omit(Mothership_lasso_dep)
 
-Mothership_lasso <- na.omit(Mothership_lasso)
+### joined df
+Mothership_lasso_joined <- full_join(Mothership_lasso_anx,Mothership_lasso_dep, by = join_by("ID1" == "ID1")) |> 
+    select(-ends_with(".y"))
 
-library(tableone)
+#It saves everything colname.x, so I'm going to remove the .x from everything
+names.x <- colnames(Mothership_lasso_joined)[3:34]
+colnames(Mothership_lasso_joined)[3:34] <- substr(names.x,1,nchar(names.x)-2)
 
-### first gather information based upon anxiety
-
-## Vector of variables to summarize
-table1_vars_anx <- c("Anxiety_Responder",colnames(Mothership_lasso)[-1:-3])
-table1_vars_anx <- table1_vars_anx[1:28]
-
-
-colnames(Mothership_lasso)[-1]
-## Vector of categorical variables that need transformation
-catVars <- c("Some_College", "Female" , "Married", "White",
-             "IPT_track_1","Anxiety_D", "Mood_D", "BPD_P" ,"Trauma_D","Substance_D" ,        
-             "Psychotic_D", "Other", "Anxiety_C", "Mood_C" , "BPD_Co_C", "Trauma_C", 
-             "Substance_C", "Other_C" , "No_Co"
-             )
+#Delete ID1 from dfs
+Mothership_lasso_anx <- Mothership_lasso_anx[,-1]
+Mothership_lasso_dep <- Mothership_lasso_dep[,-1]
 ```
 
-
 ```{r}
+
+library(tableone) # This can be used to grab Exporatory data analysis values
+
+### first gather information based upon anxiety
+## Vector of variables to summarize
+table1_vars_anx <- c(colnames(Mothership_lasso_anx)[-1:-2])
+table1_vars_anx <- table1_vars_anx[1:27]
+
+
+## Vector of categorical variables that need transformation
+catVars <- c("Some_College", "Female" , "Married", "White",
+             "IPT_track_1","Anxiety_D", "Mood_D", "BPD_P" ,"Trauma_D","Other", 
+             "Anxiety_C", "Mood_C" , "BPD_Co_C", "Trauma_C", 
+             "Substance_C", "Other_C" , "No_Co"
+             )
+
 ## Create a TableOne object
-table1_tab_anx <- CreateTableOne(vars = table1_vars_anx, data = Mothership_lasso,strata ="Anxiety_Responder",  factorVars = catVars)
+table1_tab_anx <- CreateTableOne(vars = table1_vars_anx, data = Mothership_lasso_anx,strata ="Anxiety_Responder",  factorVars = catVars, addOverall = T)
 table1_tab_anx <- print(table1_tab_anx, formatOptions = list(big.mark = ","))
 table1_tab_anx <- data.frame(table1_tab_anx)
-table1_tab_anx<- table1_tab_anx[-2,]
-
-
+table1_tab_anx
 # add discriptive statistics 
 table1_tab_anx$ef_size = c("")
 
 library(rstatix)
 
 # age
-table1_tab_anx[2,4] <- round(t_test(Age_1 ~ Anxiety_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_anx[2,5] <- round(cohens_d(Age_1 ~ Anxiety_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_anx[2,5] <- round(t_test(Age_1 ~ Anxiety_Responder, data = Mothership_lasso_anx)$statistic,2)
+table1_tab_anx[2,6] <- round(cohens_d(Age_1 ~ Anxiety_Responder, data = Mothership_lasso_anx)$effsize,2)
 # Some College 
-table1_tab_anx[3,4] <- round(chisq.test(Mothership_lasso$Some_College, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[3,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$Some_College))$estimate,2)
+table1_tab_anx[3,5] <- round(chisq.test(Mothership_lasso_anx$Some_College, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[3,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$Some_College))$estimate,2)
 # Female
-table1_tab_anx[4,4] <- round(chisq.test(Mothership_lasso$Female, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[4,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$Female))$estimate,2)
+table1_tab_anx[4,5] <- round(chisq.test(Mothership_lasso_anx$Female, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[4,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$Female))$estimate,2)
 # Married
-table1_tab_anx[5,4] <- round(chisq.test(Mothership_lasso$Married, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[5,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$Married))$estimate,2)
+table1_tab_anx[5,5] <- round(chisq.test(Mothership_lasso_anx$Married, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[5,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$Married))$estimate,2)
 # White
-table1_tab_anx[6,4] <- round(chisq.test(Mothership_lasso$White, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[6,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$White))$estimate,2)
+table1_tab_anx[6,5] <- round(chisq.test(Mothership_lasso_anx$White, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[6,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$White))$estimate,2)
 # Treatment track
-table1_tab_anx[7,4] <- round(chisq.test(Mothership_lasso$IPT_track_1, Mothership_lasso$Anxiety_Responder)$statistic,2)
-OR_IPT_anx <- table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$IPT_track_1)
+table1_tab_anx[7,5] <- round(chisq.test(Mothership_lasso_anx$IPT_track_1, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+OR_IPT_anx <- table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$IPT_track_1)
 # OR general vs Trauma track
-table1_tab_anx[9,5] <- round(fisher.test(cbind(OR_IPT_anx[,"General"],OR_IPT_anx[,"Trauma"]))$estimate,2)
-table1_tab_anx[9,3] <-
+table1_tab_anx[9,6] <- round(fisher.test(cbind(OR_IPT_anx[,"General"],OR_IPT_anx[,"Trauma"]))$estimate,2)
+table1_tab_anx[9,5] <-
 round(fisher.test(cbind(OR_IPT_anx[,"General"],OR_IPT_anx[,"Trauma"]))$p,2)
 # OR General vs Young adult track 
-table1_tab_anx[10,5] <- 
+table1_tab_anx[10,6] <- 
   round(fisher.test(cbind(OR_IPT_anx[,"General"],OR_IPT_anx[,"Young Adult"]))$estimate,2)
-table1_tab_anx[10,3] <-
+table1_tab_anx[10,5] <-
 round(fisher.test(cbind(OR_IPT_anx[,"General"],OR_IPT_anx[,"Young Adult"]))$p,2)
 # Days Completed in program
-table1_tab_anx[11,4] <- round(t_test(Days_complete_1 ~ Anxiety_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_anx[11,5] <- round(cohens_d(Days_complete_1 ~ Anxiety_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_anx[11,5] <- round(t_test(Days_complete_1 ~ Anxiety_Responder, data = Mothership_lasso_anx)$statistic,2)
+table1_tab_anx[11,6] <- round(cohens_d(Days_complete_1 ~ Anxiety_Responder, data = Mothership_lasso_anx)$effsize,2)
 # Days not attending treatment
-table1_tab_anx[12,4] <- round(t_test(Days_not_attended_1 ~ Anxiety_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_anx[12,5] <- round(cohens_d(Days_not_attended_1 ~ Anxiety_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_anx[12,5] <- round(t_test(Days_not_attended_1 ~ Anxiety_Responder, data = Mothership_lasso_anx)$statistic,2)
+table1_tab_anx[12,6] <- round(cohens_d(Days_not_attended_1 ~ Anxiety_Responder, data = Mothership_lasso_anx)$effsize,2)
 # Anxiety disorder
-table1_tab_anx[13,4] <- round(chisq.test(Mothership_lasso$Anxiety_D, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[13,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$Anxiety_D))$estimate,2)
+table1_tab_anx[13,5] <- round(chisq.test(Mothership_lasso_anx$Anxiety_D, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[13,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$Anxiety_D))$estimate,2)
 # Mood Disorders
-table1_tab_anx[14,4] <- round(chisq.test(Mothership_lasso$Mood_D, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[14,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$Mood_D))$estimate,2)
+table1_tab_anx[14,5] <- round(chisq.test(Mothership_lasso_anx$Mood_D, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[14,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$Mood_D))$estimate,2)
 # BPD 
-table1_tab_anx[15,4] <- round(chisq.test(Mothership_lasso$BPD_P, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[15,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$BPD_P))$estimate,2)
+table1_tab_anx[15,5] <- round(chisq.test(Mothership_lasso_anx$BPD_P, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[15,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$BPD_P))$estimate,2)
 # Truama Related Disorders
-table1_tab_anx[16,4] <- round(chisq.test(Mothership_lasso$Trauma_D, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[16,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$Trauma_D))$estimate,2)
+table1_tab_anx[16,5] <- round(chisq.test(Mothership_lasso_anx$Trauma_D, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[16,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$Trauma_D))$estimate,2)
 # Other Disorders
-table1_tab_anx[17,4] <- round(chisq.test(Mothership_lasso$Other, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[17,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$Other))$estimate,2)
+table1_tab_anx[17,5] <- round(chisq.test(Mothership_lasso_anx$Other, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[17,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$Other))$estimate,2)
 # Co-occurring anxiety disorder 
-table1_tab_anx[18,4] <- round(chisq.test(Mothership_lasso$Anxiety_C, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[18,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$Anxiety_C))$estimate,2)
+table1_tab_anx[18,5] <- round(chisq.test(Mothership_lasso_anx$Anxiety_C, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[18,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$Anxiety_C))$estimate,2)
 # Co-occurring mood disorder
-table1_tab_anx[19,4] <- round(chisq.test(Mothership_lasso$Mood_C, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[19,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$Mood_C))$estimate,2)
+table1_tab_anx[19,5] <- round(chisq.test(Mothership_lasso_anx$Mood_C, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[19,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$Mood_C))$estimate,2)
 # Co-occurring BPD
-table1_tab_anx[20,4] <- round(chisq.test(Mothership_lasso$BPD_Co_C, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[20,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$BPD_Co_C))$estimate,2)
+table1_tab_anx[20,5] <- round(chisq.test(Mothership_lasso_anx$BPD_Co_C, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[20,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$BPD_Co_C))$estimate,2)
 # Co-occurring Trauma Related Disorder
-table1_tab_anx[21,4] <- round(chisq.test(Mothership_lasso$Trauma_C, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[21,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$Trauma_C))$estimate,2)
+table1_tab_anx[21,5] <- round(chisq.test(Mothership_lasso_anx$Trauma_C, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[21,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$Trauma_C))$estimate,2)
 # Co-occurring Substance Use Disorders
-table1_tab_anx[22,4] <- round(chisq.test(Mothership_lasso$Substance_C, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[22,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$Substance_C))$estimate,2)
+table1_tab_anx[22,5] <- round(chisq.test(Mothership_lasso_anx$Substance_C, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[22,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$Substance_C))$estimate,2)
 # Co-occurring Other Disroders
-table1_tab_anx[23,4] <- round(chisq.test(Mothership_lasso$Other_C, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[23,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$Other_C))$estimate,2)
+table1_tab_anx[23,5] <- round(chisq.test(Mothership_lasso_anx$Other_C, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[23,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$Other_C))$estimate,2)
 # No Co-occurring Disorders
-table1_tab_anx[24,4] <- round(chisq.test(Mothership_lasso$No_Co, Mothership_lasso$Anxiety_Responder)$statistic,2)
-table1_tab_anx[24,5] <- round(fisher.test(table(Mothership_lasso$Anxiety_Responder,Mothership_lasso$No_Co))$estimate,2)
+table1_tab_anx[24,5] <- round(chisq.test(Mothership_lasso_anx$No_Co, Mothership_lasso_anx$Anxiety_Responder)$statistic,2)
+table1_tab_anx[24,6] <- round(fisher.test(table(Mothership_lasso_anx$Anxiety_Responder,Mothership_lasso_anx$No_Co))$estimate,2)
 # Number of Current diagnoses 
-table1_tab_anx[25,4] <- round(t_test(Current_Dx ~ Anxiety_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_anx[25,5] <- round(cohens_d(Current_Dx ~ Anxiety_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_anx[25,5] <- round(t_test(Current_Dx ~ Anxiety_Responder, data = Mothership_lasso_anx)$statistic,2)
+table1_tab_anx[25,6] <- round(cohens_d(Current_Dx ~ Anxiety_Responder, data = Mothership_lasso_anx)$effsize,2)
 # CUDOS Pre scores
-table1_tab_anx[26,4] <- round(t_test(CUDOS_pre ~ Anxiety_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_anx[26,5] <- round(cohens_d(CUDOS_pre ~ Anxiety_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_anx[26,5] <- round(t_test(CUDOS_pre ~ Anxiety_Responder, data = Mothership_lasso_anx)$statistic,2)
+table1_tab_anx[26,6] <- round(cohens_d(CUDOS_pre ~ Anxiety_Responder, data = Mothership_lasso_anx)$effsize,2)
 # CUXOS Pre scores
-table1_tab_anx[27,4] <- round(t_test(CUXOS_pre ~ Anxiety_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_anx[27,5] <- round(cohens_d(CUXOS_pre ~ Anxiety_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_anx[27,5] <- round(t_test(CUXOS_pre ~ Anxiety_Responder, data = Mothership_lasso_anx)$statistic,2)
+table1_tab_anx[27,6] <- round(cohens_d(CUXOS_pre ~ Anxiety_Responder, data = Mothership_lasso_anx)$effsize,2)
 # RDQ Coping post scores
-table1_tab_anx[28,4] <- round(t_test(rdqPOST_coping ~ Anxiety_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_anx[28,5] <- round(cohens_d(rdqPOST_coping ~ Anxiety_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_anx[28,5] <- round(t_test(rdqPOST_coping ~ Anxiety_Responder, data = Mothership_lasso_anx)$statistic,2)
+table1_tab_anx[28,6] <- round(cohens_d(rdqPOST_coping ~ Anxiety_Responder, data = Mothership_lasso_anx)$effsize,2)
 # RDQ Positive Mental Health post scores
-table1_tab_anx[29,4] <- round(t_test(rdqPOST_pmh ~ Anxiety_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_anx[29,5] <- round(cohens_d(rdqPOST_pmh ~ Anxiety_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_anx[29,5] <- round(t_test(rdqPOST_pmh ~ Anxiety_Responder, data = Mothership_lasso_anx)$statistic,2)
+table1_tab_anx[29,6] <- round(cohens_d(rdqPOST_pmh ~ Anxiety_Responder, data = Mothership_lasso_anx)$effsize,2)
 # RDQ Functioning post scores
-table1_tab_anx[30,4] <- round(t_test(rdqPOST_func ~ Anxiety_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_anx[30,5] <- round(cohens_d(rdqPOST_func ~ Anxiety_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_anx[30,5] <- round(t_test(rdqPOST_func ~ Anxiety_Responder, data = Mothership_lasso_anx)$statistic,2)
+table1_tab_anx[30,6] <- round(cohens_d(rdqPOST_func ~ Anxiety_Responder, data = Mothership_lasso_anx)$effsize,2)
 # RDQ Sense of Wellbeing post scores
-table1_tab_anx[31,4] <- round(t_test(rdqPOST_wbs ~ Anxiety_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_anx[31,5] <- round(cohens_d(rdqPOST_wbs ~ Anxiety_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_anx[31,5] <- round(t_test(rdqPOST_wbs ~ Anxiety_Responder, data = Mothership_lasso_anx)$statistic,2)
+table1_tab_anx[31,6] <- round(cohens_d(rdqPOST_wbs ~ Anxiety_Responder, data = Mothership_lasso_anx)$effsize,2)
 
 
 write_csv(table1_tab_anx,"~/Downloads/table1_tab_anx.csv")
 table1_tab_anx
+
+mean(Mothership_lasso_anx$CUXOS_post)
+sd(Mothership_lasso_anx$CUXOS_post)
 ```
 
 
 ```{r}
-### next gather info based upon depression
 
 ## Vector of variables to summarize
-table1_vars_dep <- c("Depression_Responder",colnames(Mothership_lasso)[-1:-3])
-table1_vars_dep <- table1_vars_dep[1:28]
+table1_vars_dep <- c(colnames(Mothership_lasso_dep)[-1:-2])
+table1_vars_dep <- table1_vars_dep[1:27]
 
 ## Create a TableOne object
-table1_tab_dep <- CreateTableOne(vars = table1_vars_dep, data = Mothership_lasso,strata ="Depression_Responder",  factorVars = catVars)
+table1_tab_dep <- CreateTableOne(vars = table1_vars_dep, data = Mothership_lasso_dep,strata ="Depression_Responder",  factorVars = catVars, addOverall = T)
 table1_tab_dep <- print(table1_tab_dep, formatOptions = list(big.mark = ","))
 table1_tab_dep <-data.frame(table1_tab_dep)
-table1_tab_dep <- table1_tab_dep[-2,]
 
 # add discriptive statistics 
 table1_tab_dep$ef_size = c("")
 
+table1_tab_dep
 # age
-table1_tab_dep[2,4] <- round(t_test(Age_1 ~ Depression_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_dep[2,5] <- round(cohens_d(Age_1 ~ Depression_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_dep[2,5] <- round(t_test(Age_1 ~ Depression_Responder, data = Mothership_lasso_dep)$statistic,2)
+table1_tab_dep[2,6] <- round(cohens_d(Age_1 ~ Depression_Responder, data = Mothership_lasso_dep)$effsize,2)
 # Some College 
-table1_tab_dep[3,4] <- round(chisq.test(Mothership_lasso$Some_College, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[3,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$Some_College))$estimate,2)
+table1_tab_dep[3,5] <- round(chisq.test(Mothership_lasso_dep$Some_College, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[3,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$Some_College))$estimate,2)
 # Female
-table1_tab_dep[4,4] <- round(chisq.test(Mothership_lasso$Female, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[4,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$Female))$estimate,2)
+table1_tab_dep[4,5] <- round(chisq.test(Mothership_lasso_dep$Female, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[4,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$Female))$estimate,2)
 # Married
-table1_tab_dep[5,4] <- round(chisq.test(Mothership_lasso$Married, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[5,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$Married))$estimate,2)
+table1_tab_dep[5,5] <- round(chisq.test(Mothership_lasso_dep$Married, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[5,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$Married))$estimate,2)
 # White
-table1_tab_dep[6,4] <- round(chisq.test(Mothership_lasso$White, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[6,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$White))$estimate,2)
+table1_tab_dep[6,5] <- round(chisq.test(Mothership_lasso_dep$White, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[6,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$White))$estimate,2)
 # Treatment track
-table1_tab_dep[7,4] <- round(chisq.test(Mothership_lasso$IPT_track_1, Mothership_lasso$Depression_Responder)$statistic,2)
-OR_IPT_dep <- table(Mothership_lasso$Depression_Responder,Mothership_lasso$IPT_track_1)
+table1_tab_dep[7,5] <- round(chisq.test(Mothership_lasso_dep$IPT_track_1, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+OR_IPT_dep <- table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$IPT_track_1)
 # OR general vs Trauma track
 table1_tab_dep[9,5] <- round(fisher.test(cbind(OR_IPT_dep[,"General"],OR_IPT_dep[,"Trauma"]))$estimate,2)
-table1_tab_dep[9,3] <-
+table1_tab_dep[9,6] <-
 round(fisher.test(cbind(OR_IPT_dep[,"General"],OR_IPT_dep[,"Trauma"]))$p,2)
 # OR General vs Young adult track 
 table1_tab_dep[10,5] <- 
   round(fisher.test(cbind(OR_IPT_dep[,"General"],OR_IPT_dep[,"Young Adult"]))$estimate,2)
-table1_tab_dep[10,3] <-
+table1_tab_dep[10,6] <-
 round(fisher.test(cbind(OR_IPT_dep[,"General"],OR_IPT_dep[,"Young Adult"]))$p,2)
 # Days Completed in program
-table1_tab_dep[11,4] <- round(t_test(Days_complete_1 ~ Depression_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_dep[11,5] <- round(cohens_d(Days_complete_1 ~ Depression_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_dep[11,5] <- round(t_test(Days_complete_1 ~ Depression_Responder, data = Mothership_lasso_dep)$statistic,2)
+table1_tab_dep[11,6] <- round(cohens_d(Days_complete_1 ~ Depression_Responder, data = Mothership_lasso_dep)$effsize,2)
 # Days not attending treatment
-table1_tab_dep[12,4] <- round(t_test(Days_not_attended_1 ~ Depression_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_dep[12,5] <- round(cohens_d(Days_not_attended_1 ~ Depression_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_dep[12,5] <- round(t_test(Days_not_attended_1 ~ Depression_Responder, data = Mothership_lasso_dep)$statistic,2)
+table1_tab_dep[12,6] <- round(cohens_d(Days_not_attended_1 ~ Depression_Responder, data = Mothership_lasso_dep)$effsize,2)
 # Anxiety disorder
-table1_tab_dep[13,4] <- round(chisq.test(Mothership_lasso$Anxiety_D, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[13,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$Anxiety_D))$estimate,2)
+table1_tab_dep[13,5] <- round(chisq.test(Mothership_lasso_dep$Anxiety_D, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[13,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$Anxiety_D))$estimate,2)
 # Mood Disorders
-table1_tab_dep[14,4] <- round(chisq.test(Mothership_lasso$Mood_D, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[14,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$Mood_D))$estimate,2)
+table1_tab_dep[14,5] <- round(chisq.test(Mothership_lasso_dep$Mood_D, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[14,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$Mood_D))$estimate,2)
 # BPD 
-table1_tab_dep[15,4] <- round(chisq.test(Mothership_lasso$BPD_P, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[15,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$BPD_P))$estimate,2)
+table1_tab_dep[15,5] <- round(chisq.test(Mothership_lasso_dep$BPD_P, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[15,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$BPD_P))$estimate,2)
 # Truama Related Disorders
-table1_tab_dep[16,4] <- round(chisq.test(Mothership_lasso$Trauma_D, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[16,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$Trauma_D))$estimate,2)
+table1_tab_dep[16,5] <- round(chisq.test(Mothership_lasso_dep$Trauma_D, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[16,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$Trauma_D))$estimate,2)
 # Other Disorders
-table1_tab_dep[17,4] <- round(chisq.test(Mothership_lasso$Other, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[17,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$Other))$estimate,2)
+table1_tab_dep[17,5] <- round(chisq.test(Mothership_lasso_dep$Other, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[17,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$Other))$estimate,2)
 # Co-occurring anxiety disorder 
-table1_tab_dep[18,4] <- round(chisq.test(Mothership_lasso$Anxiety_C, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[18,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$Anxiety_C))$estimate,2)
+table1_tab_dep[18,5] <- round(chisq.test(Mothership_lasso_dep$Anxiety_C, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[18,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$Anxiety_C))$estimate,2)
 # Co-occurring mood disorder
-table1_tab_dep[19,4] <- round(chisq.test(Mothership_lasso$Mood_C, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[19,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$Mood_C))$estimate,2)
+table1_tab_dep[19,5] <- round(chisq.test(Mothership_lasso_dep$Mood_C, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[19,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$Mood_C))$estimate,2)
 # Co-occurring BPD
-table1_tab_dep[20,4] <- round(chisq.test(Mothership_lasso$BPD_Co_C, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[20,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$BPD_Co_C))$estimate,2)
+table1_tab_dep[20,5] <- round(chisq.test(Mothership_lasso_dep$BPD_Co_C, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[20,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$BPD_Co_C))$estimate,2)
 # Co-occurring Trauma Related Disorder
-table1_tab_dep[21,4] <- round(chisq.test(Mothership_lasso$Trauma_C, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[21,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$Trauma_C))$estimate,2)
+table1_tab_dep[21,5] <- round(chisq.test(Mothership_lasso_dep$Trauma_C, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[21,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$Trauma_C))$estimate,2)
 # Co-occurring Substance Use Disorders
-table1_tab_dep[22,4] <- round(chisq.test(Mothership_lasso$Substance_C, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[22,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$Substance_C))$estimate,2)
+table1_tab_dep[22,5] <- round(chisq.test(Mothership_lasso_dep$Substance_C, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[22,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$Substance_C))$estimate,2)
 # Co-occurring Other Disroders
-table1_tab_dep[23,4] <- round(chisq.test(Mothership_lasso$Other_C, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[23,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$Other_C))$estimate,2)
+table1_tab_dep[23,5] <- round(chisq.test(Mothership_lasso_dep$Other_C, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[23,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$Other_C))$estimate,2)
 # No Co-occurring Disorders
-table1_tab_dep[24,4] <- round(chisq.test(Mothership_lasso$No_Co, Mothership_lasso$Depression_Responder)$statistic,2)
-table1_tab_dep[24,5] <- round(fisher.test(table(Mothership_lasso$Depression_Responder,Mothership_lasso$No_Co))$estimate,2)
+table1_tab_dep[24,5] <- round(chisq.test(Mothership_lasso_dep$No_Co, Mothership_lasso_dep$Depression_Responder)$statistic,2)
+table1_tab_dep[24,6] <- round(fisher.test(table(Mothership_lasso_dep$Depression_Responder,Mothership_lasso_dep$No_Co))$estimate,2)
 # Number of Current diagnoses 
-table1_tab_dep[25,4] <- round(t_test(Current_Dx ~ Depression_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_dep[25,5] <- round(cohens_d(Current_Dx ~ Depression_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_dep[25,5] <- round(t_test(Current_Dx ~ Depression_Responder, data = Mothership_lasso_dep)$statistic,2)
+table1_tab_dep[25,6] <- round(cohens_d(Current_Dx ~ Depression_Responder, data = Mothership_lasso_dep)$effsize,2)
 # CUDOS Pre scores
-table1_tab_dep[26,4] <- round(t_test(CUDOS_pre ~ Depression_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_dep[26,5] <- round(cohens_d(CUDOS_pre ~ Depression_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_dep[26,5] <- round(t_test(CUDOS_pre ~ Depression_Responder, data = Mothership_lasso_dep)$statistic,2)
+table1_tab_dep[26,6] <- round(cohens_d(CUDOS_pre ~ Depression_Responder, data = Mothership_lasso_dep)$effsize,2)
 # CUXOS Pre scores
-table1_tab_dep[27,4] <- round(t_test(CUXOS_pre ~ Depression_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_dep[27,5] <- round(cohens_d(CUXOS_pre ~ Depression_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_dep[27,5] <- round(t_test(CUXOS_pre ~ Depression_Responder, data = Mothership_lasso_dep)$statistic,2)
+table1_tab_dep[27,6] <- round(cohens_d(CUXOS_pre ~ Depression_Responder, data = Mothership_lasso_dep)$effsize,2)
 # RDQ Coping post scores
-table1_tab_dep[28,4] <- round(t_test(rdqPOST_coping ~ Depression_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_dep[28,5] <- round(cohens_d(rdqPOST_coping ~ Depression_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_dep[28,5] <- round(t_test(rdqPOST_coping ~ Depression_Responder, data = Mothership_lasso_dep)$statistic,2)
+table1_tab_dep[28,6] <- round(cohens_d(rdqPOST_coping ~ Depression_Responder, data = Mothership_lasso_dep)$effsize,2)
 # RDQ Positive Mental Health post scores
-table1_tab_dep[29,4] <- round(t_test(rdqPOST_pmh ~ Depression_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_dep[29,5] <- round(cohens_d(rdqPOST_pmh ~ Depression_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_dep[29,5] <- round(t_test(rdqPOST_pmh ~ Depression_Responder, data = Mothership_lasso_dep)$statistic,2)
+table1_tab_dep[29,6] <- round(cohens_d(rdqPOST_pmh ~ Depression_Responder, data = Mothership_lasso_dep)$effsize,2)
 # RDQ Functioning post scores
-table1_tab_dep[30,4] <- round(t_test(rdqPOST_func ~ Depression_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_dep[30,5] <- round(cohens_d(rdqPOST_func ~ Depression_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_dep[30,5] <- round(t_test(rdqPOST_func ~ Depression_Responder, data = Mothership_lasso_dep)$statistic,2)
+table1_tab_dep[30,6] <- round(cohens_d(rdqPOST_func ~ Depression_Responder, data = Mothership_lasso_dep)$effsize,2)
 # RDQ Sense of Wellbeing post scores
-table1_tab_dep[31,4] <- round(t_test(rdqPOST_wbs ~ Depression_Responder, data = Mothership_lasso)$statistic,2)
-table1_tab_dep[31,5] <- round(cohens_d(rdqPOST_wbs ~ Depression_Responder, data = Mothership_lasso)$effsize,2)
+table1_tab_dep[31,5] <- round(t_test(rdqPOST_wbs ~ Depression_Responder, data = Mothership_lasso_dep)$statistic,2)
+table1_tab_dep[31,6] <- round(cohens_d(rdqPOST_wbs ~ Depression_Responder, data = Mothership_lasso_dep)$effsize,2)
 
 table1_tab_dep
 write_csv(table1_tab_dep,"~/Downloads/table1_tab_dep.csv")
@@ -1122,16 +1246,22 @@ write_csv(table1_tab_dep,"~/Downloads/table1_tab_dep.csv")
 
 
 ```{r}
-## Vector of variables to summarize
-table1_vars_gen <- c(colnames(Mothership_lasso)[-1:-3])
-table1_vars_gen<- table1_vars_gen[1:27]
-
-## lastly get the overal treatment breakdown
-table1_gen <- CreateTableOne(vars = table1_vars_gen, data = Mothership_lasso,  factorVars = catVars)
-table1_gen <- print(table1_gen, formatOptions = list(big.mark = ","))
-table1_gen <-data.frame(table1_gen)
-write_csv(table1_gen,"~/Downloads/table1_gen.csv")
-table1_gen 
+# 
+# Mothership_lasso_dep <- na.omit(Mothership_lasso_dep)
+# left_join()
+# 
+# ## Vector of variables to summarize
+# table1_vars_gen <- c(colnames(Mothership_lasso_joined)[-1:-3])
+# table1_vars_gen<- table1_vars_gen[1:27]
+# 
+# Mothership_lasso
+# 
+# ## lastly get the overal treatment breakdown
+# table1_gen <- CreateTableOne(vars = table1_vars_gen, data = Mothership_lasso,  factorVars = catVars)
+# table1_gen <- print(table1_gen, formatOptions = list(big.mark = ","))
+# table1_gen <-data.frame(table1_gen)
+# write_csv(table1_gen,"~/Downloads/table1_gen.csv")
+# table1_gen 
 
 ```
 
@@ -1160,7 +1290,7 @@ Scores_tab[1,] = c(NA,"M (sd)","M (sd)","M (sd)","M (sd)","M (sd)","M (sd)",NA,N
 #3. Get statistics for variables + Assign to table
   # Anxiety - CUXOS
     #make df
-      anx_rep_tab <- Mothership_lasso |>
+      anx_rep_tab <- Mothership_lasso_anx |>
         group_by(Anxiety_Responder) |>
         summarize(pre_anx = round(mean(CUXOS_pre, na.rm = TRUE),2),
                   pre_anx_sd = round(sd(CUXOS_pre, na.rm = TRUE),2),
@@ -1186,7 +1316,7 @@ Scores_tab[1,] = c(NA,"M (sd)","M (sd)","M (sd)","M (sd)","M (sd)","M (sd)",NA,N
         
 # Depression - CUDOS
   #Make df
-    dep_rep_tab <- Mothership_lasso |>
+    dep_rep_tab <- Mothership_lasso_dep |>
       group_by(Depression_Responder) |>
       summarize(pre_dep = round( mean(CUDOS_pre, na.rm = TRUE),2),
                 pre_dep_sd = round( sd(CUDOS_pre, na.rm = TRUE),2),
@@ -1219,43 +1349,75 @@ Pre_Post_t_Scores <- c("")
 
 #1. Pre post score differences of anxeity and depression by treatment response:
   #1.1 depression responders   
-    t.test(subset(Mothership_lasso,Depression_Responder == "Responder")$CUDOS_pre,
-       subset(Mothership_lasso,Depression_Responder == "Responder")$CUDOS_post,
+    t.test(subset(Mothership_lasso_dep,Depression_Responder == "Responder")$CUDOS_pre,
+       subset(Mothership_lasso_dep,Depression_Responder == "Responder")$CUDOS_post,
        paired = TRUE, alternative = "two.sided"
        )
   #1.2 depression non-responders   
-     t.test(subset(Mothership_lasso,Depression_Responder == "Non-Responder")$CUDOS_pre,
-       subset(Mothership_lasso,Depression_Responder == "Non-Responder")$CUDOS_post,
+     t.test(subset(Mothership_lasso_dep,Depression_Responder == "Non-Responder")$CUDOS_pre,
+       subset(Mothership_lasso_dep,Depression_Responder == "Non-Responder")$CUDOS_post,
        paired = TRUE, alternative = "two.sided"
        )
   #1.3 anxiety responders   
-    t.test(subset(Mothership_lasso,Anxiety_Responder == "Responder")$CUXOS_pre,
-       subset(Mothership_lasso,Anxiety_Responder == "Responder")$CUXOS_post,
+    t.test(subset(Mothership_lasso_anx,Anxiety_Responder == "Responder")$CUXOS_pre,
+       subset(Mothership_lasso_anx,Anxiety_Responder == "Responder")$CUXOS_post,
        paired = TRUE, alternative = "two.sided"
        )
   #1.2 anxiety non-responders   
-     t.test(subset(Mothership_lasso,Anxiety_Responder == "Non-Responder")$CUXOS_pre,
-       subset(Mothership_lasso,Anxiety_Responder == "Non-Responder")$CUXOS_post,
+     t.test(subset(Mothership_lasso_anx,Anxiety_Responder == "Non-Responder")$CUXOS_pre,
+       subset(Mothership_lasso_anx,Anxiety_Responder == "Non-Responder")$CUXOS_post,
        paired = TRUE, alternative = "two.sided"
        )
 #So, Non-responders and responders have lower post scores than pre scores for anxiety and depression.
      
 #2. Differences between group differences for pre and post scores of anxiety and depression.
   #2.1 Pre scores of anxiety
-     t.test(CUXOS_pre ~ Anxiety_Responder, data = Mothership_lasso)
+     t.test(CUXOS_pre ~ Anxiety_Responder, data = Mothership_lasso_anx)
   #2.2 Post scores of anxiety
-     t.test(CUXOS_post ~ Anxiety_Responder, data = Mothership_lasso)
-     sd(subset(Mothership_lasso,Anxiety_Responder == "Responder")$CUXOS_post)
-     sd(subset(Mothership_lasso,Anxiety_Responder == "Non-Responder")$CUXOS_post)
-     round(cohens_d(CUXOS_post ~ Depression_Responder, data = Mothership_lasso)$effsize,2)
+     t.test(CUXOS_post ~ Anxiety_Responder, data = Mothership_lasso_anx)
+     sd(subset(Mothership_lasso_anx,Anxiety_Responder == "Responder")$CUXOS_post)
+     sd(subset(Mothership_lasso_anx,Anxiety_Responder == "Non-Responder")$CUXOS_post)
+     round(cohens_d(CUXOS_post ~ Anxiety_Responder, data = Mothership_lasso_anx)$effsize,2)
   #2.3 Pre scores of depression
-     t.test(CUDOS_pre ~ Depression_Responder, data = Mothership_lasso)
+     t.test(CUDOS_pre ~ Depression_Responder, data = Mothership_lasso_dep)
   #2.4 Post scores of depression
-     t.test(CUDOS_post ~ Depression_Responder, data = Mothership_lasso)
-     sd(subset(Mothership_lasso,Depression_Responder == "Responder")$CUDOS_post)
-     sd(subset(Mothership_lasso,Depression_Responder == "Non-Responder")$CUDOS_post)
-     round(cohens_d(CUDOS_post ~ Depression_Responder, data = Mothership_lasso)$effsize,2)
+     t.test(CUDOS_post ~ Depression_Responder, data = Mothership_lasso_dep)
+     sd(subset(Mothership_lasso_dep,Depression_Responder == "Responder")$CUDOS_post)
+     sd(subset(Mothership_lasso_dep,Depression_Responder == "Non-Responder")$CUDOS_post)
+     round(cohens_d(CUDOS_post ~ Depression_Responder, data = Mothership_lasso_dep)$effsize,2)
 ```
+dataset visualizatoin
+```{r}
+# #install.packages("ggdist")
+# library("ggdist")
+# 
+# Mothership_lasso |> 
+#   ggplot( aes(x=Depression_Responder, y=CUDOS_pre, fill=Depression_Responder)) +
+#     geom_boxplot() +
+#    #viridis::scale_fill_viridis(discrete = TRUE, alpha=0.6) +
+#     geom_jitter(color="black", size=.6 , alpha=0.9) +
+#     theme(
+#       legend.position="none",
+#       plot.title = element_text(size=11)
+#     ) +
+# #    ggtitle("Pre scores of depression severity") +
+#     xlab("Depression Severity") +
+#     ylim(0,80)
+# 
+# Mothership_lasso|>
+# ggplot( mapping=aes(x=Trauma_C)) +
+#   geom_bar()
+# 
+# Mothership_lasso|>
+# ggplot( mapping=aes(x= Current_Dx)) +
+#         geom_histogram() +
+#     theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
+#   theme(panel.background=NULL)+
+#   theme(legend.title = element_blank()) 
+# 
+
+```
+
 
 Take away form this is:
 1. Non-responders and responders have lower post scores than pre scores for anxiety and depression.
@@ -1317,21 +1479,23 @@ ggplot(data=AnxDep_fig_response,
 ### Disorder Breakdowns
 Here are some tables displaying info on the psychiatric disorders treated at the PHP
 ```{r}
-# Disorders by treatment response
-Dis_tab <- data.frame(table1::table1(~Disorder_treat + Current_Dx | Anxiety_Responder, 
-                                     data = Mothership_lasso))
-colnames(Dis_tab) = c("Variables","Anxiety Non Responder", "Anxiety Responder", "Total")
 
-Dis_tab1 <- data.frame(table1::table1(~Disorder_treat + Current_Dx | Depression_Responder, 
-                                     data = Mothership_lasso))
-colnames(Dis_tab1) = c("Variables","Depression Non Responder", "Depression Responder", "Total")
-Dis_tab <- cbind(Dis_tab1[,1:3],Dis_tab[,2:4])
-Dis_tab
+Mothership_lasso_anx
+
+# # Disorders by treatment response
+# Dis_tab <- data.frame(table1::table1(~Disorder_treat + Current_Dx | Anxiety_Responder, 
+#                                      data = Mothership_lasso_joined))
+# colnames(Dis_tab) = c("Variables","Anxiety Non Responder", "Anxiety Responder", "Total")
+# 
+# Dis_tab1 <- data.frame(table1::table1(~Disorder_treat + Current_Dx | Depression_Responder, 
+#                                      data = Mothership_lasso))
+# colnames(Dis_tab1) = c("Variables","Depression Non Responder", "Depression Responder", "Total")
+# Dis_tab <- cbind(Dis_tab1[,1:3],Dis_tab[,2:4])
+# Dis_tab
 
 #Full demographic break down
-dim(Mothership_lasso)
 
-co_dis_tab <- Mothership_lasso |>
+co_dis_tab <- Mothership_lasso_joined |>
   pivot_longer(
     cols = c("Anxiety_C","Mood_C","BPD_Co_C","Other_C", "Substance_C","Trauma_C", "No_Co"),
     names_to = 'Co Occuring',
@@ -1352,40 +1516,40 @@ Table 3: Correlation table?
 - supplemental table 1: Full diagnostic breakdown of sample 
   + (co-occuring by Disorder)
 ```{r}
-
-Vars_dep <- Mothership_lasso |>
-  select( c(
-    Depression_Responder,
-    # Demographics
-    Age_1,Some_College:Married,White, #Discharge,
-    # Treatment info
-    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
-    # Disorders
-    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Other,
-    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
-    Current_Dx,
-    # Pre-Post stuff
-    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
-    # RDQ
-    rdqPOST_coping:rdqPOST_wbs  
-    ))
-
-Vars_anx <- Mothership_lasso |>
-  select( c(
-    Anxiety_Responder,
-    # Demographics
-    Age_1,Some_College:Married,White, #Discharge,
-    # Treatment info
-    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
-    # Disorders
-    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Other,
-    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
-    Current_Dx,
-    # Pre-Post stuff
-    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
-    # RDQ
-    rdqPOST_coping:rdqPOST_wbs  
-  ))
+# 
+# Vars_dep <- Mothership_lasso |>
+#   select( c(
+#     Depression_Responder,
+#     # Demographics
+#     Age_1,Some_College:Married,White, #Discharge,
+#     # Treatment info
+#     IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
+#     # Disorders
+#     Anxiety_D, Mood_D, BPD_P,    Trauma_D, Other,
+#     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
+#     Current_Dx,
+#     # Pre-Post stuff
+#     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
+#     # RDQ
+#     rdqPOST_coping:rdqPOST_wbs  
+#     ))
+# 
+# Vars_anx <- Mothership_lasso |>
+#   select( c(
+#     Anxiety_Responder,
+#     # Demographics
+#     Age_1,Some_College:Married,White, #Discharge,
+#     # Treatment info
+#     IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
+#     # Disorders
+#     Anxiety_D, Mood_D, BPD_P,    Trauma_D, Other,
+#     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
+#     Current_Dx,
+#     # Pre-Post stuff
+#     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
+#     # RDQ
+#     rdqPOST_coping:rdqPOST_wbs  
+#   ))
 
 #Make a correlation table???
 
@@ -1427,9 +1591,9 @@ JT_table <- data.frame(matrix(NA,nrow = 2,ncol = 3))
 colnames(JT_table) = c("Varaibles","Responder","Non-Responder")
 #anxiety 
 
-JT_table[1,] = c("CUXOS", unlist(summary(Vars_anx$Anxiety_Responder)))
+JT_table[1,] = c("CUXOS", unlist(summary(Mothership_lasso_anx$Anxiety_Responder)))
 # Depresssion
-JT_table[2,] = c("CUDOS", unlist(summary(Vars_dep$Depression_Responder)))
+JT_table[2,] = c("CUDOS", unlist(summary(Mothership_lasso_dep$Depression_Responder)))
 
 JT_table
 ```
@@ -1447,14 +1611,6 @@ http://www.sthda.com/english/articles/36-classification-methods-essentials/149-p
 # Depression Lasso 
 Preparing data for lasso - depression
 ```{r}
-Mothership_lasso_dep <- Mothership_lasso |>
-    filter(
-    !is.na(Some_College),
-    !is.na(Female),
-    !is.na(IPT_track_1),
-    !is.na(White),
-    !is.na(Depression_Responder)
-  )
 
 Vars_dep <- Mothership_lasso_dep |>
   select( c(
@@ -1473,8 +1629,6 @@ Vars_dep <- Mothership_lasso_dep |>
     # RDQ
     rdqPOST_coping:rdqPOST_wbs
   ))
-
-summary(Vars_dep$Depression_Responder)
 
 # old model
 # Anxiety_D, Mood_D, BPD_P,    Trauma_D,  Other,
@@ -1609,15 +1763,23 @@ Minimum-
 library(fuzzySim) ## For FDR adjusted p values
 library(broom) # for tidy regression output
 
+tmp_coeffs <- coef(lasso.model.min.dep, s = "lambda.min")
+Dep_coefs <-tmp_coeffs@Dimnames[[1]][tmp_coeffs@i + 1]
+Dep_reg_coefs <- Dep_coefs[2:length(Dep_coefs)]
+Dep_reg_coefs
+```
 
+
+```{r}
 ## min model
   glm_min_dep <-
             glm(
       #Outcome varaible
         Depression_Responder ~
       # predictors
-        Days_complete_1 + Days_not_attended_1 + Mood_C + CUDOS_pre +
-        CUXOS_pre + 
+        Some_College  + Married + White +
+        Days_not_attended_1 + Mood_C +
+        CUDOS_pre + CUXOS_pre + 
         rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
       #data
         data = Vars_dep,
@@ -1649,7 +1811,7 @@ library(broom) # for tidy regression output
     
 # R^2 values  
    R2.min.dep <- performance::r2(glm_min_dep)
-
+  R2.min.dep
 # df for Forrest plots
 FP.min.dep <- data.frame(cbind(
   Variable = tidy.summary.min.dep$term[2:length(tidy.summary.min.dep$term)],
@@ -1731,14 +1893,6 @@ FP.1se.dep
 # Anxiety Lasso 
 Preparing data for lasso - Anxiety
 ```{r}
-Mothership_lasso_anx <- Mothership_lasso |>
-    filter(
-    !is.na(Some_College),
-    !is.na(Female),
-    !is.na(IPT_track_1),
-    !is.na(White),
-    !is.na(Anxiety_Responder)
-  )
 
 Vars_anx <- Mothership_lasso_anx |>
   select( c(
@@ -1885,7 +2039,10 @@ Minimum-
 library(fuzzySim) ## For FDR adjusted p values
 library(broom) # for tidy regression output
 
-
+tmp_coeffs <- coef(lasso.model.min.anx, s = "lambda.min")
+Anx_coefs <-tmp_coeffs@Dimnames[[1]][tmp_coeffs@i + 1]
+Anx_reg_coefs <- Anx_coefs[2:length(Anx_coefs)]
+Anx_reg_coefs
 
 ## min model
   glm_min_anx <-  
@@ -1893,27 +2050,15 @@ library(broom) # for tidy regression output
       #Outcome varaible
         Anxiety_Responder ~ 
       # predictors
-        Age_1 + Married + Days_complete_1 + Days_not_attended_1 +
-        Anxiety_D + BPD_Co_C + 
-        rdqPOST_coping + rdqPOST_pmh + rdqPOST_func,
+        Age_1 + Some_College + Married + 
+        White +  Days_complete_1 +Days_not_attended_1 + 
+        Anxiety_D + Trauma_D + Other + 
+        Substance_C + CUXOS_pre + rdqPOST_coping + 
+        rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
       #data
       data = Vars_anx, 
       # type of regression : logistic = binary / binomial
       family = "binomial")
-  
-####### JT - wo/Substance_D
-  # glm_min_anx <-
-  #     glm(
-  #     #Outcome varaible
-  #       Anxiety_Responder ~
-  #     # predictors
-  #       Age_1 + Married + Days_complete_1 + Days_not_attended_1 +
-  #       Anxiety_D + Trauma_D + BPD_Co_C +
-  #       rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
-  #     #data
-  #     data = Vars_anx,
-  #     # type of regression : logistic = binary / binomial
-  #     family = "binomial")
   
 # Summary of the model
   summary.min.anx      <- summary(glm_min_anx)
@@ -1937,7 +2082,7 @@ library(broom) # for tidy regression output
     ADJ.p.values.min.anx
 # R^2 values  
    R2.min.anx <- performance::r2(glm_min_anx)
-   
+   R2.min.anx
 # df for Forrest plots
 FP.min.anx <- data.frame(cbind(
   Variable = tidy.summary.min.anx$term[2:length(tidy.summary.min.anx$term)],
@@ -2029,8 +2174,7 @@ FP_anx <- read_csv("~/Downloads/FP.min.anx")
 # FP_anx <- read_csv("~/Downloads/FP.1se.anx")
 
 #Change the names of variables
-FP_anx$Variable
-
+FP_anx$Variable = Anx_reg_coefs
 
 FP_anx$order = c(seq(from=2, to=length(FP_anx$Variable) + 1,1))
 
@@ -2040,11 +2184,10 @@ FP_anx <- FP_anx |>
   )
 FP_anx
 
-FP_anx$Variable = c(
-                    "Age", "Unmarried", "Days Completed", "Days Not Attended",
-                    "Anxiety Disorder", "Co-Occuring BPD",
-                    "Coping Ability", "Positive Mental Health", "Functioning"
-                    )
+Anx_reg_coefs[1:10] <- c("Age","Some_College","Married", "White","Days_complete","Days_not_attended", "Anxiety_D", "Trauma_D","Other", "Substance_C")
+FP_anx$Variable = Anx_reg_coefs
+
+Anx_reg_coefs
 # FP_anx$Variable = c(                      
 #                     "Days Completed","Days Not Attended","Anxiety Disroder","CUXOS Pre-score",
 #                     "Coping Ability","Positive Mental Health", "Functioning"   
@@ -2069,12 +2212,13 @@ FP_anx_m <- FP_anx |>
     # title = "Odds of Anxiety Treatment Non-Response",
     # subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
   #adjust the dimentions. 
-  coord_cartesian(ylim = c(1,length(FP_anx$Variable) + 1)) +
+  coord_cartesian(ylim = c(1,length(FP_anx$Variable) + 1),
+                  xlim = c(.4,2)) +
   #add a line at 1 for reference 
    geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
   #add anotations to help suggests what each side means.
-  annotate("text", x = .75, y = length(FP_anx$Variable) + 1, label = "Less Likely", size= 3) +
-  annotate("text", x = 1.25, y = length(FP_anx$Variable) + 1, label = "More Likely",size= 3) +
+  annotate("text", x = .6, y = length(FP_anx$Variable) + 1, label = "Less Likely", size= 3) +
+  annotate("text", x = 1.5, y = length(FP_anx$Variable) + 1, label = "More Likely",size= 3) +
   #Git rid of the Y - Axis
     theme(axis.line.y = element_blank(),
         axis.ticks.y= element_blank(),
@@ -2158,7 +2302,7 @@ library("patchwork")
 
 layout <- c(
   patchwork::area(t = 0, l = 0, b = 30, r = 30),
-  patchwork::area(t = 0, l = 15, b = 30, r = 25),
+  patchwork::area(t = 0, l = 16, b = 30, r = 25),
   patchwork::area(t = 0, l = 22, b = 30, r = 30) 
   )
 
@@ -2172,18 +2316,13 @@ FP_anx_L + FP_anx_m + FP_anx_R + plot_layout(design = layout)
 FP_dep <- read_csv("~/Downloads/FP.min.dep")
 
 #rename the variables for the figure
+FP_dep$Variable = Dep_reg_coefs
 # FP_dep$Variable = c(
-#                     "Days Completed", "Days Not Attended", 
-#                     "Co-Ocurring Mood Disorder", "CUXOS Pre-Score", "CUDOS Pre-Score",
-#                     "Coping Ability", "Positive Mental Health", "Functioning", 
+#                      "Days Not Attended",
+#                     "CUDOS Pre-Score",
+#                     "Coping Ability", "Positive Mental Health", "Functioning",
 #                     "Sense of Well Being"
 #                     )
-FP_dep$Variable = c(
-                     "Days Not Attended",
-                    "CUDOS Pre-Score",
-                    "Coping Ability", "Positive Mental Health", "Functioning",
-                    "Sense of Well Being"
-                    )
 
 
 FP_dep$order = c(seq(from=2, to=length(FP_dep$Variable) + 1,1))
@@ -2192,7 +2331,6 @@ FP_dep <- FP_dep |>
   mutate(
     sig = ifelse(p.adjusted <= 0.05, 16,1)
   )
-FP_dep
 
 FP_dep_m <- FP_dep |>
   ggplot(aes(y = reorder(Variable, -order), color = as.factor(sig))) +
@@ -2217,8 +2355,8 @@ FP_dep_m <- FP_dep |>
   #add a line at 1 for reference 
    geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
   #add anotations to help suggests what each side means.
-  annotate("text", x = .8, y = length(FP_dep$Variable) + 1, label = "Less Likely", size= 4) +
-  annotate("text", x = 1.2, y = length(FP_dep$Variable) + 1, label = "More Likely",size= 4) +
+  annotate("text", x = .75, y = length(FP_dep$Variable) + 1, label = "Less Likely", size= 4) +
+  annotate("text", x = 1.25, y = length(FP_dep$Variable) + 1, label = "More Likely",size= 4) +
   #Git rid of the Y - Axis
     theme(axis.line.y = element_blank(),
         axis.ticks.y= element_blank(),
