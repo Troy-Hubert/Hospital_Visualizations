@@ -649,7 +649,6 @@ Mothership_lasso <- Mothership_post |>
   !is.na(IPT_track_1),
   !is.na(White),
   #!is.na(Anxiety_Responder),
-  CUXOS_pre >= 20,
   ) |>
   select( c(
     ID1,Disorder_treat,
@@ -669,21 +668,18 @@ Mothership_lasso <- Mothership_post |>
     CUXOS_pre, CUXOS_post, CUDOS_pre, CUDOS_post,
   ))
 Mothership_lasso_1 <- na.omit(Mothership_lasso)
+dim(Mothership_lasso_1)
 
 RCI_df_anx2 <- Mothership_lasso_1 |>
   filter(
-    !is.na(Some_College),
-    !is.na(Female),
-    !is.na(IPT_track_1),
-    !is.na(White),
     !is.na(CUXOS_pre),
     !is.na(CUXOS_post),
     CUXOS_pre > 20,
   )|>
   mutate(
     ID1  = as.integer(ID1),
-    pre  = as.numeric(CUDOS_pre),
-    post = as.numeric(CUDOS_post),
+    pre  = as.numeric(CUXOS_pre),
+    post = as.numeric(CUXOS_post),
   ) |>
   select(
     ID1,pre,post
@@ -694,18 +690,14 @@ RCI_df_anx2 <- Mothership_lasso_1 |>
 
 RCI_df_dep2 <- Mothership_lasso_1 |>
   filter(
-    !is.na(Some_College),
-    !is.na(Female),
-    !is.na(IPT_track_1),
-    !is.na(White),
     !is.na(CUDOS_pre),
     !is.na(CUDOS_post),
     CUDOS_pre > 20,
   ) |>
   mutate(
     ID1  = as.integer(ID1),
-    pre  = as.numeric(CUXOS_pre),
-    post = as.numeric(CUXOS_post),
+    pre  = as.numeric(CUDOS_pre),
+    post = as.numeric(CUDOS_post),
   ) |>
   select(
     ID1,pre,post
@@ -745,8 +737,7 @@ ANX_JT_smol<- JTRCIdf
 
 colnames(ANX_JT_smol) <- paste0(colnames(ANX_JT_smol),"_anx")
 
-head(ANX_JT_smol)
-
+view(ANX_JT_smol)
 view(DEP_JT_smol)
 ```
 
@@ -771,7 +762,7 @@ Mothership_post <- Mothership_post |>
     Delta_Anx_DC =  CUXOS_post - CUXOS_pre,
     Delta_Dep_DC = CUDOS_post - CUDOS_pre,
     Percent_Anx_change = (Delta_Anx_DC/CUXOS_pre)*100,
-    Percent_Dep_Dchange = (Delta_Dep_DC/CUDOS_pre)*100,
+    Percent_Dep_Dchange = (Delta_Dep_DC/CUDOS_pre)*100
   )
     #Days_complete_W = ifelse(Days_complete_1 > 40, 40, Days_complete_1),
     # Anx_Responder = as.factor(
@@ -840,7 +831,7 @@ Mothership_post_anx <- left_join(Mothership_post,ANX_JT_smol, by = join_by(ID1 =
                                          "4" = "1",
                                          "5" = "1"
     )),
-    Anxiety_Responder = as.factor(ifelse(!is.na(Anxiety_Responder), Anxiety_Responder, NA)),
+    # Anxiety_Responder = as.factor(ifelse(!is.na(Anxiety_Responder), Anxiety_Responder, NA)),
     Anxiety_Responder = as.factor(recode(Anxiety_Responder,
                                          "2" = "Non-Responder",
                                          "1" = "Responder"
@@ -861,7 +852,7 @@ Mothership_post_dep <- left_join(Mothership_post,DEP_JT_smol, by = join_by(ID1 =
                                             "4" = "1",
                                             "5" = "1"
     )),
-    Depression_Responder = as.factor(ifelse(!is.na(Depression_Responder), Depression_Responder, NA)),
+    # Depression_Responder = as.factor(ifelse(!is.na(Depression_Responder), Depression_Responder, NA)),
     Depression_Responder = as.factor(recode(Depression_Responder,
                                             "2" = "Non-Responder",
                                             "1" = "Responder"
@@ -916,30 +907,6 @@ RCI numbers
 ```
 
 
-```{r}
-#############            AnxDep_PrePost                 ##################
-
-
-
-
-#7. create new DF with Varaibles we want
-
-AnxDep_PrePost <- data.frame(cbind(Mothership_post_joined$ID1,
-                                   Mothership_post_joined$Disorder_treat,
-                                   Mothership_post_joined$BL_CUDOS,
-                                   Mothership_post_joined$BL_CUXOS,
-                                   Mothership_post_joined$CUDOS_pre,
-                                   Mothership_post_joined$CUDOS_post,
-                                   Mothership_post_joined$CUXOS_pre,
-                                   Mothership_post_joined$CUXOS_post,
-                                   #Extra stuff?
-                                   Mothership_post_joined$Depression_Responder,
-                                   Mothership_post_joined$Anxiety_Responder
-                                   #Mothership_post$RESPONDER_FIGS
-)) #%>%
-
-
-```
 
 
 # Data analysis 
@@ -2064,6 +2031,8 @@ FP.1se.dep <- left_join(FP.1se.dep,ADJ.p.values.1se.dep, by = join_by(p.values =
 FP.1se.dep$p.adjusted <- round(FP.1se.dep$p.adjusted,2)
 FP.1se.dep$type = c("Depression")
 FP.1se.dep
+
+write_csv(FP.1se.dep, "~/Downloads/FP.1se.dep")
 ```
 
 
@@ -2229,7 +2198,9 @@ Anx_reg_coefs
       #Outcome varaible
         Anxiety_Responder ~ 
       # predictors
-        Days_complete_1 + Days_not_attended_1 + Anxiety_C + Substance_C + 
+        Age_1 + Married + Days_complete_1 + Days_not_attended_1 + Anxiety_D + 
+        Substance_C + Trauma_D + Other + Mood_C + BPD_Co_C + Substance_C + 
+        CUXOS_pre + 
         rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
       #data
       data = Vars_anx, 
@@ -2348,11 +2319,15 @@ Anxiety Plot
 ```{r}
 #Create order varaible in dataset to keep it the same as the regression
 
-FP_anx <- read_csv("~/Downloads/FP.1se.anx")
+FP_anx <- read_csv("~/Downloads/FP.min.anx")
 # FP_anx <- read_csv("~/Downloads/FP.1se.anx")
 
 #Change the names of variables
-FP_anx$Variable = Anx_reg_coefs2
+FP_anx$Variable = c("Age", "Unmarried", "Days Completed", 
+                    "Days Not Attended", "Anixety Disorder","Co-SUD", 
+                    "Trauma Disorder", "Other Disorder", "Co-Mood Disorder", 
+                    "Co-BPD", "CUXOS Pre", "Post Coping", 
+                    "Post PMH", "Post Functioning", "Post Wellbeing")
 
 FP_anx$order = c(seq(from=2, to=length(FP_anx$Variable) + 1,1))
 
@@ -2360,17 +2335,6 @@ FP_anx <- FP_anx |>
   mutate(
     sig = ifelse(p.adjusted <= 0.05, 16,1)
   )
-FP_anx
-
-# Anx_reg_coefs[1:8] <- c("Days completed","Days not attended", "Co-Anxiety",         "Co-Substance",        "Post coping" ,     "Post pmh"     ,   
-# "Post functioning"   ,     "Post wellbeing" )
-# FP_anx$Variable = Anx_reg_coefs
-
-Anx_reg_coefs
-# FP_anx$Variable = c(                      
-#                     "Days Completed","Days Not Attended","Anxiety Disroder","CUXOS Pre-score",
-#                     "Coping Ability","Positive Mental Health", "Functioning"   
-#                     )
 
 FP_anx_m <- FP_anx |>
   ggplot(aes(y = reorder(Variable, -order), color = as.factor(sig))) +
@@ -2381,9 +2345,9 @@ FP_anx_m <- FP_anx |>
                # ifelse(FP_anx$p.adjusted <= 0.05, 
                #                        16, # colored ones for significant varaibles
                #                        1), # uncolored ones for insignificant varaibles
-             size=4,show.legend = FALSE) +
+             size=3.5,show.legend = FALSE) +
   geom_linerange(aes(xmin=OR_low, xmax=OR_high),size = .4, show.legend = FALSE) +
-  geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.35, show.legend = FALSE)+
+  geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.5, show.legend = FALSE)+
   scale_color_manual(values = c("darkgrey","red"))+
   #change x axis name
   labs(
@@ -2392,7 +2356,7 @@ FP_anx_m <- FP_anx |>
     # subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
   #adjust the dimentions. 
   coord_cartesian(ylim = c(1,length(FP_anx$Variable) + 1),
-                  xlim = c(.5,1.5)) +
+                  xlim = c(.25,2.0)) +
   #add a line at 1 for reference 
    geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
   #add anotations to help suggests what each side means.
@@ -2492,16 +2456,16 @@ FP_anx_L + FP_anx_m + FP_anx_R + plot_layout(design = layout)
 ```{r}
 #Create order varaible in dataset to keep it the same as the regression
 
-FP_dep <- read_csv("~/Downloads/FP.min.dep")
+
+
+FP_dep <- read_csv("~/Downloads/FP.1se.dep")
 
 #rename the variables for the figure
-FP_dep$Variable = Dep_reg_coefs
-# FP_dep$Variable = c(
-#                      "Days Not Attended",
-#                     "CUDOS Pre-Score",
-#                     "Coping Ability", "Positive Mental Health", "Functioning",
-#                     "Sense of Well Being"
-#                     )
+
+FP_dep$Variable = c(
+                     "Days Not Attended",
+                    "Post Coping", 
+                    "Post PMH", "Post Functioning", "Post Wellbeing")
 
 
 FP_dep$order = c(seq(from=2, to=length(FP_dep$Variable) + 1,1))
