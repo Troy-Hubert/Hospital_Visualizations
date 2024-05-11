@@ -14,16 +14,49 @@ library(dplyr)
 library(haven)
 library(ggplot2)
 library(tidyr)
+library(fuzzySim) ## For FDR adjusted p values
+library(broom) # for tidy regression output
 ```
 
 # Prep data for analysis 
 
 ## Read in the dataset. 
 ```{r}
-Mothership <- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
+Mothership1 <- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
 #DF_1<- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
-dim(Mothership)
+Mothership1
+
+list.files("~/Desktop/Coding/data/ACT_scores")
+# path = "~/Desktop/Coding/data/ACT_scores"
+# # 
+# length(dir(path))
+# for(i in dir(path))
+# {
+#   df_1 <- read_sav(paste0(path,"/",i))
+#   Mothership_mindful <- left_join(Mothership1,df_1, by = join_by(ID1 == ID1))
+# }
+
+
+df_1 <- read_sav("~/Desktop/Coding/data/ACT_scores/AAQIIPost_1.sav")
+Mothership1 <- left_join(Mothership1,df_1, by = join_by(ID1 == ID1))
+df_2 <- read_sav("~/Desktop/Coding/data/ACT_scores/AAQIIPre_1.sav")
+Mothership1 <- left_join(Mothership1,df_2, by = join_by(ID1 == ID1))
+df_3 <- read_sav("~/Desktop/Coding/data/ACT_scores/FFMQPost_1.sav")
+Mothership1 <- left_join(Mothership1,df_3, by = join_by(ID1 == ID1))
+df_4 <- read_sav("~/Desktop/Coding/data/ACT_scores/FFMQPost_4250-4350.sav")
+Mothership1 <- left_join(Mothership1,df_4, by = join_by(ID1 == ID1))
+df_5 <- read_sav("~/Desktop/Coding/data/ACT_scores/FFMQPre_1.sav")
+Mothership1 <- left_join(Mothership1,df_5, by = join_by(ID1 == ID1))
+
+
+view(Mothership_mindful)
 ```
+
+```{r}
+
+```
+
+
 
 
 ## Clean, update, and wrangle data
@@ -668,7 +701,6 @@ Mothership_lasso <- Mothership_post |>
     CUXOS_pre, CUXOS_post, CUDOS_pre, CUDOS_post,
   ))
 Mothership_lasso_1 <- na.omit(Mothership_lasso)
-dim(Mothership_lasso_1)
 
 RCI_df_anx2 <- Mothership_lasso_1 |>
   filter(
@@ -912,7 +944,7 @@ RCI numbers
 # Data analysis 
 ## Part 1: Methods information
 ```{r}
-
+summary(as.factor(Mothership_post_joined$SCID_1))
 ```
 
 
@@ -1882,8 +1914,7 @@ plot(cv.lasso.dep)
 Minimum- 
 ```{r}
 ## install.packages("fuzzySim")
-library(fuzzySim) ## For FDR adjusted p values
-library(broom) # for tidy regression output
+
 
 tmp_coeffs <- coef(lasso.model.min.dep, s = "lambda.min")
 Dep_coefs <-tmp_coeffs@Dimnames[[1]][tmp_coeffs@i + 1]
@@ -1909,25 +1940,9 @@ glm_min_dep <-
       family = "binomial",
     )
 
-
-  # glm_min_dep <-
-  #           glm(
-  #     #Outcome varaible
-  #       Depression_Responder ~
-  #     # predictors
-  #       Age_1  +
-  #       Days_complete_1 + Days_not_attended_1 + Anxiety_D + 
-  #       BPD_Co_C + Current_Dx + CUXOS_pre+
-  #       rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
-  #     #data
-  #       data = Vars_dep,
-  #     # type of regression : logistic = binary / binomial
-  #       family = "binomial",
-  #     )
-
-install.packages("rempsyc")
-library(rempsyc)
-nice_table(tidy.summary.min.dep)
+# install.packages("rempsyc")
+# library(rempsyc)
+# nice_table(tidy.summary.min.dep)
   
 # Summary of the model
   summary.min.dep      <- summary(glm_min_dep)
@@ -2198,10 +2213,11 @@ Anx_reg_coefs
       #Outcome varaible
         Anxiety_Responder ~ 
       # predictors
-        Age_1 + Married + Days_complete_1 + Days_not_attended_1 + Anxiety_D + 
-        Substance_C + Trauma_D + Other + Mood_C + BPD_Co_C + Substance_C + 
-        CUXOS_pre + 
-        rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
+        Age_1 + Married + Days_complete_1 + 
+        Days_not_attended_1 + Anxiety_D + Trauma_D +
+        Other + Mood_C + BPD_Co_C + 
+        Substance_C + CUXOS_pre +  rdqPOST_coping + 
+        rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
       #data
       data = Vars_anx, 
       # type of regression : logistic = binary / binomial
@@ -2230,6 +2246,11 @@ Anx_reg_coefs
 # R^2 values  
    R2.min.anx <- performance::r2(glm_min_anx)
    R2.min.anx
+
+#wald
+   library(aod)
+   wald.test(b = coef(glm_min_anx),Sigma = vcov(glm_min_anx),Terms= 2:15)
+   
 # df for Forrest plots
 FP.min.anx <- data.frame(cbind(
   Variable = tidy.summary.min.anx$term[2:length(tidy.summary.min.anx$term)],
@@ -2324,9 +2345,9 @@ FP_anx <- read_csv("~/Downloads/FP.min.anx")
 
 #Change the names of variables
 FP_anx$Variable = c("Age", "Unmarried", "Days Completed", 
-                    "Days Not Attended", "Anixety Disorder","Co-SUD", 
-                    "Trauma Disorder", "Other Disorder", "Co-Mood Disorder", 
-                    "Co-BPD", "CUXOS Pre", "Post Coping", 
+                    "Days Not Attended", "Anixety Disorder","Trauma Disorder", 
+                    "Other Disorder", "Co-Mood Disorder",  "Co-BPD", 
+                    "Co-SUD", "CUXOS Pre", "Post Coping", 
                     "Post PMH", "Post Functioning", "Post Wellbeing")
 
 FP_anx$order = c(seq(from=2, to=length(FP_anx$Variable) + 1,1))
@@ -2494,7 +2515,8 @@ FP_dep_m <- FP_dep |>
     # title = "Odds of Anxiety Treatment Non-Response",
     # subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
   #adjust the dimentions. 
-  coord_cartesian(ylim = c(1,length(FP_dep$Variable) + 1)) +
+  coord_cartesian(ylim = c(1,length(FP_dep$Variable) + 1),
+                  xlim = c(.5,1.5)) +
   #add a line at 1 for reference 
    geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
   #add anotations to help suggests what each side means.
