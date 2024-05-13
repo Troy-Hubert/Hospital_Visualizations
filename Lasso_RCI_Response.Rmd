@@ -22,42 +22,98 @@ library(broom) # for tidy regression output
 
 ## Read in the dataset. 
 ```{r}
-Mothership1 <- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
+Mothership <- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
 #DF_1<- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
-Mothership1
-
-list.files("~/Desktop/Coding/data/ACT_scores")
-# path = "~/Desktop/Coding/data/ACT_scores"
-# # 
-# length(dir(path))
-# for(i in dir(path))
-# {
-#   df_1 <- read_sav(paste0(path,"/",i))
-#   Mothership_mindful <- left_join(Mothership1,df_1, by = join_by(ID1 == ID1))
-# }
-
-
-df_1 <- read_sav("~/Desktop/Coding/data/ACT_scores/AAQIIPost_1.sav")
-Mothership1 <- left_join(Mothership1,df_1, by = join_by(ID1 == ID1))
-df_2 <- read_sav("~/Desktop/Coding/data/ACT_scores/AAQIIPre_1.sav")
-Mothership1 <- left_join(Mothership1,df_2, by = join_by(ID1 == ID1))
-df_3 <- read_sav("~/Desktop/Coding/data/ACT_scores/FFMQPost_1.sav")
-Mothership1 <- left_join(Mothership1,df_3, by = join_by(ID1 == ID1))
-df_4 <- read_sav("~/Desktop/Coding/data/ACT_scores/FFMQPost_4250-4350.sav")
-Mothership1 <- left_join(Mothership1,df_4, by = join_by(ID1 == ID1))
-df_5 <- read_sav("~/Desktop/Coding/data/ACT_scores/FFMQPre_1.sav")
-Mothership1 <- left_join(Mothership1,df_5, by = join_by(ID1 == ID1))
-
-
-view(Mothership_mindful)
 ```
+
+
 
 ```{r}
 
+AAQIIpre <- read_sav("~/Desktop/Coding/data/ACT_scores/AAQIIPre_1.sav")
+AAQIIpre <- AAQIIpre |>
+  mutate(
+    AAQIIpre = AAQIIpre_1_1 + AAQIIpre_2_1 + AAQIIpre_3_1 + AAQIIpre_4_1 + 
+      AAQIIpre_5_1 + AAQIIpre_6_1 + AAQIIpre_7_1
+  )
+Mothership <- left_join(Mothership,AAQIIpre, by = join_by(ID1 == ID1))
+AAQII
+
+AAQIIpost <- read_sav("~/Desktop/Coding/data/ACT_scores/AAQIIPost_1.sav")
+AAQIIpost <- AAQIIpost |>
+  mutate(
+    AAQIIpost = AAQIIpost_1_1 + AAQIIpost_2_1 + AAQIIpost_3_1 + AAQIIpost_4_1 + 
+      AAQIIpost_5_1 + AAQIIpost_6_1 + AAQIIpost_7_1
+  )
+Mothership <- left_join(Mothership,AAQIIpost, by = join_by(ID1 == ID1))
+
+FMMQ_pre <- read_sav("~/Desktop/Coding/data/ACT_scores/FFMQPre_1.sav")
+FMMQ_pre <- FMMQ_pre|>
+  mutate(
+    #reverse code items
+    FFMQpre_4R  = 6 - FFMQpre_4_1,
+    FFMQpre_5R  = 6 - FFMQpre_5_1,  
+    FFMQpre_7R  = 6 - FFMQpre_7_1, 
+    FFMQpre_8R  = 6 - FFMQpre_8_1, 
+    FFMQpre_11R = 6 - FFMQpre_11_1, 
+    FFMQpre_12R = 6 - FFMQpre_12_1,
+    FFMQpre_14R = 6 - FFMQpre_14_1,
+    FFMQpre_17R = 6 - FFMQpre_17_1,
+    FFMQpre_19R = 6 - FFMQpre_19_1,
+    FFMQpre_22R = 6 - FFMQpre_22_1,
+    FFMQpre_23R = 6 - FFMQpre_23_1,
+    FFMQpre_24R = 6 - FFMQpre_24_1,
+    #create scales
+    Desc_Ex_pre =
+        FFMQpre_1_1 + FFMQpre_2_1 + FFMQpre_5R + FFMQpre_11R + FFMQpre_16_1,
+    Non_react_pre = 
+        FFMQpre_3_1 + FFMQpre_9_1 + FFMQpre_13_1 + FFMQpre_18_1 + FFMQpre_21_1,
+    Observe_inner_pre = 
+        FFMQpre_6_1 + FFMQpre_10_1 + FFMQpre_15_1 + FFMQpre_20_1,
+    Self_compasion_pre = 
+        FFMQpre_4R + FFMQpre_7R + FFMQpre_14R + FFMQpre_19R + FFMQpre_24R,
+    Acting_mindful_pre = 
+        FFMQpre_8R + FFMQpre_12R + FFMQpre_17R + FFMQpre_22R + FFMQpre_23R,
+    FFMQ_pre_total = 
+        Desc_Ex_pre + Non_react_pre + Observe_inner_pre+ Self_compasion_pre + Acting_mindful_pre
+    )
+Mothership <- left_join(Mothership,FMMQ_pre, by = join_by(ID1 == ID1))
+
+FMMQ_post <- read_sav("~/Desktop/Coding/data/ACT_scores/FFMQPost_1.sav")
+FMMQ_post <- FMMQ_post|>
+  mutate(
+    #reverse code items
+    FFMQpost_4R  = 6 - FFMQpost_4_1,
+    FFMQpost_5R  = 6 - FFMQpost_5_1,  
+    FFMQpost_7R  = 6 - FFMQpost_7_1, 
+    FFMQpost_8R  = 6 - FFMQpost_8_1, 
+    FFMQpost_11R = 6 - FFMQpost_11_1, 
+    FFMQpost_12R = 6 - FFMQpost_12_1,
+    FFMQpost_14R = 6 - FFMQpost_14_1,
+    FFMQpost_17R = 6 - FFMQpost_17_1,
+    FFMQpost_19R = 6 - FFMQpost_19_1,
+    FFMQpost_22R = 6 - FFMQpost_22_1,
+    FFMQpost_23R = 6 - FFMQpost_23_1,
+    FFMQpost_24R = 6 - FFMQpost_24_1,
+    #create scales
+    Desc_Ex_post =
+        FFMQpost_1_1 + FFMQpost_2_1 + FFMQpost_5R + FFMQpost_11R + FFMQpost_16_1,
+    Non_react_post = 
+        FFMQpost_3_1 + FFMQpost_9_1 + FFMQpost_13_1 + FFMQpost_18_1 + FFMQpost_21_1,
+    Observe_inner_post = 
+        FFMQpost_6_1 + FFMQpost_10_1 + FFMQpost_15_1 + FFMQpost_20_1,
+    Self_compasion_post = 
+        FFMQpost_4R + FFMQpost_7R + FFMQpost_14R + FFMQpost_19R + FFMQpost_24R,
+    Acting_mindful_post = 
+        FFMQpost_8R + FFMQpost_12R + FFMQpost_17R + FFMQpost_22R + FFMQpost_23R,
+    FFMQ_post_total = 
+        Desc_Ex_post + Non_react_post + Observe_inner_post + Self_compasion_post + Acting_mindful_post
+    )
+Mothership <- left_join(Mothership,FMMQ_post, by = join_by(ID1 == ID1))
+
+view(Mothership)
+# df_5 <- read_sav("~/Desktop/Coding/data/ACT_scores/FFMQPost_4250-4350.sav")
 ```
-
-
-
 
 ## Clean, update, and wrangle data
 
@@ -625,6 +681,10 @@ colnames(RCI_DF)[1] = "ID1"
 head(RCI_DF)
 ```
 
+```{r}
+view(Mothership_post)
+```
+
 
 ```{r}
 #Using JT citeria (recovered/improved/nonresponse/deteriorated)
@@ -699,8 +759,16 @@ Mothership_lasso <- Mothership_post |>
     rdqPOST_coping:rdqPOST_wbs,
     #For table 3 - RCI info
     CUXOS_pre, CUXOS_post, CUDOS_pre, CUDOS_post,
+    #ACT stuff
+    AAQIIpre, AAQIIpost, 
+    Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
+    Acting_mindful_post, FFMQ_post_total, 
+    Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre, 
+    Acting_mindful_pre, FFMQ_post_total
   ))
 Mothership_lasso_1 <- na.omit(Mothership_lasso)
+
+dim(Mothership_lasso_1)
 
 RCI_df_anx2 <- Mothership_lasso_1 |>
   filter(
@@ -987,7 +1055,13 @@ Mothership_lasso_anx <- Mothership_post_anx |>
     # RDQ
     rdqPOST_coping:rdqPOST_wbs,
     #For table 3 - RCI info
-    CUXOS_pre, CUXOS_post, Delta_Anx_DC, CUDOS_pre, CUDOS_post, Delta_Dep_DC
+    CUXOS_pre, CUXOS_post, Delta_Anx_DC, CUDOS_pre, CUDOS_post, Delta_Dep_DC,
+        #ACT stuff
+    AAQIIpre, AAQIIpost, 
+    Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
+    Acting_mindful_post, FFMQ_post_total, 
+    Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre, 
+    Acting_mindful_pre, FFMQ_post_total
   ))
 Mothership_lasso_anx <- na.omit(Mothership_lasso_anx)
 
@@ -1016,7 +1090,14 @@ Mothership_lasso_dep <- Mothership_post_dep |>
     # RDQ
     rdqPOST_coping:rdqPOST_wbs,
     #For table 3 - RCI info
-    CUXOS_pre, CUXOS_post, Delta_Anx_DC, CUDOS_pre, CUDOS_post, Delta_Dep_DC
+    CUXOS_pre, CUXOS_post, Delta_Anx_DC, CUDOS_pre, CUDOS_post, Delta_Dep_DC,
+    #ACT stuff
+    AAQIIpre, AAQIIpost, 
+    Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
+    Acting_mindful_post, FFMQ_post_total, 
+    Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre, 
+    Acting_mindful_pre, FFMQ_post_total
+    
   ))
 Mothership_lasso_dep <- na.omit(Mothership_lasso_dep)
 
@@ -1406,6 +1487,7 @@ JT_table[3,] = c("CUDOS",
 JT_table
 ```
 
+
 ###table 4A
 Between Group Differences of Anxiety at Pre and Post Timepoints by Anxiety Treatment Response
 ```{r}
@@ -1771,17 +1853,27 @@ Vars_dep <- Mothership_lasso_dep |>
     Depression_Responder,
     # Demographics
     Age_1,Some_College:Married,White, 
-    # Treatment info
-    IPT_track_1, Days_complete_1, Days_not_attended_1, 
     # Disorders
     Anxiety_D, Mood_D, BPD_P,    Trauma_D, #Substance_D, #Psychotic_D,  
     Other,
     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
     Current_Dx,
-    # Pre-Post stuff
+# Pre variables
     CUDOS_pre,CUXOS_pre,
+    AAQIIpre,
+    Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre,
+    Acting_mindful_pre,
+  #post stuff    
+     # Treatment info
+    IPT_track_1, Days_complete_1, Days_not_attended_1,
     # RDQ
-    rdqPOST_coping:rdqPOST_wbs
+    # rdqPOST_coping:rdqPOST_wbs,
+    #ACT stuff
+
+    AAQIIpost,
+    Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
+    Acting_mindful_post,
+
   ))
 
 # old model
@@ -1924,25 +2016,54 @@ Dep_reg_coefs
 
 
 ```{r}
-# min model
+# # min model - old
+# glm_min_dep <-
+#           glm(
+#     #Outcome varaible
+#       Depression_Responder ~
+#     # predictors
+#       Age_1  + Some_College + Married + IPT_track_1 +
+#       Days_complete_1 + Days_not_attended_1 + Anxiety_D + Trauma_D +
+#       Trauma_C + Substance_C +
+#       rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
+#     #data
+#       data = Vars_dep,
+#     # type of regression : logistic = binary / binomial
+#       family = "binomial",
+#     )
+
+# # min model - pre
+# glm_min_dep <-
+#           glm(
+#     #Outcome varaible
+#       Depression_Responder ~
+#     # predictors
+#       White  +   Anxiety_C + BPD_Co_C+  Current_Dx + CUXOS_pre + 
+#       Self_compasion_pre,
+#     #data
+#       data = Vars_dep,
+#     # type of regression : logistic = binary / binomial
+#       family = "binomial",
+#     )
+
+
+# min model - pre/post
 glm_min_dep <-
           glm(
     #Outcome varaible
       Depression_Responder ~
     # predictors
-      Age_1  + Some_College + Married + IPT_track_1 +
-      Days_complete_1 + Days_not_attended_1 + Anxiety_D + Trauma_D +
-      Trauma_C + Substance_C +
-      rdqPOST_coping + rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
+      White  +  Days_not_attended_1 + Anxiety_C + Current_Dx + CUXOS_pre +
+      Non_react_post + AAQIIpost + Acting_mindful_post,
     #data
       data = Vars_dep,
     # type of regression : logistic = binary / binomial
       family = "binomial",
     )
 
+
+
 # install.packages("rempsyc")
-# library(rempsyc)
-# nice_table(tidy.summary.min.dep)
   
 # Summary of the model
   summary.min.dep      <- summary(glm_min_dep)
@@ -1967,8 +2088,14 @@ glm_min_dep <-
     ADJ.p.values.min.dep <- data.frame(rbind(adj.p.min.dep$exclude, adj.p.min.dep$select))
     
 # R^2 values  
-   R2.min.dep <- performance::r2(glm_min_dep)
+  R2.min.dep <- performance::r2(glm_min_dep)
   R2.min.dep
+  
+  #wald
+   library(aod)
+   wald.test(b = coef(glm_min_dep),Sigma = vcov(glm_min_dep),Terms= 2:7)
+   
+  
 # df for Forrest plots
 FP.min.dep <- data.frame(cbind(
   Variable = tidy.summary.min.dep$term[2:length(tidy.summary.min.dep$term)],
@@ -2071,7 +2198,13 @@ Vars_anx <- Mothership_lasso_anx |>
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
-    rdqPOST_coping:rdqPOST_wbs
+    # rdqPOST_coping:rdqPOST_wbs,
+        #ACT stuff
+    AAQIIpre, AAQIIpost, 
+    Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
+    Acting_mindful_post, 
+    Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre, 
+    Acting_mindful_pre
   ))
 
 Vars_anx <- na.omit(Vars_anx)
@@ -2207,17 +2340,17 @@ Anx_coefs <-tmp_coeffs@Dimnames[[1]][tmp_coeffs@i + 1]
 Anx_reg_coefs <- Anx_coefs[2:length(Anx_coefs)]
 Anx_reg_coefs
 
+
+
 ## min model
   glm_min_anx <-  
       glm(
       #Outcome varaible
         Anxiety_Responder ~ 
       # predictors
-        Age_1 + Married + Days_complete_1 + 
-        Days_not_attended_1 + Anxiety_D + Trauma_D +
-        Other + Mood_C + BPD_Co_C + 
-        Substance_C + CUXOS_pre +  rdqPOST_coping + 
-        rdqPOST_pmh + rdqPOST_func + rdqPOST_wbs,
+        Female + Married + White + Days_not_attended_1 + 
+        Anxiety_D +  BPD_Co_C + CUXOS_pre +  
+        AAQIIpost + Non_react_post + Self_compasion_post + Acting_mindful_post,
       #data
       data = Vars_anx, 
       # type of regression : logistic = binary / binomial
@@ -2249,7 +2382,7 @@ Anx_reg_coefs
 
 #wald
    library(aod)
-   wald.test(b = coef(glm_min_anx),Sigma = vcov(glm_min_anx),Terms= 2:15)
+   wald.test(b = coef(glm_min_anx),Sigma = vcov(glm_min_anx),Terms= 2:12)
    
 # df for Forrest plots
 FP.min.anx <- data.frame(cbind(
@@ -2344,11 +2477,11 @@ FP_anx <- read_csv("~/Downloads/FP.min.anx")
 # FP_anx <- read_csv("~/Downloads/FP.1se.anx")
 
 #Change the names of variables
-FP_anx$Variable = c("Age", "Unmarried", "Days Completed", 
-                    "Days Not Attended", "Anixety Disorder","Trauma Disorder", 
-                    "Other Disorder", "Co-Mood Disorder",  "Co-BPD", 
-                    "Co-SUD", "CUXOS Pre", "Post Coping", 
-                    "Post PMH", "Post Functioning", "Post Wellbeing")
+# FP_anx$Variable = c("Age", "Unmarried", "Days Completed", 
+#                     "Days Not Attended", "Anixety Disorder","Trauma Disorder", 
+#                     "Other Disorder", "Co-Mood Disorder",  "Co-BPD", 
+#                     "Co-SUD", "CUXOS Pre", "Post Coping", 
+#                     "Post PMH", "Post Functioning", "Post Wellbeing")
 
 FP_anx$order = c(seq(from=2, to=length(FP_anx$Variable) + 1,1))
 
@@ -2479,14 +2612,14 @@ FP_anx_L + FP_anx_m + FP_anx_R + plot_layout(design = layout)
 
 
 
-FP_dep <- read_csv("~/Downloads/FP.1se.dep")
+FP_dep <- read_csv("~/Downloads/FP.min.dep")
 
 #rename the variables for the figure
 
-FP_dep$Variable = c(
-                     "Days Not Attended",
-                    "Post Coping", 
-                    "Post PMH", "Post Functioning", "Post Wellbeing")
+# FP_dep$Variable = c(
+#                      "Days Not Attended",
+#                     "Post Coping", 
+#                     "Post PMH", "Post Functioning", "Post Wellbeing")
 
 
 FP_dep$order = c(seq(from=2, to=length(FP_dep$Variable) + 1,1))
