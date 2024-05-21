@@ -255,7 +255,11 @@ Mothership <- mutate(Mothership,
                        ifelse(Duration == 1 | Duration == 2, "1",
                               ifelse(Duration == 3 | Duration == 4, "2", NA)
                        )))
+```
 
+
+
+```{r}
 #Extract Year From Intake Date
 #Convert to Date
 library("lubridate")
@@ -466,7 +470,12 @@ Mothership<-Mothership %>%
         Co_Eating == 1 |
         Co_Psychotic == 1, 1, 0))
       )
+summary(as.factor(Mothership$Prev_AdmitID_1))
+view(Mothership)
+```
 
+
+```{r}
 ##### df for plots 
 
 # only include people that attend treatment & its thier first time attending
@@ -600,6 +609,7 @@ write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Diag_treat.csv")
                                                        ifelse(is.na(BL_CUXOS), NA, "Subclinical"
                                                        ))))))
 )
+    
 ```
 
 
@@ -728,7 +738,29 @@ library(JTRCI)
 
 JTRCI with less people
 ```{r}
+Mothership_Missing <- Mothership_post |>
+  select(
+    ID1, 
+    # RDQ
+    rdqPRE_coping:rdqPRE_wbs,
+    rdqPOST_coping:rdqPOST_wbs,
+    #For table 3 - RCI info
+    CUXOS_pre, CUXOS_post,CUDOS_pre, CUDOS_post, 
+    #ACT stuff
+    AAQIIpre,AAQIIpost,
+    Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre, 
+    Acting_mindful_pre, 
+    Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post, 
+    Acting_mindful_post 
+  )
 
+#install.packages('naniar')
+library(naniar)
+vis_miss(Mothership_Missing)
+```
+
+
+```{r}
 Mothership_lasso <- Mothership_post |>
   filter(
   !is.na(Some_College),
@@ -750,15 +782,15 @@ Mothership_lasso <- Mothership_post |>
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
-    # rdqPRE_coping:rdqPRE_wbs,
+    rdqPRE_coping:rdqPRE_wbs,
     #For table 3 - RCI info
     CUXOS_pre, CUXOS_post, CUDOS_pre, CUDOS_post,
     #ACT stuff
-    # AAQIIpre, AAQIIpost,
-    # Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre,
-    # Acting_mindful_pre,
-    Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
-    Acting_mindful_post,
+    AAQIIpre, #AAQIIpost,
+    Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre,
+    Acting_mindful_pre,
+    # Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
+    # Acting_mindful_post,
   ))
 
 Mothership_lasso_1 <- na.omit(Mothership_lasso)
@@ -768,6 +800,7 @@ dim(Mothership_lasso_1)
 ```
 
 ```{r}
+library(JTRCI)
 RCI_df_anx2 <- Mothership_lasso_1 |>
   filter(
     !is.na(CUXOS_pre),
@@ -1052,18 +1085,19 @@ Mothership_lasso_anx <- Mothership_post_anx |>
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
-    rdqPOST_coping:rdqPOST_wbs,rdqPRE_coping:rdqPRE_wbs,
+    rdqPRE_coping:rdqPRE_wbs,
     #For table 3 - RCI info
     CUXOS_pre, CUXOS_post, Delta_Anx_DC, CUDOS_pre, CUDOS_post, Delta_Dep_DC,
-        #ACT stuff
-    AAQIIpre, AAQIIpost, 
-    Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
-    Acting_mindful_post, FFMQ_post_total, 
+    #ACT stuff
+    AAQIIpre,
     Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre, 
-    Acting_mindful_pre, FFMQ_post_total
+    Acting_mindful_pre, 
   ))
+
+
 Mothership_lasso_anx <- na.omit(Mothership_lasso_anx)
 
+dim(Mothership_lasso_anx)
 ### depression
 Mothership_lasso_dep <- Mothership_post_dep |>
     filter(
@@ -1087,13 +1121,11 @@ Mothership_lasso_dep <- Mothership_post_dep |>
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
-    rdqPOST_coping:rdqPOST_wbs,rdqPRE_coping:rdqPRE_wbs,
+    rdqPRE_coping:rdqPRE_wbs,
     #For table 3 - RCI info
     CUXOS_pre, CUXOS_post, Delta_Anx_DC, CUDOS_pre, CUDOS_post, Delta_Dep_DC,
     #ACT stuff
-    AAQIIpre, AAQIIpost, 
-    Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
-    Acting_mindful_post, 
+    AAQIIpre,
     Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre, 
     Acting_mindful_pre, 
     
@@ -1111,6 +1143,7 @@ colnames(Mothership_lasso_joined)[3:34] <- substr(names.x,1,nchar(names.x)-2)
 #Delete ID1 from dfs
 Mothership_lasso_anx <- Mothership_lasso_anx[,-1]
 Mothership_lasso_dep <- Mothership_lasso_dep[,-1]
+
 ```
 
 ```{r}
@@ -1643,12 +1676,6 @@ test1$estimate[[1]] #responder pre cuxos mean
      
 ```
 
-
-```{r}
-
-```
-
-
 ataset visualizatoin
 ```{r}
 # #install.packages("ggdist")
@@ -1861,18 +1888,18 @@ Vars_dep <- Mothership_lasso_dep |>
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
-    #rdqPRE_coping:rdqPRE_wbs,
+    rdqPRE_coping:rdqPRE_wbs,
     #For table 3 - RCI info
     CUXOS_pre,CUDOS_pre, 
     #ACT stuff
-    # AAQIIpre, AAQIIpost,
-    #  Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre, 
-    # Acting_mindful_pre, 
-    Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
-    Acting_mindful_post,
+    AAQIIpre,
+    Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre, 
+    Acting_mindful_pre, 
+
   ))
 
 Vars_dep <- na.omit(Vars_dep)
+dim(Vars_dep)
 ```
 
 Create test and train data - Depression
@@ -2001,7 +2028,7 @@ Minimum-
 ## install.packages("fuzzySim")
 
 
-tmp_coeffs <- coef(lasso.model.min.dep, s = "lambda.min")
+tmp_coeffs <- coef(lasso.model.1se.dep, s = "lambda.1se")
 Dep_coefs <-tmp_coeffs@Dimnames[[1]][tmp_coeffs@i + 1]
 Dep_reg_coefs <- Dep_coefs[2:length(Dep_coefs)]
 Dep_reg_coefs
@@ -2025,15 +2052,22 @@ Dep_reg_coefs
 #       family = "binomial",
 #     )
 
+Vars_dep <- Vars_dep |>
+  mutate(
+    YA_Treatment = as.factor(ifelse(IPT_track_1 == "Young Adult",1,0)),
+    Trauma_Treatment = as.factor(ifelse(IPT_track_1 == "Trauma",1,0))
+  )
+
 # min model - post AAQII no Mindful stuff
 glm_min_dep <-
           glm(
     #Outcome varaible
       Depression_Responder ~
     # predictors
-Days_not_attended_1 + Anxiety_C + BPD_Co_C + Current_Dx + 
-  CUXOS_pre +  Non_react_post + 
-  Self_compasion_post + Acting_mindful_post,
+      Some_College + Female + White + YA_Treatment + Trauma_Treatment + Days_complete_1 + 
+      Days_not_attended_1 + Anxiety_D + BPD_P+ Trauma_D+Other+ Anxiety_C + Mood_C+ 
+      BPD_Co_C + Substance_C + No_Co + Current_Dx + CUXOS_pre + rdqPRE_coping + 
+      rdqPRE_pmh + rdqPRE_func + AAQIIpre + Self_compasion_pre,
     #data
       data = Vars_dep,
     # type of regression : logistic = binary / binomial
@@ -2087,7 +2121,7 @@ Days_not_attended_1 + Anxiety_C + BPD_Co_C + Current_Dx +
   
   #wald
    library(aod)
-   # wald.test(b = coef(glm_min_dep),Sigma = vcov(glm_min_dep),Terms= 2:13)
+   wald.test(b = coef(glm_min_dep),Sigma = vcov(glm_min_dep),Terms= 2:24)
    
   
 # df for Forrest plots
@@ -2177,7 +2211,6 @@ write_csv(FP.1se.dep, "~/Downloads/FP.1se.dep")
 # Anxiety Lasso 
 Preparing data for lasso - Anxiety
 ```{r}
-
 Vars_anx <- Mothership_lasso_anx |>
   select( c(
     Anxiety_Responder,
@@ -2192,12 +2225,13 @@ Vars_anx <- Mothership_lasso_anx |>
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
-    #rdqPRE_coping:rdqPRE_wbs,
+    rdqPRE_coping:rdqPRE_wbs,
     #For table 3 - RCI info
     CUXOS_pre,CUDOS_pre, 
     #ACT stuff
-    Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
-    Acting_mindful_post,
+    AAQIIpre,
+    Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre, 
+    Acting_mindful_pre, 
   ))
 
 Vars_anx <- na.omit(Vars_anx)
@@ -2265,7 +2299,7 @@ lasso.model.min.anx <- glmnet(x, y, alpha = 1, family = "binomial",
 coef(lasso.model.min.anx)
 # Make prediction on test data
 x.test <- model.matrix(Anxiety_Responder ~., test.data)[,-1]
-probabilities <- lasso.model.min.anx %>% predict(newx = x.test,)
+probabilities <- lasso.model.min.anx %>% predict(newx = x.test,type="response")
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 # Model accuracy
 observed.classes <- test.data$Anxiety_Responder
@@ -2279,7 +2313,7 @@ lasso.model.1se.anx <- glmnet(x, y, alpha = 1, family = "binomial",
 coef(lasso.model.1se.anx)
 # Make prediction on test data
 x.test <- model.matrix(Anxiety_Responder ~., test.data)[,-1]
-probabilities <- lasso.model.1se.anx %>% predict(newx = x.test)
+probabilities <- lasso.model.1se.anx %>% predict(newx = x.test,type="response")
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 
 # Model accuracy rate
@@ -2337,14 +2371,22 @@ Anx_reg_coefs
 
 ```{r}
 ## min model
+
+Vars_anx <- Vars_anx |>
+  mutate(
+    YA_Treatment = as.factor(ifelse(IPT_track_1 == "Young Adult",1,0)),
+    Trauma_Treatment = as.factor(ifelse(IPT_track_1 == "Trauma",1,0))
+  )
+
   glm_min_anx <-  
       glm(
       #Outcome varaible
         Anxiety_Responder ~ 
       # predictors
-        Age_1 + Some_College + Female + Married + White + Days_not_attended_1 + 
-        BPD_Co_C + CUXOS_pre +  
-        Non_react_post+  Self_compasion_post + Acting_mindful_post,
+        Age_1 + Female + Married + White + YA_Treatment + Trauma_Treatment + 
+        Days_complete_1 + Days_not_attended_1 + Anxiety_D + Mood_C + Trauma_C + 
+        Substance_C + Current_Dx + CUDOS_pre + rdqPRE_coping + rdqPRE_func + 
+        AAQIIpre + Non_react_pre + Self_compasion_pre,
       #data
       data = Vars_anx, 
       # type of regression : logistic = binary / binomial
@@ -2377,7 +2419,7 @@ Anx_reg_coefs
 
 #wald
    library(aod)
-   wald.test(b = coef(glm_min_anx),Sigma = vcov(glm_min_anx),Terms= 2:12)
+   wald.test(b = coef(glm_min_anx),Sigma = vcov(glm_min_anx),Terms= 2:20)
    
 # df for Forrest plots
 FP.min.anx <- data.frame(cbind(
@@ -2484,10 +2526,7 @@ FP_anx <- FP_anx |>
   mutate(
     sig = ifelse(p.adjusted <= 0.05, 16,1)
   )
-```
 
-
-```{r}
 FP_anx_m <- FP_anx |>
   ggplot(aes(y = reorder(Variable, -order), color = as.factor(sig))) +
   #take away background
@@ -2508,7 +2547,7 @@ FP_anx_m <- FP_anx |>
     # subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
   #adjust the dimentions. 
   coord_cartesian(ylim = c(1,length(FP_anx$Variable) + 1),
-                  xlim = c(.25,3.0)) +
+                  xlim = c(.25,2.5)) +
   #add a line at 1 for reference 
    geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
   #add anotations to help suggests what each side means.
@@ -2597,7 +2636,7 @@ library("patchwork")
 
 layout <- c(
   patchwork::area(t = 0, l = 0, b = 30, r = 35),
-  patchwork::area(t = 0, l = 19, b = 30, r = 30),
+  patchwork::area(t = 0, l = 19, b = 30, r = 34),
   patchwork::area(t = 0, l = 30, b = 30, r = 40) 
   )
 
@@ -2628,7 +2667,7 @@ FP_dep <- FP_dep |>
   )
 
 FP_dep_m <- FP_dep |>
-  ggplot(aes(y = reorder(Variable, -order), color = as.factor(sig))) +
+  ggplot(aes(y = reorder(Variable, -order), color =as.factor(sig))) +
   #take away background
   theme_classic() +
   #make the forrest plot
@@ -2647,12 +2686,12 @@ FP_dep_m <- FP_dep |>
     # subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
   #adjust the dimentions. 
   coord_cartesian(ylim = c(1,length(FP_dep$Variable) + 1),
-                  xlim = c(.5,2.0)) +
+                  xlim = c(.25,3.0)) +
   #add a line at 1 for reference 
    geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
   #add anotations to help suggests what each side means.
-  annotate("text", x = .75, y = length(FP_dep$Variable) + 1, label = "Less Likely", size= 4) +
-  annotate("text", x = 1.25, y = length(FP_dep$Variable) + 1, label = "More Likely",size= 4) +
+  annotate("text", x = .5, y = length(FP_dep$Variable) + 1, label = "Less Likely", size= 4) +
+  annotate("text", x = 1.5, y = length(FP_dep$Variable) + 1, label = "More Likely",size= 4) +
   #Git rid of the Y - Axis
     theme(axis.line.y = element_blank(),
         axis.ticks.y= element_blank(),
