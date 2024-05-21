@@ -37,7 +37,6 @@ AAQIIpre <- AAQIIpre |>
       AAQIIpre_5_1 + AAQIIpre_6_1 + AAQIIpre_7_1
   )
 Mothership <- left_join(Mothership,AAQIIpre, by = join_by(ID1 == ID1))
-AAQII
 
 AAQIIpost <- read_sav("~/Desktop/Coding/data/ACT_scores/AAQIIPost_1.sav")
 AAQIIpost <- AAQIIpost |>
@@ -111,7 +110,6 @@ FMMQ_post <- FMMQ_post|>
     )
 Mothership <- left_join(Mothership,FMMQ_post, by = join_by(ID1 == ID1))
 
-view(Mothership)
 # df_5 <- read_sav("~/Desktop/Coding/data/ACT_scores/FFMQPost_4250-4350.sav")
 ```
 
@@ -479,10 +477,10 @@ Mothership <- Mothership |>
   ) |>
   mutate(
     dummy = -99
-  ) |>
-  filter(!is.na(Disorder_treat),
-         !is.na(TxYear),
-         !is.na(Duration))
+  )
+  # filter(!is.na(Disorder_treat),
+  #        !is.na(TxYear),
+  #        !is.na(Duration))
 
 # df without NAs in date and disorder type
 
@@ -602,133 +600,129 @@ write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Diag_treat.csv")
                                                        ifelse(is.na(BL_CUXOS), NA, "Subclinical"
                                                        ))))))
 )
+```
 
 
-
+```{r}
 # 4. RCI Analysis categorization ------------------------------------------
 
 
 #devtools::install_github("AWKruijt/JT-RCI")
 
 library(JTRCI)
-citation("JTRCI")
 
+# # 
+# # #devtools::install_github("zieglema/ClinicalSig")
+# #1. Create df for RCI
+# RCI_df_dep <- Mothership_post |>
+#   mutate(
+#     ID1  = as.integer(ID1),
+#     pre  = as.numeric(CUDOS_pre),
+#     post = as.numeric(CUDOS_post),
+#   ) |>
+#   select(
+#     ID1,pre,post
+#   ) |>
+#   filter(!is.na(pre),
+#          !is.na(post),
+#          pre > 20)
 # 
-# #devtools::install_github("zieglema/ClinicalSig")
-#1. Create df for RCI
-RCI_df_dep <- Mothership_post |>
-  mutate(
-    ID1  = as.integer(ID1),
-    pre  = as.numeric(CUDOS_pre),
-    post = as.numeric(CUDOS_post),
-  ) |>
-  select(
-    ID1,pre,post
-  ) |>
-  filter(!is.na(pre),
-         !is.na(post),
-         pre > 20)
-
-RCI_df_anx <- Mothership_post |>
-  mutate(
-    ID1  = as.integer(ID1),
-    pre  = as.numeric(CUXOS_pre),
-    post = as.numeric(CUXOS_post),
-  ) |>
-  select(
-    ID1,pre,post
-  ) |>
-  filter(!is.na(pre),
-         !is.na(post),
-         pre > 20)
-
-
-RCI_df_dep <- data.frame(RCI_df_dep)
-RCI_df_anx <- data.frame(RCI_df_anx)
-
-# https://awkruijt.netlify.app/plotposts/longitudinaljtrci
-
-RCI_df_anx1<-RCI_df_anx |>
-  select(ID1,pre,post)
-
-## Using RCI only (respond/nonrespond/deteriorated)
-DEP_RCI <- JTRCI (data = RCI_df_dep, 
-                  pre = "pre", 
-                  post = "post", 
-                  ppid = "ID1", 
-                  reliability = .74, 
-                  indextype = "RCI", 
-                  JTcrit = "auto",
-                  plottitle = "JT indices for anxiety")
-
-ANX_RCI <- JTRCI (data = RCI_df_anx, 
-                  pre = "pre", 
-                  post = "post", 
-                  ppid = "ID1", 
-                  reliability = .74, 
-                  indextype = "RCI", 
-                  #JTcrit = "auto",
-                  plottitle = "JT indices for depression")
-RCI_DF<- ANX_RCI$data
-colnames(RCI_DF) <- paste0(colnames(RCI_DF),"_anx")
-
-RCI_DF2<- DEP_RCI$data
-colnames(RCI_DF2) <- paste0(colnames(RCI_DF2),"_dep")
-
-RCI_DF <- full_join(RCI_DF,RCI_DF2, by = c("ppid_anx" = "ppid_dep"))
-colnames(RCI_DF)[1] = "ID1"
-
-head(RCI_DF)
-```
-
-```{r}
-view(Mothership_post)
+# RCI_df_anx <- Mothership_post |>
+#   mutate(
+#     ID1  = as.integer(ID1),
+#     pre  = as.numeric(CUXOS_pre),
+#     post = as.numeric(CUXOS_post),
+#   ) |>
+#   select(
+#     ID1,pre,post
+#   ) |>
+#   filter(!is.na(pre),
+#          !is.na(post),
+#          pre > 20)
+# 
+# 
+# RCI_df_dep <- data.frame(RCI_df_dep)
+# RCI_df_anx <- data.frame(RCI_df_anx)
+# 
+# # https://awkruijt.netlify.app/plotposts/longitudinaljtrci
+# 
+# RCI_df_anx1<-RCI_df_anx |>
+#   select(ID1,pre,post)
+# 
+# ## Using RCI only (respond/nonrespond/deteriorated)
+# DEP_RCI <- JTRCI (data = RCI_df_dep, 
+#                   pre = "pre", 
+#                   post = "post", 
+#                   ppid = "ID1", 
+#                   reliability = .74, 
+#                   indextype = "RCI", 
+#                   JTcrit = "auto",
+#                   plottitle = "JT indices for anxiety")
+# 
+# ANX_RCI <- JTRCI (data = RCI_df_anx, 
+#                   pre = "pre", 
+#                   post = "post", 
+#                   ppid = "ID1", 
+#                   reliability = .74, 
+#                   indextype = "RCI", 
+#                   #JTcrit = "auto",
+#                   plottitle = "JT indices for depression")
+# RCI_DF<- ANX_RCI$data
+# colnames(RCI_DF) <- paste0(colnames(RCI_DF),"_anx")
+# 
+# RCI_DF2<- DEP_RCI$data
+# colnames(RCI_DF2) <- paste0(colnames(RCI_DF2),"_dep")
+# 
+# RCI_DF <- full_join(RCI_DF,RCI_DF2, by = c("ppid_anx" = "ppid_dep"))
+# colnames(RCI_DF)[1] = "ID1"
+# 
+# head(RCI_DF)
 ```
 
 
 ```{r}
 #Using JT citeria (recovered/improved/nonresponse/deteriorated)
-
-#1. JT classification for depression
-JTRCI (data = RCI_df_dep, 
-                  pre = "pre", 
-                  post = "post", 
-                  ppid = "ID1", 
-                  reliability = .74, 
-                  indextype = "JT", 
-                  JTcrit = "auto",
-                  plottitle = "JT indices for anxiety")
-
-DEP_JT <- JTRCIdf
-colnames(DEP_JT) <- paste0(colnames(DEP_JT),"_dep")
-head(DEP_JT)
-
-#2. JT classification for anxiety
-JTRCI (data = RCI_df_anx, 
-                  pre = "pre", 
-                  post = "post", 
-                  ppid = "ID1", 
-                  reliability = .74, 
-                  indextype = "JT", 
-                  #JTcrit = "auto",
-                  plottitle = "JT indices for depression")
-
-ANX_JT<- JTRCIdf
-
-#3. Make combined JT table for anxiety and depression
-
-# JT_DF<- ANX_JT
-
-colnames(ANX_JT) <- paste0(colnames(ANX_JT),"_anx")
-
 # 
-# JT_DF2<- DEP_JT
-
+# #1. JT classification for depression
+# JTRCI (data = RCI_df_dep, 
+#                   pre = "pre", 
+#                   post = "post", 
+#                   ppid = "ID1", 
+#                   reliability = .74, 
+#                   indextype = "JT", 
+#                   JTcrit = "auto",
+#                   plottitle = "JT indices for anxiety")
 # 
-# JT_DF <- full_join(JT_DF,JT_DF2, by = c("ppid_anx" = "ppid_dep"))
-# colnames(JT_DF)[1] = "ID1"
-
-head(ANX_JT)
+# DEP_JT <- JTRCIdf
+# colnames(DEP_JT) <- paste0(colnames(DEP_JT),"_dep")
+# head(DEP_JT)
+# 
+# #2. JT classification for anxiety
+# JTRCI (data = RCI_df_anx, 
+#                   pre = "pre", 
+#                   post = "post", 
+#                   ppid = "ID1", 
+#                   reliability = .74, 
+#                   indextype = "JT", 
+#                   #JTcrit = "auto",
+#                   plottitle = "JT indices for depression")
+# 
+# ANX_JT<- JTRCIdf
+# 
+# #3. Make combined JT table for anxiety and depression
+# 
+# # JT_DF<- ANX_JT
+# 
+# colnames(ANX_JT) <- paste0(colnames(ANX_JT),"_anx")
+# 
+# # 
+# # JT_DF2<- DEP_JT
+# 
+# # 
+# # JT_DF <- full_join(JT_DF,JT_DF2, by = c("ppid_anx" = "ppid_dep"))
+# # colnames(JT_DF)[1] = "ID1"
+# 
+# head(ANX_JT)
 ```
 
 
@@ -756,20 +750,24 @@ Mothership_lasso <- Mothership_post |>
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
-    rdqPOST_coping:rdqPOST_wbs,
+    # rdqPRE_coping:rdqPRE_wbs,
     #For table 3 - RCI info
     CUXOS_pre, CUXOS_post, CUDOS_pre, CUDOS_post,
     #ACT stuff
-    AAQIIpre, AAQIIpost, 
+    # AAQIIpre, AAQIIpost,
+    # Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre,
+    # Acting_mindful_pre,
     Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
-    Acting_mindful_post, FFMQ_post_total, 
-    Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre, 
-    Acting_mindful_pre, FFMQ_post_total
+    Acting_mindful_post,
   ))
+
 Mothership_lasso_1 <- na.omit(Mothership_lasso)
 
 dim(Mothership_lasso_1)
 
+```
+
+```{r}
 RCI_df_anx2 <- Mothership_lasso_1 |>
   filter(
     !is.na(CUXOS_pre),
@@ -836,35 +834,36 @@ JTRCI (data = RCI_df_anx2,
 ANX_JT_smol<- JTRCIdf
 
 colnames(ANX_JT_smol) <- paste0(colnames(ANX_JT_smol),"_anx")
-
-view(ANX_JT_smol)
-view(DEP_JT_smol)
 ```
 
 
 ```{r}
 ###############          Adding RCI to dataset       ####################
 
-Mothership_post <- Mothership_post |>
-  #1. Filter out scores for people not in the program / don't have data
-  filter(!is.na(Days_complete_1)) |>
-  #Having people in the program for more than 40 days means that their scores may be a lot higher, they should be filtered out as result. 
-  filter(!is.na(CUXOS_pre),
-         !is.na(CUXOS_post),
-         CUXOS_pre > 0,
-         CUXOS_post >= 0,
-         !is.na(CUDOS_pre),
-         !is.na(CUDOS_post),
-         CUDOS_pre > 0,
-         CUDOS_post> 0
-         ) |>
-  mutate(
-    Delta_Anx_DC =  CUXOS_post - CUXOS_pre,
-    Delta_Dep_DC = CUDOS_post - CUDOS_pre,
-    Percent_Anx_change = (Delta_Anx_DC/CUXOS_pre)*100,
-    Percent_Dep_Dchange = (Delta_Dep_DC/CUDOS_pre)*100
-  )
-    #Days_complete_W = ifelse(Days_complete_1 > 40, 40, Days_complete_1),
+# Mothership_post <- Mothership_post |>
+#   #1. Filter out scores for people not in the program / don't have data
+#   filter(!is.na(Days_complete_1)) |>
+#   #Having people in the program for more than 40 days means that their scores may be a lot higher, they should be filtered out as result. 
+#   filter(!is.na(CUXOS_pre),
+#          !is.na(CUXOS_post),
+#          CUXOS_pre > 0,
+#          CUXOS_post >= 0,
+#          !is.na(CUDOS_pre),
+#          !is.na(CUDOS_post),
+#          CUDOS_pre > 0,
+#          CUDOS_post>= 0
+#          ) |>
+#   mutate(
+#     Delta_Anx_DC =  CUXOS_post - CUXOS_pre,
+#     Delta_Dep_DC = CUDOS_post - CUDOS_pre,
+#     Percent_Anx_change = (Delta_Anx_DC/CUXOS_pre)*100,
+#     Percent_Dep_Dchange = (Delta_Dep_DC/CUDOS_pre)*100
+#   )
+```
+
+
+```{r}
+#Days_complete_W = ifelse(Days_complete_1 > 40, 40, Days_complete_1),
     # Anx_Responder = as.factor(
     #   ifelse(CUXOS_pre <= 20 & Percent_Anx_change  <= -50, "Responder",
     #   ifelse(CUXOS_pre <= 20 & Percent_Anx_change  > -50,  "Unresponders", NA)   
@@ -1012,7 +1011,7 @@ RCI numbers
 # Data analysis 
 ## Part 1: Methods information
 ```{r}
-summary(as.factor(Mothership_post_joined$SCID_1))
+# summary(as.factor(Mothership_post_joined$SCID_1))
 ```
 
 
@@ -1053,7 +1052,7 @@ Mothership_lasso_anx <- Mothership_post_anx |>
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
-    rdqPOST_coping:rdqPOST_wbs,
+    rdqPOST_coping:rdqPOST_wbs,rdqPRE_coping:rdqPRE_wbs,
     #For table 3 - RCI info
     CUXOS_pre, CUXOS_post, Delta_Anx_DC, CUDOS_pre, CUDOS_post, Delta_Dep_DC,
         #ACT stuff
@@ -1088,15 +1087,15 @@ Mothership_lasso_dep <- Mothership_post_dep |>
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
-    rdqPOST_coping:rdqPOST_wbs,
+    rdqPOST_coping:rdqPOST_wbs,rdqPRE_coping:rdqPRE_wbs,
     #For table 3 - RCI info
     CUXOS_pre, CUXOS_post, Delta_Anx_DC, CUDOS_pre, CUDOS_post, Delta_Dep_DC,
     #ACT stuff
     AAQIIpre, AAQIIpost, 
     Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
-    Acting_mindful_post, FFMQ_post_total, 
+    Acting_mindful_post, 
     Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre, 
-    Acting_mindful_pre, FFMQ_post_total
+    Acting_mindful_pre, 
     
   ))
 Mothership_lasso_dep <- na.omit(Mothership_lasso_dep)
@@ -1589,7 +1588,7 @@ tab4[5,] = c(
 tab4
 ```
 
-
+T tests
 ```{r}
 # t test scores for differences pre post, between and within groups. 
 Pre_Post_t_Scores <- c("")
@@ -1852,34 +1851,26 @@ Vars_dep <- Mothership_lasso_dep |>
   select( c(
     Depression_Responder,
     # Demographics
-    Age_1,Some_College:Married,White, 
+    Age_1,Some_College:Married,White, #Discharge,
+    # Treatment info
+    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
     # Disorders
-    Anxiety_D, Mood_D, BPD_P,    Trauma_D, #Substance_D, #Psychotic_D,  
-    Other,
+    Anxiety_D, Mood_D, BPD_P, Trauma_D, Other,
     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
     Current_Dx,
-# Pre variables
-    CUDOS_pre,CUXOS_pre,
-    AAQIIpre,
-    Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre,
-    Acting_mindful_pre,
-  #post stuff    
-     # Treatment info
-    IPT_track_1, Days_complete_1, Days_not_attended_1,
+    # Pre-Post stuff
+    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
-    # rdqPOST_coping:rdqPOST_wbs,
+    #rdqPRE_coping:rdqPRE_wbs,
+    #For table 3 - RCI info
+    CUXOS_pre,CUDOS_pre, 
     #ACT stuff
-
-    AAQIIpost,
+    # AAQIIpre, AAQIIpost,
+    #  Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre, 
+    # Acting_mindful_pre, 
     Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
     Acting_mindful_post,
-
   ))
-
-# old model
-# Anxiety_D, Mood_D, BPD_P,    Trauma_D,  Other,
-#     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
-#     Current_Dx,
 
 Vars_dep <- na.omit(Vars_dep)
 ```
@@ -1921,19 +1912,21 @@ print(paste0("The 1 standard error lambda value is: ", round(cv.lasso.dep$lambda
 model.min <- glmnet(x.dep, y.dep, alpha = 1, family = "binomial",
                 lambda = cv.lasso.dep$lambda.min,standardize = TRUE)
 
+#####  CHECK THIS OUT?????????
+
 # Make predictions on the test data
 x.test <- model.matrix(Depression_Responder ~., test.data)[,-1]
-probabilities <- model.min %>% predict(newx = x.test)
+probabilities <- model.min %>% predict(newx = x.test,"response")
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 # Model accuracy
 observed.classes <- test.data$Depression_Responder
 mean(predicted.classes == observed.classes)
 
 #Using lambda.min as the best lambda, gives the following regression coefficients:
-coef(cv.lasso.dep, cv.lasso.dep$lambda.min)
+#coef(cv.lasso.dep, cv.lasso.dep$lambda.min)
 
 #Using lambda.1se as the best lambda, gives the following regression coefficients:
-coef(cv.lasso.dep, cv.lasso.dep$lambda.1se)
+#coef(cv.lasso.dep, cv.lasso.dep$lambda.1se)
 ```
 
 Evaluating if we should use Lasso min or 1SE- Depression
@@ -1947,7 +1940,7 @@ lasso.model.min.dep <- glmnet(x.dep, y.dep, alpha = 1, family = "binomial",
 coef(lasso.model.min.dep)
 # Make prediction on test data
 x.test <- model.matrix(Depression_Responder ~., test.data)[,-1]
-probabilities <- lasso.model.min.dep %>% predict(newx = x.test)
+probabilities <- lasso.model.min.dep %>% predict(newx = x.test,type ="response")
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 # Model accuracy
 observed.classes <- test.data$Depression_Responder
@@ -1960,7 +1953,7 @@ lasso.model.1se.dep <- glmnet(x.dep, y.dep, alpha = 1, family = "binomial",
 coef(lasso.model.1se.dep)
 # Make prediction on test data
 x.test <- model.matrix(Depression_Responder ~., test.data)[,-1]
-probabilities <- lasso.model.1se.dep %>% predict(newx = x.test)
+probabilities <- lasso.model.1se.dep %>% predict(newx = x.test,type ="response")
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 
 # Model accuracy rate
@@ -2032,34 +2025,35 @@ Dep_reg_coefs
 #       family = "binomial",
 #     )
 
-# # min model - pre
-# glm_min_dep <-
-#           glm(
-#     #Outcome varaible
-#       Depression_Responder ~
-#     # predictors
-#       White  +   Anxiety_C + BPD_Co_C+  Current_Dx + CUXOS_pre + 
-#       Self_compasion_pre,
-#     #data
-#       data = Vars_dep,
-#     # type of regression : logistic = binary / binomial
-#       family = "binomial",
-#     )
-
-
-# min model - pre/post
+# min model - post AAQII no Mindful stuff
 glm_min_dep <-
           glm(
     #Outcome varaible
       Depression_Responder ~
     # predictors
-      White  +  Days_not_attended_1 + Anxiety_C + Current_Dx + CUXOS_pre +
-      Non_react_post + AAQIIpost + Acting_mindful_post,
+Days_not_attended_1 + Anxiety_C + BPD_Co_C + Current_Dx + 
+  CUXOS_pre +  Non_react_post + 
+  Self_compasion_post + Acting_mindful_post,
     #data
       data = Vars_dep,
     # type of regression : logistic = binary / binomial
       family = "binomial",
     )
+
+
+# min model - pre/post
+# glm_min_dep <-
+#           glm(
+#     #Outcome varaible
+#       Depression_Responder ~
+#     # predictors
+#       White  +  Days_not_attended_1 + Anxiety_C + Current_Dx + CUXOS_pre +
+#       Non_react_post + AAQIIpost + Acting_mindful_post,
+#     #data
+#       data = Vars_dep,
+#     # type of regression : logistic = binary / binomial
+#       family = "binomial",
+#     )
 
 
 
@@ -2093,7 +2087,7 @@ glm_min_dep <-
   
   #wald
    library(aod)
-   wald.test(b = coef(glm_min_dep),Sigma = vcov(glm_min_dep),Terms= 2:7)
+   # wald.test(b = coef(glm_min_dep),Sigma = vcov(glm_min_dep),Terms= 2:13)
    
   
 # df for Forrest plots
@@ -2188,23 +2182,22 @@ Vars_anx <- Mothership_lasso_anx |>
   select( c(
     Anxiety_Responder,
     # Demographics
-    Age_1,Some_College:Married,White, 
+    Age_1,Some_College:Married,White, #Discharge,
     # Treatment info
-    IPT_track_1, Days_complete_1, Days_not_attended_1, 
+    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
     # Disorders
-    Anxiety_D, Mood_D, BPD_P,    Trauma_D, Other,
+    Anxiety_D, Mood_D, BPD_P, Trauma_D, Other,
     Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
     Current_Dx,
     # Pre-Post stuff
     CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
     # RDQ
-    # rdqPOST_coping:rdqPOST_wbs,
-        #ACT stuff
-    AAQIIpre, AAQIIpost, 
+    #rdqPRE_coping:rdqPRE_wbs,
+    #For table 3 - RCI info
+    CUXOS_pre,CUDOS_pre, 
+    #ACT stuff
     Desc_Ex_post, Non_react_post, Observe_inner_post, Self_compasion_post,
-    Acting_mindful_post, 
-    Desc_Ex_pre, Non_react_pre, Observe_inner_pre, Self_compasion_pre, 
-    Acting_mindful_pre
+    Acting_mindful_post,
   ))
 
 Vars_anx <- na.omit(Vars_anx)
@@ -2249,17 +2242,17 @@ model <- glmnet(x, y, alpha = 1, family = "binomial",
 # coef(model)
 # Make predictions on the test data
 x.test <- model.matrix(Anxiety_Responder ~., test.data)[,-1]
-probabilities <- model %>% predict(newx = x.test)
+probabilities <- model %>% predict(newx = x.test,type = "response")
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 # Model accuracy
 observed.classes <- test.data$Anxiety_Responder
 mean(predicted.classes == observed.classes)
 
 #Using lambda.min as the best lambda, gives the following regression coefficients:
-coef(cv.lasso.anx, cv.lasso.anx$lambda.min)
+#coef(cv.lasso.anx, cv.lasso.anx$lambda.min)
 
 #Using lambda.1se as the best lambda, gives the following regression coefficients:
-coef(cv.lasso.anx, cv.lasso.anx$lambda.1se)
+#coef(cv.lasso.anx, cv.lasso.anx$lambda.1se)
 ```
 
 Evaluating if we should use Lasso min or 1SE- ANX
@@ -2272,7 +2265,7 @@ lasso.model.min.anx <- glmnet(x, y, alpha = 1, family = "binomial",
 coef(lasso.model.min.anx)
 # Make prediction on test data
 x.test <- model.matrix(Anxiety_Responder ~., test.data)[,-1]
-probabilities <- lasso.model.min.anx %>% predict(newx = x.test)
+probabilities <- lasso.model.min.anx %>% predict(newx = x.test,)
 predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
 # Model accuracy
 observed.classes <- test.data$Anxiety_Responder
@@ -2339,18 +2332,19 @@ tmp_coeffs <- coef(lasso.model.min.anx, s = "lambda.min")
 Anx_coefs <-tmp_coeffs@Dimnames[[1]][tmp_coeffs@i + 1]
 Anx_reg_coefs <- Anx_coefs[2:length(Anx_coefs)]
 Anx_reg_coefs
+```
 
 
-
+```{r}
 ## min model
   glm_min_anx <-  
       glm(
       #Outcome varaible
         Anxiety_Responder ~ 
       # predictors
-        Female + Married + White + Days_not_attended_1 + 
-        Anxiety_D +  BPD_Co_C + CUXOS_pre +  
-        AAQIIpost + Non_react_post + Self_compasion_post + Acting_mindful_post,
+        Age_1 + Some_College + Female + Married + White + Days_not_attended_1 + 
+        BPD_Co_C + CUXOS_pre +  
+        Non_react_post+  Self_compasion_post + Acting_mindful_post,
       #data
       data = Vars_anx, 
       # type of regression : logistic = binary / binomial
@@ -2358,7 +2352,8 @@ Anx_reg_coefs
   
 # Summary of the model
   summary.min.anx      <- summary(glm_min_anx)
-
+  summary.min.anx
+  
   tidy.summary.min.anx <- tidy(glm_min_anx)
   tidy.summary.min.anx
 # Coefficients
@@ -2489,7 +2484,10 @@ FP_anx <- FP_anx |>
   mutate(
     sig = ifelse(p.adjusted <= 0.05, 16,1)
   )
+```
 
+
+```{r}
 FP_anx_m <- FP_anx |>
   ggplot(aes(y = reorder(Variable, -order), color = as.factor(sig))) +
   #take away background
@@ -2510,7 +2508,7 @@ FP_anx_m <- FP_anx |>
     # subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
   #adjust the dimentions. 
   coord_cartesian(ylim = c(1,length(FP_anx$Variable) + 1),
-                  xlim = c(.25,2.0)) +
+                  xlim = c(.25,3.0)) +
   #add a line at 1 for reference 
    geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
   #add anotations to help suggests what each side means.
@@ -2598,9 +2596,9 @@ FP_anx
 library("patchwork")
 
 layout <- c(
-  patchwork::area(t = 0, l = 0, b = 30, r = 30),
-  patchwork::area(t = 0, l = 16, b = 30, r = 25),
-  patchwork::area(t = 0, l = 22, b = 30, r = 30) 
+  patchwork::area(t = 0, l = 0, b = 30, r = 35),
+  patchwork::area(t = 0, l = 19, b = 30, r = 30),
+  patchwork::area(t = 0, l = 30, b = 30, r = 40) 
   )
 
 FP_anx_L + FP_anx_m + FP_anx_R + plot_layout(design = layout)
@@ -2649,7 +2647,7 @@ FP_dep_m <- FP_dep |>
     # subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
   #adjust the dimentions. 
   coord_cartesian(ylim = c(1,length(FP_dep$Variable) + 1),
-                  xlim = c(.5,1.5)) +
+                  xlim = c(.5,2.0)) +
   #add a line at 1 for reference 
    geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
   #add anotations to help suggests what each side means.
