@@ -513,9 +513,42 @@ write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Diag_treat.csv")
                                                        ifelse(is.na(BL_CUXOS), NA, "Subclinical"
                                                        ))))))
 )
+```
 
 
+```{r}
+Mothership_lasso_1 <- Mothership_post |>
+    filter(
+    !is.na(Some_College),
+    !is.na(Female),
+    !is.na(IPT_track_1),
+    !is.na(White),
+    CUXOS_pre >= 20,
+    CUDOS_pre >= 20
+  ) |>
+  select( c(
+   # Anxiety_Responder, Depression_Responder,
+    # Demographics
+    ID1, Age_1,Some_College:Married,White, #Discharge,
+    # Treatment info
+    IPT_track_1, Days_complete_1, Days_not_attended_1, #Days_cancel_1,
+    # Disorders
+    Anxiety_D, Mood_D, BPD_P, Trauma_D, 
+    Anxiety_C, Mood_C, BPD_Co_C, Trauma_C, Substance_C, Other_C, No_Co,
+    Current_Dx,
+    # Pre-Post stuff
+    CUDOS_pre,CUXOS_pre, #CUDOS_first,CUXOS_first
+    # RDQ
+    rdqPOST_coping:rdqPOST_wbs,
+    #For table 3 - RCI info
+    CUXOS_pre, CUXOS_post, CUDOS_pre, CUDOS_post
+  ))
 
+Mothership_lasso_1 <- na.omit(Mothership_lasso_1)
+```
+
+
+```{r}
 # 4. RCI Analysis categorization ------------------------------------------
 
 
@@ -527,33 +560,43 @@ citation("JTRCI")
 # 
 # #devtools::install_github("zieglema/ClinicalSig")
 #1. Create df for RCI
-RCI_df_dep <- Mothership_post |>
+RCI_df_dep <- Mothership_lasso_1 |>
   mutate(
     ID1  = as.integer(ID1),
     pre  = as.numeric(CUDOS_pre),
     post = as.numeric(CUDOS_post),
-    Disorder = Disorder_treat
-  ) |>
-  select(
-    ID1,pre,post,Disorder
   ) |>
   filter(!is.na(pre),
          !is.na(post),
-         pre > 20)
+         pre > 20,
+         !is.na(Some_College),
+         !is.na(Female),
+         !is.na(IPT_track_1),
+         !is.na(White),
+         CUXOS_pre >= 20,
+         CUDOS_pre >= 20) |>
+  select(
+    ID1,pre,post)
 
-RCI_df_anx <- Mothership_post |>
+RCI_df_anx <- Mothership_lasso_1 |>
   mutate(
     ID1  = as.integer(ID1),
     pre  = as.numeric(CUXOS_pre),
-    post = as.numeric(CUXOS_post),
-    Disorder = Disorder_treat
-  ) |>
-  select(
-    ID1,pre,post,Disorder
+    post = as.numeric(CUXOS_post)
   ) |>
   filter(!is.na(pre),
          !is.na(post),
-         pre > 20)
+         pre > 20,
+         !is.na(Some_College),
+         !is.na(Female),
+         !is.na(IPT_track_1),
+         !is.na(White),
+         CUXOS_pre >= 20,
+         CUDOS_pre >= 20
+  ) |>
+  select(
+    ID1,pre,post
+  )
 
 
 RCI_df_dep <- data.frame(RCI_df_dep)
@@ -604,9 +647,8 @@ JTRCI (data = RCI_df_dep,
                   post = "post", 
                   ppid = "ID1", 
                   reliability = .74, 
-                  indextype = "JT", 
-                  JTcrit = "auto",
-                  plottitle = "JT indices for anxiety")
+                  indextype = "JT") 
+                  #plottitle = "JT indices for anxiety")
 
 DEP_JT <- JTRCIdf
 
@@ -616,9 +658,9 @@ JTRCI (data = RCI_df_anx,
                   post = "post", 
                   ppid = "ID1", 
                   reliability = .74, 
-                  indextype = "JT", 
+                  indextype = "JT") 
                   #JTcrit = "auto",
-                  plottitle = "JT indices for depression")
+                 # plottitle = "JT indices for depression")
 
 ANX_JT<- JTRCIdf
 
@@ -654,65 +696,33 @@ Mothership_post <- Mothership_post |>
          !is.na(CUDOS_post),
          CUDOS_pre > 0,
          CUDOS_post> 0
-         ) |>
-  mutate(
-    Delta_Anx_DC =  CUXOS_post - CUXOS_pre,
-    Delta_Dep_DC = CUDOS_post - CUDOS_pre,
-    Percent_Anx_change = (Delta_Anx_DC/CUXOS_pre)*100,
-    Percent_Dep_Dchange = (Delta_Dep_DC/CUDOS_pre)*100,
-    #Days_complete_W = ifelse(Days_complete_1 > 40, 40, Days_complete_1),
-    Anx_Responder = as.factor(
-      ifelse(CUXOS_pre <= 20 & Percent_Anx_change  <= -50, "Responder",
-      ifelse(CUXOS_pre <= 20 & Percent_Anx_change  > -50,  "Unresponders", NA)   
-      )),
-    Dep_Responder = as.factor(
-      ifelse(CUDOS_pre <= 20 & Percent_Dep_Dchange <= -50, "Responder",
-      ifelse(CUDOS_pre <= 20 & Percent_Dep_Dchange > -50,   "Unresponders", NA) 
-      )),
-    Treatment_Responder = as.factor(
-      ifelse(CUXOS_pre > 10 & CUXOS_pre > 10 & Percent_Anx_change  <= -50 & Percent_Anx_change < 0 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange <= -50, "Both_Responder", 
-      ifelse(CUXOS_pre > 10 & Percent_Anx_change  <= -50, "Anx Responder",
-      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange <= -50, "Dep Responder",
-      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange > 0 & CUXOS_pre > 10 & Percent_Anx_change > 0, "Both Worse",
-      ifelse(CUXOS_pre > 10 & Percent_Anx_change > 0, "Anx Worse",
-      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange > 0, "Dep Worse",
-      ifelse(CUXOS_pre > 10 & CUDOS_pre > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Both Unresponder",
-      ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Dep Unresponders", 
-      ifelse(CUXOS_pre > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50, "Anx Unresponders", "Low Baseline"
-      )))))))))))
+         ) 
+  # mutate(
+  #   Delta_Anx_DC =  CUXOS_post - CUXOS_pre,
+  #   Delta_Dep_DC = CUDOS_post - CUDOS_pre,
+  #   Percent_Anx_change = (Delta_Anx_DC/CUXOS_pre)*100,
+  #   Percent_Dep_Dchange = (Delta_Dep_DC/CUDOS_pre)*100,
+  #   #Days_complete_W = ifelse(Days_complete_1 > 40, 40, Days_complete_1),
+  #   Anx_Responder = as.factor(
+  #     ifelse(CUXOS_pre <= 20 & Percent_Anx_change  <= -50, "Responder",
+  #     ifelse(CUXOS_pre <= 20 & Percent_Anx_change  > -50,  "Unresponders", NA)   
+  #     )),
+  #   Dep_Responder = as.factor(
+  #     ifelse(CUDOS_pre <= 20 & Percent_Dep_Dchange <= -50, "Responder",
+  #     ifelse(CUDOS_pre <= 20 & Percent_Dep_Dchange > -50,   "Unresponders", NA) 
+  #     )),
+  #   Treatment_Responder = as.factor(
+  #     ifelse(CUXOS_pre > 10 & CUXOS_pre > 10 & Percent_Anx_change  <= -50 & Percent_Anx_change < 0 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange <= -50, "Both_Responder", 
+  #     ifelse(CUXOS_pre > 10 & Percent_Anx_change  <= -50, "Anx Responder",
+  #     ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange <= -50, "Dep Responder",
+  #     ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange > 0 & CUXOS_pre > 10 & Percent_Anx_change > 0, "Both Worse",
+  #     ifelse(CUXOS_pre > 10 & Percent_Anx_change > 0, "Anx Worse",
+  #     ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange > 0, "Dep Worse",
+  #     ifelse(CUXOS_pre > 10 & CUDOS_pre > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Both Unresponder",
+  #     ifelse(CUDOS_pre > 10 & Percent_Dep_Dchange < 0 & Percent_Dep_Dchange > -50, "Dep Unresponders", 
+  #     ifelse(CUXOS_pre > 10 & Percent_Anx_change < 0 & Percent_Anx_change > -50, "Anx Unresponders", "Low Baseline"
+  #     )))))))))))
 
-
-
-#2. Left join data from the RCI dataset into the Mothership_post df
-# Mothership_post <- left_join(Mothership_post,RCI_DF, by = join_by(ID1 == ID1)) |>
-#   mutate(
-#     Depression_Responder = ifelse(!is.na(class_RCI_dep), class_RCI_dep, NA),
-#     Depression_Responder = as.factor(recode(Depression_Responder,
-#                                             "1" = "2",
-#                                             "2" = "2",
-#                                             "3" = "1"
-#     )),
-#     Depression_Responder = as.factor(ifelse(!is.na(Depression_Responder), Depression_Responder, Dep_Responder)),
-#     Depression_Responder = as.factor(recode(Depression_Responder,
-#                                             "2" = "Non-Responder",
-#                                             "1" = "Responder"
-#     )),
-#     Anxiety_Responder = ifelse(!is.na(class_RCI_anx), class_RCI_anx, NA),
-#     Anxiety_Responder = as.factor(recode(Anxiety_Responder,
-#                                          "1" = "2",
-#                                          "2" = "2",
-#                                          "3" = "1"
-#     )),
-#     Anxiety_Responder = as.factor(ifelse(!is.na(Anxiety_Responder), Anxiety_Responder, Anx_Responder)),
-#     Anxiety_Responder = as.factor(recode(Anxiety_Responder,
-#                                          "2" = "Non-Responder",
-#                                          "1" = "Responder"
-#     )),
-#     RESPONDER_FIGS = as.factor(
-#       ifelse(Anxiety_Responder == "Responder" | Depression_Responder == "Responder", "Responder",
-#              ifelse(Anxiety_Responder == "Non-Responder" & Depression_Responder == "Non-Responder", "Non-Responder", NA)
-#       ))) |>
-#   filter(!is.na(RESPONDER_FIGS))
 
 Mothership_post <- left_join(Mothership_post,JT_DF, by = join_by(ID1 == ID1)) |>
   mutate(
@@ -1018,7 +1028,7 @@ colnames(anx_prepost)[1] = "Responder"
 AnxDep_fig_response <- rbind(dep_prepost,anx_prepost)
   
 #4. Plot pre post scores by treatment response
-ggplot(data=AnxDep_fig_response,
+pre_post_plot<- ggplot(data=AnxDep_fig_response,
        aes(x=factor(PrePost,level=c("Pre","Post")),y=Score,
            group=Test,color=fct_rev(Test)))+
   geom_point(size=2.5) +
@@ -1026,11 +1036,13 @@ ggplot(data=AnxDep_fig_response,
   ### ADD confidience intervals??
   scale_x_discrete(name="Time Point")+
   scale_y_continuous(name="CUDOS/CUXOS Score")+
-  ggtitle("Mean Pre and Post Scores of Anxiety and Depression")+
+  #ggtitle("Mean Pre and Post Scores of Anxiety and Depression")+
   theme(panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))+
   theme(panel.background=NULL)+
   theme(legend.title = element_blank()) +
   facet_wrap(~Responder)
+
+pre_post_plot
 ```
 
 
