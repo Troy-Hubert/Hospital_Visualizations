@@ -2597,7 +2597,7 @@ Vars_anx <- Vars_anx |>
 
 #wald
    library(aod)
-   anx_wald  <- wald.test(b = coef(glm_min_anx),Sigma = vcov(glm_min_anx),Terms= 2:10)
+   anx_wald  <- wald.test(b = coef(glm_min_anx),Sigma = vcov(glm_min_anx),Terms= 2:11)
   wald <- wald.test(b = coef(glm_min_anx),Sigma = vcov(glm_min_anx),Terms=2)$result$chi2[1]
   for(i in 3:11){
       wald <- append(wald, wald.test(b = coef(glm_min_anx),Sigma = vcov(glm_min_anx),Terms=i)$result$chi2[1])
@@ -2666,9 +2666,16 @@ anx_df <- mutate(anx_df,
 anx_df$Variable <- c(
     paste0("X^2 = ", round(anx_wald$result$chi2[1],2),", p<0.001"),
     paste0("Model R^2 = ", round((R2.min.anx[[1]]*100),3),"%"),
-    "Co-occuring BPD", "Days Not Attended", "Age", "Post Functioning", 
-    "Post Sense of Wellbeing", "Post PMH", "Post Coping", "Some College",
-    "Co-occuring SUD", "Anxiety Disorder",
+    "Co-occuring BPD",
+    "Days Not Attended", 
+    "Age", 
+    "Post Functioning", 
+    "Post Sense of Wellbeing", 
+    "Post Positive Mental Health", 
+    "Post Coping Ability", 
+    "Some College",  
+    "Anxiety Disorder", 
+    "Co-occuring SUD", 
     "Variable"
     )
 
