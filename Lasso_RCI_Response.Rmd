@@ -22,8 +22,21 @@ library(broom) # for tidy regression output
 
 ## Read in the dataset. 
 ```{r}
-Mothership <- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
 
+#set path for working directory for PC or MAC
+wd_path <- 
+  ifelse(Sys.info()[[1]] == "Windows","C:/Users/troyh/OneDrive - University of Kentucky/Coding/R working directory/",
+         ifelse(Sys.info()[[1]] == "Darwin", "~/Desktop/Coding/R working directory/","¿¿Donde Estoy??"
+         ))
+
+#Set path for directory with data files for PC or MAC
+data_path <- 
+  ifelse(Sys.info()[[1]] == "Windows","C:/Users/troyh/OneDrive - University of Kentucky/Coding/data/",
+         ifelse(Sys.info()[[1]] == "Darwin", "~/Desktop/Coding/Data/","¿¿Donde Estoy??"
+         ))
+
+#read main File
+Mothership <- read_sav(paste0(data_path,"PHPoutcome_clean.sav"))
 #DF_1<- read_sav("~/Desktop/Coding/data/PHPoutcome_clean.sav")
 ```
 
@@ -271,7 +284,7 @@ Mothership<-mutate(Mothership,
                                    "1582"="2014"))
 
 ####  Export as CSV
-write.csv(Mothership,"~/Desktop/Coding/data/Mothership_paper")
+write.csv(Mothership,paste0(data_path,"Mothership_paper"))
 
 # 2. Creating new diagnostic variables  -----------------------------------
 
@@ -497,7 +510,7 @@ Mothership_Diag_treat <- Mothership |>
          !is.na(Duration))
 
 ### Export as CSV
-write.csv(Mothership,"~/Desktop/Coding/data/Mothership_Diag_treat.csv")
+write.csv(Mothership,paste0(data_path,"Mothership_Diag_treat.csv"))
 
 # 3. Functions to create Pre - post scores -----------------------------------
 
@@ -754,7 +767,7 @@ Mothership_Missing <- Mothership_post |>
     # Acting_mindful_post 
   )
 
-#install.packages('naniar')
+install.packages('naniar')
 library(naniar)
 vis_miss(Mothership_Missing)
 ```
@@ -861,10 +874,10 @@ JTRCI (data = RCI_df_anx2,
                   ppid = "ID1", 
                   reliability = .74, 
                   indextype = "JT", 
-                  #JTcrit = "auto",
                   plottitle = "JT Indices For Anxiety")
 
 ANX_JT_smol<- JTRCIdf
+view(DEP_JT_smol)
 
 colnames(ANX_JT_smol) <- paste0(colnames(ANX_JT_smol),"_anx")
 ```
@@ -1266,7 +1279,8 @@ colnames(table1_tab_anx) <- c("Variables",colnames(table1_tab_anx)[1:6])
 
 table1_tab_anx
 
-write_csv(table1_tab_anx,"~/Downloads/table1_tab_anx.csv")
+write_csv(table1_tab_anx,paste0("C:/Users/troyh/OneDrive - University of Kentucky/Coding/data/table1_tab_anx_test.csv"))
+
 ```
 
 
@@ -1381,7 +1395,7 @@ table1_tab_dep[,1] <- rownames(table1_tab_dep)
 colnames(table1_tab_dep) <- c("Variables",colnames(table1_tab_dep)[1:6])
 
 table1_tab_dep
-write_csv(table1_tab_dep,"~/Downloads/table1_tab_dep.csv")
+write_csv(table1_tab_dep,paste0(data_path,"table1_tab_dep_test.csv"))
 
 ```
 
@@ -1676,21 +1690,66 @@ test1$estimate[[1]] #responder pre cuxos mean
 
 ataset visualizatoin
 ```{r}
-# #install.packages("ggdist")
-# library("ggdist")
-# 
-# Mothership_lasso |> 
-#   ggplot( aes(x=Depression_Responder, y=CUDOS_pre, fill=Depression_Responder)) +
-#     geom_boxplot() +
-#    #viridis::scale_fill_viridis(discrete = TRUE, alpha=0.6) +
-#     geom_jitter(color="black", size=.6 , alpha=0.9) +
-#     theme(
-#       legend.position="none",
-#       plot.title = element_text(size=11)
-#     ) +
-# #    ggtitle("Pre scores of depression severity") +
-#     xlab("Depression Severity") +
-#     ylim(0,80)
+# install.packages("ggdist")
+library("ggdist")
+
+
+anx_fig <- Mothership_lasso_anx |>
+  mutate(
+      Anxiety_Responder = as.factor(recode(Anxiety_Responder,
+        "Non-Responder" = paste0("Non-Responder (n=",summary(Mothership_lasso_anx$Anxiety_Responder)[[2]],")"),
+        "Responder" = paste0("Responder (n=",summary(Mothership_lasso_anx$Anxiety_Responder)[[1]],")")
+      )))
+
+dep_fig <- Mothership_lasso_dep |>
+  mutate(
+      Depression_Responder = as.factor(recode(Depression_Responder,
+        "Non-Responder" = paste0("Non-Responder (n=",summary(Mothership_lasso_dep$Depression_Responder)[[2]],")"),
+        "Responder" = paste0("Responder (n=",summary(Mothership_lasso_dep$Depression_Responder)[[1]],")")
+      )))
+
+subset(dep_fig, !is.na(Depression_Responder)) |>
+  ggplot(aes(x=CUDOS_pre, y=CUDOS_post, color=Depression_Responder)) +
+  geom_point(position = position_jitter(.3),size=2,alpha=.75)+
+  # geom_jitter(size=2,alpha=.75)+
+  theme_classic()+
+  scale_color_manual(values=c("darkgrey","#23c4cc"))+
+  geom_abline(intercept = 0, slope = 1,linetype='dotted',size=.75)+
+  geom_abline(intercept = 13, slope = 1, col = 'black',size=1)+
+  geom_abline(intercept = -13, slope = 1, col = 'black',size=1)+
+  geom_hline(yintercept =21, linetype = 'dashed',size = 1) +
+    labs(
+    title="         RCI Analysis of Depression Treatment Response\n",
+    color = "  Depression Response",
+    x = "Pre CUDOS",
+    y= " Post CUDOS"
+  )
+  
+
+subset(anx_fig, !is.na(Anxiety_Responder)) |>
+  ggplot(aes(x=CUXOS_pre, y=CUXOS_post, color=Anxiety_Responder)) +
+  geom_point(position = position_jitter(.3),size=2,alpha=.75)+
+  # geom_jitter(size=2,alpha=.75)+
+  theme_classic()+
+  scale_color_manual(values=c("darkgrey","#e6402e"))+
+  geom_abline(intercept = 0, slope = 1,linetype='dotted',size=.75)+
+  geom_abline(intercept = 21, slope = 1, col = 'black',size=1)+
+  geom_abline(intercept = -21, slope = 1, col = 'black',size=1)+
+  geom_hline(yintercept =16.6, linetype = 'dashed',size = 1)+
+  labs(
+    title="           RCI Analysis of Anxiety Treatment Response\n",
+    color = " Anxiety Response",
+    x = "Pre CUXOS",
+    y= " Post CUXOS"
+  )
+    
+
+
+  
+```
+
+
+```{r}
 # 
 # Mothership_lasso|>
 # ggplot( mapping=aes(x=Trauma_C)) +
@@ -1762,6 +1821,44 @@ ggplot(data=AnxDep_fig_response,
   theme(panel.background=NULL)+
   theme(legend.title = element_blank()) +
   facet_wrap(~Responder)
+```
+
+```{r}
+# 
+# 
+# FP_dep_m <- FP_dep |>
+#   ggplot(aes(y = reorder(Variable, -order), color =as.factor(sig))) +
+#   #take away background
+#   theme_classic() +
+#   #make the forrest plot
+#   geom_point(aes(x=OR), shape= FP_dep$sig,
+#                # ifelse(FP_dep$p.adjusted <= 0.05, 
+#                #                        16, # colored ones for significant varaibles
+#                #                        1), # uncolored ones for insignificant varaibles
+#              size=4,show.legend = FALSE) +
+#   geom_linerange(aes(xmin=OR_low, xmax=OR_high),size = .4, show.legend = FALSE) +
+#   geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.35, show.legend = FALSE)+
+#   scale_color_manual(values = c("darkgrey","blue"))+
+#   #change x axis name
+#   labs(
+#     x="Odds Ratio") +
+#     # title = "Odds of Anxiety Treatment Non-Response",
+#     # subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
+#   #adjust the dimentions. 
+#   coord_cartesian(ylim = c(1,length(FP_dep$Variable) + 1),
+#                   xlim = c(.25,3.0)) +
+#   #add a line at 1 for reference 
+#    geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
+#   #add anotations to help suggests what each side means.
+#   annotate("text", x = .5, y = length(FP_dep$Variable) + 1, label = "Less Likely", size= 4) +
+#   annotate("text", x = 1.5, y = length(FP_dep$Variable) + 1, label = "More Likely",size= 4) +
+#   #Git rid of the Y - Axis
+#     theme(axis.line.y = element_blank(),
+#         axis.ticks.y= element_blank(),
+#         axis.text.y= element_blank(),
+#         axis.title.y= element_blank())
+# 
+
 ```
 
 
@@ -1974,23 +2071,23 @@ lasso.model.1se.dep <- glmnet(x.dep, y.dep, alpha = 1, family = "binomial",
                       lambda = cv.lasso.dep$lambda.1se,standardized = TRUE)
 # Make prediction on test data
 x.test <- model.matrix(Depression_Responder ~., test.data)[,-1]
-probabilities <- lasso.model.1se.dep %>% predict(newx = x.test,type ="response")
-predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
+probabilities.1se <- lasso.model.1se.dep %>% predict(newx = x.test,type ="response")
+predicted.classes.1se <- ifelse(probabilities.1se > 0.5, "Responder", "Non-Responder")
 
 # Model accuracy rate
 observed.classes <- test.data$Depression_Responder
-Mean.predict.1se.dep <- mean(predicted.classes == observed.classes)
+Mean.predict.1se.dep <- mean(predicted.classes.1se == observed.classes)
 
 #### full model
 # Fit the model
 full.model.dep <- glm(Depression_Responder ~ ., data = train.data, family = "binomial")
 
 # Make predictions
-probabilities <- full.model.dep %>% predict(test.data, type = "response")
-predicted.classes <- ifelse(probabilities > 0.5, "Responder", "Non-Responder")
+probabilities.full <- full.model.dep %>% predict(test.data, type = "response")
+predicted.classes.full <- ifelse(probabilities.full > 0.5, "Responder", "Non-Responder")
 # Model accuracy
-observed.classes <- test.data$Depression_Responder
-Mean.predict.full.model.dep <- mean(predicted.classes == observed.classes)
+observed.classes.full <- test.data$Depression_Responder
+Mean.predict.full.model.dep <- mean(predicted.classes.full == observed.classes)
 
 predict.df <- data.frame(
   model = c("Min", "1se", "Full"),
@@ -2022,7 +2119,7 @@ Minimum-
 ## install.packages("fuzzySim")
 
 
-tmp_coeffs <- coef(lasso.model.1se.dep, s = "lambda.1se")
+tmp_coeffs <- coef(lasso.model.min.dep, s = "lambda.min")
 Dep_coefs <-tmp_coeffs@Dimnames[[1]][tmp_coeffs@i + 1]
 Dep_reg_coefs <- Dep_coefs[2:length(Dep_coefs)]
 Dep_reg_coefs
@@ -2148,7 +2245,7 @@ FP.min.dep$Wald = round(wald,2)
   
 FP.min.dep
 
-write_csv(FP.min.dep, "~/Downloads/FP.min.dep")
+write_csv(FP.min.dep, paste0(data_path,"FP.min.dep"))
 ```
 1se -
 ```{r}
@@ -2207,7 +2304,7 @@ FP.1se.dep$p.adjusted <- round(FP.1se.dep$p.adjusted,2)
 FP.1se.dep$type = c("Depression")
 FP.1se.dep
 
-write_csv(FP.1se.dep, "~/Downloads/FP.1se.dep")
+write_csv(FP.1se.dep, paste0(data_path,"FP.1se.dep"))
 ```
 
 ```{r}
@@ -2224,7 +2321,7 @@ FP.min.dep <- data.frame(cbind(
 FP.min.dep <- left_join(FP.min.dep,ADJ.p.values.min.dep, by = join_by(p.values == p.value))
 FP.min.dep
 
-write_csv(FP.min.dep, "~/Downloads/FP.min.dep")
+write_csv(FP.min.dep, paste0(data_path,"FP.min.dep"))
 
 #create FP df
 dep_df <- data.frame(rbind(
@@ -2286,7 +2383,7 @@ dep_df$order = c(seq(2,length(dep_df$order),1),1)
 #Final df for FP
 dep_df
 
-write_csv(dep_df, "~/Downloads/dep_df")
+write_csv(dep_df, paste0(data_path,"dep_df"))
 ```
 
 
@@ -2523,7 +2620,7 @@ FP.min.anx <- data.frame(cbind(
 FP.min.anx <- left_join(FP.min.anx,ADJ.p.values.min.anx, by = join_by(p.values == p.value))
 FP.min.anx
 
-write_csv(FP.min.anx, "~/Downloads/FP.min.anx")
+write_csv(FP.min.anx, paste0(data_path,"FP.min.anx"))
 
 #create FP df
 anx_df <- data.frame(rbind(
@@ -2584,7 +2681,7 @@ anx_df$order = c(seq(2,length(anx_df$order),1),1)
 #Final df for FP
 anx_df
 
-write_csv(anx_df, "~/Downloads/anx_df")
+# write_csv(anx_df, "~/Downloads/anx_df")
 
 ```
 
@@ -2597,14 +2694,14 @@ ANX_FP <-
   theme_classic() +
   #make the forrest plot
   geom_linerange(aes(xmin=OR_low, xmax=OR_high),size = 1, show.legend = FALSE,
-                color = ifelse(anx_df$p.adjusted < 0.05, "red", "darkgrey")) +
-  geom_point(aes(x=OR), shape= 16,
+                color = ifelse(anx_df$p.adjusted < 0.05, "#e6402e", "darkgrey")) +
+  geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.3, show.legend = FALSE,
+                color = ifelse(anx_df$p.adjusted < 0.05, "#e6402e", "darkgrey"))+
+      geom_point(aes(x=OR), shape= 16,
+             size=5,show.legend = FALSE, color = "white")+
+    geom_point(aes(x=OR), shape= 16,
              size=4,show.legend = FALSE,
-             color = ifelse(anx_df$p.adjusted < 0.05, "red", "darkgrey")) +
-  geom_point(aes(x=OR), shape= 1,
-             size=4,show.legend = FALSE, color = "white") +
-    geom_point(aes(x=OR), shape= 1,
-             size=4.1,show.legend = FALSE, color = "white")+
+             color = ifelse(anx_df$p.adjusted < 0.05, "#e6402e", "darkgrey")) +
 # geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.6, show.legend = FALSE) +
   #change x axis name
   labs(
@@ -2623,23 +2720,26 @@ ANX_FP <-
         axis.ticks.y= element_blank(),
         axis.text.y= element_blank(),
         axis.title.y= element_blank())
+```
 
+
+```{r}
 ANX_text <- 
-  dep_df |>
+  anx_df |>
   ggplot(aes(y = reorder(Variable, -order))) +
   geom_text(aes(x = 0, label = Variable), hjust = 0,
-        fontface = ifelse(dep_df$Variable == "Variable","bold","plain")) +
+        fontface = ifelse(anx_df$Variable == "Variable","bold","plain")) +
   geom_text(aes(x = 1.1, label = Beta),
         hjust = 0,
-        fontface = ifelse(dep_df$Beta == "Beta", "bold","plain")) + 
+        fontface = ifelse(anx_df$Beta == "Beta", "bold","plain")) + 
   geom_text(aes(x = 1.5, label = Wald),
         hjust = 0,
-        fontface = ifelse(dep_df$Wald == "Wald", "bold","plain")) +
+        fontface = ifelse(anx_df$Wald == "Wald", "bold","plain")) +
   geom_text(aes(x = 1.9, label = label),
         hjust = 0,
-        fontface = ifelse(dep_df$label == "OR [95% CI]", "bold","plain")) +
+        fontface = ifelse(anx_df$label == "OR [95% CI]", "bold","plain")) +
   theme_void() +     
-  coord_cartesian(ylim = c(1,length(dep_df$Variable)), xlim = c(0, 4))
+  coord_cartesian(ylim = c(1,length(anx_df$Variable)), xlim = c(0, 4))
 
 library("patchwork")
 
@@ -2659,29 +2759,31 @@ DEP_FP <-
   #take away background
   theme_classic() +
   #make the forrest plot
-  geom_linerange(aes(xmin=OR_low, xmax=OR_high),size = 1, show.legend = FALSE,
-                color = ifelse(dep_df$p.adjusted < 0.05, "blue", "darkgrey")) +
-  geom_point(aes(x=OR), shape= 16,
+    geom_linerange(aes(xmin=OR_low, xmax=OR_high),size = 1, show.legend = FALSE,
+                color = ifelse(dep_df$p.adjusted < 0.05, "#23c4cc", "darkgrey")) +
+    geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.4, show.legend = FALSE,
+                color = ifelse(dep_df$p.adjusted < 0.05, "#23c4cc", "darkgrey")) +
+  # geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.35, show.legend = FALSE,
+                # color = ifelse(dep_df$p.adjusted < 0.05, "#23c4cc", "darkgrey"))+
+      geom_point(aes(x=OR), shape= 16,
+             size=5,show.legend = FALSE, color = "white")+
+    geom_point(aes(x=OR), shape= 16,
              size=4,show.legend = FALSE,
-             color = ifelse(dep_df$p.adjusted < 0.05, "blue", "darkgrey")) +
-  geom_point(aes(x=OR), shape= 1,
-             size=4,show.legend = FALSE, color = "white") +
-    geom_point(aes(x=OR), shape= 1,
-             size=4.1,show.legend = FALSE, color = "white")+
-# geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.6, show.legend = FALSE) +
+             color = ifelse(dep_df$p.adjusted < 0.05, "#23c4cc", "darkgrey")) +
+
   #change x axis name
   labs(
     x="Odds Ratio",
     # title = "    Odds of Meeting Physical Activity Guidelines",
-    subtitle ="Odds of Depression Non-Response")+
+    subtitle ="Odds of Depression Non-Response") +
   #adjust the dimentions. 
   coord_cartesian(ylim = c(1,  length(dep_df$Variable)),
-                  xlim = c(0,2))+
+                  xlim = c(0.4,2)) +
   #add a line at 1 for reference 
-  geom_vline(xintercept = 1,linetype="dashed",alpha = .50) + 
+  geom_vline(xintercept = 1,linetype="dashed",alpha = .50) +
   #add anotations to help suggests what each side means.
-  annotate("text", x = .6, y = length(dep_df$variable) -1 , label = "Less Likely", size= 4) +
-  annotate("text", x = 1.4, y = length(dep_df$variable) -1, label = "More Likely",size= 4) +
+  annotate("text", x = .6, y = length(dep_df$Variable) -1 , label = "Less Likely", size= 4) +
+  annotate("text", x = 1.4, y = length(dep_df$Variable) -1, label = "More Likely",size= 4) +
   #Git rid of the Y - Axis
     theme(axis.line.y = element_blank(),
         axis.ticks.y= element_blank(),
@@ -2720,139 +2822,139 @@ DEP_text + DEP_FP + plot_layout(design = layout)
 
 
 ```{r}
-#Create order varaible in dataset to keep it the same as the regression
-
-FP_anx <- read_csv("~/Downloads/FP.min.anx")
-# FP_anx <- read_csv("~/Downloads/FP.1se.anx")
-
-#Change the names of variables
-# FP_anx$Variable = c("Age", "Unmarried", "Days Completed", 
-#                     "Days Not Attended", "Anixety Disorder","Trauma Disorder", 
-#                     "Other Disorder", "Co-Mood Disorder",  "Co-BPD", 
-#                     "Co-SUD", "CUXOS Pre", "Post Coping", 
-#                     "Post PMH", "Post Functioning", "Post Wellbeing")
-
-FP_anx$order = c(seq(from=2, to=length(FP_anx$Variable) + 1,1))
-
-FP_anx <- FP_anx |>
-  mutate(
-    sig = ifelse(p.adjusted <= 0.05, 16,1)
-  )
-
-FP_anx_m <- FP_anx |>
-  ggplot(aes(y = reorder(Variable, -order), color = as.factor(sig))) +
-  #take away background
-  theme_classic() +
-  #make the forrest plot
-  geom_point(aes(x=OR), shape= FP_anx$sig,
-               # ifelse(FP_anx$p.adjusted <= 0.05, 
-               #                        16, # colored ones for significant varaibles
-               #                        1), # uncolored ones for insignificant varaibles
-             size=3.5,show.legend = FALSE) +
-  geom_linerange(aes(xmin=OR_low, xmax=OR_high),size = .4, show.legend = FALSE) +
-  geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.5, show.legend = FALSE)+
-  scale_color_manual(values = c("darkgrey","red"))+
-  #change x axis name
-  labs(
-    x="Odds Ratio") +
-    # title = "Odds of Anxiety Treatment Non-Response",
-    # subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
-  #adjust the dimentions. 
-  coord_cartesian(ylim = c(1,length(FP_anx$Variable) + 1),
-                  xlim = c(.25,2.5)) +
-  #add a line at 1 for reference 
-   geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
-  #add anotations to help suggests what each side means.
-  annotate("text", x = .6, y = length(FP_anx$Variable) + 1, label = "Less Likely", size= 3) +
-  annotate("text", x = 1.5, y = length(FP_anx$Variable) + 1, label = "More Likely",size= 3) +
-  #Git rid of the Y - Axis
-    theme(axis.line.y = element_blank(),
-        axis.ticks.y= element_blank(),
-        axis.text.y= element_blank(),
-        axis.title.y= element_blank())
-
-FP_anx_m
-
-FP_anx <- FP_anx |>
-  # round estimates and 95% CIs to 2 decimal places for journal specifications
-  mutate(across(
-    c(OR, OR_low, OR_high),
-    ~ str_pad(
-      round(.x, 2),
-      width = 4,
-      pad = "0",
-      side = "right"
-    )
-  ),
-  # add an "-" between HR estimate confidence intervals
-  estimate_lab = paste0(OR, " [", OR_low, "-", OR_high, "]")) |>
-  # round p-values to two decimal places, except in cases where p < .001
-  mutate(p.adjusted_fig = case_when(
-    p.adjusted < .001 ~ "<0.001",
-    round(p.adjusted, 2) == .05 ~ as.character(round(p.adjusted,3)),
-    p.adjusted < .01 ~ str_pad( # if less than .01, go one more decimal place
-      as.character(round(p.adjusted, 3)),
-      width = 4,
-      pad = "0",
-      side = "right"
-    ),
-    TRUE ~ str_pad( # otherwise just round to 2 decimal places and pad string so that .2 reads as 0.20
-      as.character(round(p.adjusted, 2)),
-      width = 4,
-      pad = "0",
-      side = "right"
-    )
-  )) |>
-  # add a row of data that are actually column names which will be shown on the plot in the next step
-  bind_rows(
-    data.frame(
-      Variable = "Variable",
-      estimate_lab = "Odds Ratio (95% CI)",
-      OR_low = "",
-      OR_high = "",
-      p.adjusted_fig = "p value"
-    )
-  ) 
-
-FP_anx[length(FP_anx$Variable),8] = 1
-FP_anx
-
-#arange the labels on top
-      FP_anx<-mutate(FP_anx, top_row = 0)
-      FP_anx[length(FP_anx$Variable),12] = 1
-      FP_anx <- arrange(FP_anx,order)
-FP_anx
-    # plot the left side of the plot 
-      FP_anx_L <- FP_anx %>% 
-        ggplot(aes(y = reorder(Variable, -order))) +
-        geom_text(aes(x = 0, label = Variable), hjust = 0, fontface = "bold")+
-        geom_text(aes(x = 1, label = estimate_lab),
-        hjust = 0,
-        fontface = ifelse(FP_anx$estimate_lab == "Odds Ratio (95% CI)", "bold","plain")) +
-        theme_void() +
-        coord_cartesian(ylim = c(1,length(FP_anx$Variable)), xlim = c(0, 4))
-
-FP_anx_L
-
-FP_anx_R <-  
-      FP_anx |>
-      ggplot() +
-        geom_text(aes(x = 0, y = reorder(Variable, -order), label = p.adjusted_fig), hjust = 0,
-        fontface = ifelse(FP_anx$p.adjusted_fig == "p value", "bold", "plain")) +
-        theme_void() +
-        coord_cartesian(ylim = c(1,length(FP_anx$Variable)))
-        
-FP_anx
-
-library("patchwork")
-
-layout <- c(
-  patchwork::area(t = 0, l = 0, b = 30, r = 35),
-  patchwork::area(t = 0, l = 19, b = 30, r = 34),
-  patchwork::area(t = 0, l = 30, b = 30, r = 40) 
-  )
-
-FP_anx_L + FP_anx_m + FP_anx_R + plot_layout(design = layout)
+# #Create order varaible in dataset to keep it the same as the regression
+# 
+# FP_anx <- read_csv("~/Downloads/FP.min.anx")
+# # FP_anx <- read_csv("~/Downloads/FP.1se.anx")
+# 
+# #Change the names of variables
+# # FP_anx$Variable = c("Age", "Unmarried", "Days Completed", 
+# #                     "Days Not Attended", "Anixety Disorder","Trauma Disorder", 
+# #                     "Other Disorder", "Co-Mood Disorder",  "Co-BPD", 
+# #                     "Co-SUD", "CUXOS Pre", "Post Coping", 
+# #                     "Post PMH", "Post Functioning", "Post Wellbeing")
+# 
+# FP_anx$order = c(seq(from=2, to=length(FP_anx$Variable) + 1,1))
+# 
+# FP_anx <- FP_anx |>
+#   mutate(
+#     sig = ifelse(p.adjusted <= 0.05, 16,1)
+#   )
+# 
+# FP_anx_m <- FP_anx |>
+#   ggplot(aes(y = reorder(Variable, -order), color = as.factor(sig))) +
+#   #take away background
+#   theme_classic() +
+#   #make the forrest plot
+#   geom_point(aes(x=OR), shape= FP_anx$sig,
+#                # ifelse(FP_anx$p.adjusted <= 0.05, 
+#                #                        16, # colored ones for significant varaibles
+#                #                        1), # uncolored ones for insignificant varaibles
+#              size=3.5,show.legend = FALSE) +
+#   geom_linerange(aes(xmin=OR_low, xmax=OR_high),size = .4, show.legend = FALSE) +
+#   geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.5, show.legend = FALSE)+
+#   scale_color_manual(values = c("darkgrey","red"))+
+#   #change x axis name
+#   labs(
+#     x="Odds Ratio") +
+#     # title = "Odds of Anxiety Treatment Non-Response",
+#     # subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
+#   #adjust the dimentions. 
+#   coord_cartesian(ylim = c(1,length(FP_anx$Variable) + 1),
+#                   xlim = c(.25,2.5)) +
+#   #add a line at 1 for reference 
+#    geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
+#   #add anotations to help suggests what each side means.
+#   annotate("text", x = .6, y = length(FP_anx$Variable) + 1, label = "Less Likely", size= 3) +
+#   annotate("text", x = 1.5, y = length(FP_anx$Variable) + 1, label = "More Likely",size= 3) +
+#   #Git rid of the Y - Axis
+#     theme(axis.line.y = element_blank(),
+#         axis.ticks.y= element_blank(),
+#         axis.text.y= element_blank(),
+#         axis.title.y= element_blank())
+# 
+# FP_anx_m
+# 
+# FP_anx <- FP_anx |>
+#   # round estimates and 95% CIs to 2 decimal places for journal specifications
+#   mutate(across(
+#     c(OR, OR_low, OR_high),
+#     ~ str_pad(
+#       round(.x, 2),
+#       width = 4,
+#       pad = "0",
+#       side = "right"
+#     )
+#   ),
+#   # add an "-" between HR estimate confidence intervals
+#   estimate_lab = paste0(OR, " [", OR_low, "-", OR_high, "]")) |>
+#   # round p-values to two decimal places, except in cases where p < .001
+#   mutate(p.adjusted_fig = case_when(
+#     p.adjusted < .001 ~ "<0.001",
+#     round(p.adjusted, 2) == .05 ~ as.character(round(p.adjusted,3)),
+#     p.adjusted < .01 ~ str_pad( # if less than .01, go one more decimal place
+#       as.character(round(p.adjusted, 3)),
+#       width = 4,
+#       pad = "0",
+#       side = "right"
+#     ),
+#     TRUE ~ str_pad( # otherwise just round to 2 decimal places and pad string so that .2 reads as 0.20
+#       as.character(round(p.adjusted, 2)),
+#       width = 4,
+#       pad = "0",
+#       side = "right"
+#     )
+#   )) |>
+#   # add a row of data that are actually column names which will be shown on the plot in the next step
+#   bind_rows(
+#     data.frame(
+#       Variable = "Variable",
+#       estimate_lab = "Odds Ratio (95% CI)",
+#       OR_low = "",
+#       OR_high = "",
+#       p.adjusted_fig = "p value"
+#     )
+#   ) 
+# 
+# FP_anx[length(FP_anx$Variable),8] = 1
+# FP_anx
+# 
+# #arange the labels on top
+#       FP_anx<-mutate(FP_anx, top_row = 0)
+#       FP_anx[length(FP_anx$Variable),12] = 1
+#       FP_anx <- arrange(FP_anx,order)
+# FP_anx
+#     # plot the left side of the plot 
+#       FP_anx_L <- FP_anx %>% 
+#         ggplot(aes(y = reorder(Variable, -order))) +
+#         geom_text(aes(x = 0, label = Variable), hjust = 0, fontface = "bold")+
+#         geom_text(aes(x = 1, label = estimate_lab),
+#         hjust = 0,
+#         fontface = ifelse(FP_anx$estimate_lab == "Odds Ratio (95% CI)", "bold","plain")) +
+#         theme_void() +
+#         coord_cartesian(ylim = c(1,length(FP_anx$Variable)), xlim = c(0, 4))
+# 
+# FP_anx_L
+# 
+# FP_anx_R <-  
+#       FP_anx |>
+#       ggplot() +
+#         geom_text(aes(x = 0, y = reorder(Variable, -order), label = p.adjusted_fig), hjust = 0,
+#         fontface = ifelse(FP_anx$p.adjusted_fig == "p value", "bold", "plain")) +
+#         theme_void() +
+#         coord_cartesian(ylim = c(1,length(FP_anx$Variable)))
+#         
+# FP_anx
+# 
+# library("patchwork")
+# 
+# layout <- c(
+#   patchwork::area(t = 0, l = 0, b = 30, r = 35),
+#   patchwork::area(t = 0, l = 19, b = 30, r = 34),
+#   patchwork::area(t = 0, l = 30, b = 30, r = 40) 
+#   )
+# 
+# FP_anx_L + FP_anx_m + FP_anx_R + plot_layout(design = layout)
 
 ```
 
@@ -2860,141 +2962,141 @@ FP_anx_L + FP_anx_m + FP_anx_R + plot_layout(design = layout)
 
 ## Depression Plot
 ```{r}
-#Create order varaible in dataset to keep it the same as the regression
-
-
-
-FP_dep <- read_csv("~/Downloads/FP.min.dep")
-
-#rename the variables for the figure
-
-# FP_dep$Variable = c(
-#                      "Days Not Attended",
-#                     "Post Coping", 
-#                     "Post PMH", "Post Functioning", "Post Wellbeing")
-
-
-FP_dep$order = c(seq(from=2, to=length(FP_dep$Variable) + 1,1))
-
-FP_dep <- FP_dep |>
-  mutate(
-    sig = ifelse(p.adjusted <= 0.05, 16,1)
-  )
-
-FP_dep_m <- FP_dep |>
-  ggplot(aes(y = reorder(Variable, -order), color =as.factor(sig))) +
-  #take away background
-  theme_classic() +
-  #make the forrest plot
-  geom_point(aes(x=OR), shape= FP_dep$sig,
-               # ifelse(FP_dep$p.adjusted <= 0.05, 
-               #                        16, # colored ones for significant varaibles
-               #                        1), # uncolored ones for insignificant varaibles
-             size=4,show.legend = FALSE) +
-  geom_linerange(aes(xmin=OR_low, xmax=OR_high),size = .4, show.legend = FALSE) +
-  geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.35, show.legend = FALSE)+
-  scale_color_manual(values = c("darkgrey","blue"))+
-  #change x axis name
-  labs(
-    x="Odds Ratio") +
-    # title = "Odds of Anxiety Treatment Non-Response",
-    # subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
-  #adjust the dimentions. 
-  coord_cartesian(ylim = c(1,length(FP_dep$Variable) + 1),
-                  xlim = c(.25,3.0)) +
-  #add a line at 1 for reference 
-   geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
-  #add anotations to help suggests what each side means.
-  annotate("text", x = .5, y = length(FP_dep$Variable) + 1, label = "Less Likely", size= 4) +
-  annotate("text", x = 1.5, y = length(FP_dep$Variable) + 1, label = "More Likely",size= 4) +
-  #Git rid of the Y - Axis
-    theme(axis.line.y = element_blank(),
-        axis.ticks.y= element_blank(),
-        axis.text.y= element_blank(),
-        axis.title.y= element_blank())
-
-FP_dep_m
-
-FP_dep <- FP_dep |>
-  # round estimates and 95% CIs to 2 decimal places for journal specifications
-  mutate(across(
-    c(OR, OR_low, OR_high),
-    ~ str_pad(
-      round(.x, 2),
-      width = 4,
-      pad = "0",
-      side = "right"
-    )
-  ),
-  # add an "-" between HR estimate confidence intervals
-  estimate_lab = paste0(OR, " (", OR_low, "-", OR_high, ")")) |>
-  # round p-values to two decimal places, except in cases where p < .001
-  mutate(p.adjusted_fig = case_when(
-    p.adjusted < .001 ~ "<0.001",
-    round(p.adjusted, 2) == .05 ~ as.character(round(p.adjusted,3)),
-    p.adjusted < .01 ~ str_pad( # if less than .01, go one more decimal place
-      as.character(round(p.adjusted, 3)),
-      width = 4,
-      pad = "0",
-      side = "right"
-    ),
-    TRUE ~ str_pad( # otherwise just round to 2 decimal places and pad string so that .2 reads as 0.20
-      as.character(round(p.adjusted, 2)),
-      width = 4,
-      pad = "0",
-      side = "right"
-    )
-  )) |>
-  # add a row of data that are actually column names which will be shown on the plot in the next step
-  bind_rows(
-    data.frame(
-      Variable = "Variable",
-      estimate_lab = "Odds Ratio (95% CI)",
-      OR_low = "",
-      OR_high = "",
-      p.adjusted_fig = "p value"
-    )
-  ) 
-
-FP_dep[length(FP_dep$Variable),8] = 1
-FP_dep
-
-#arange the labels on top
-      FP_dep<-mutate(FP_dep, top_row = 0)
-      FP_dep[length(FP_dep$Variable),12] = 1
-      FP_dep <- arrange(FP_dep,order)
-FP_dep
-    # plot the left side of the plot 
-      FP_dep_L <- FP_dep %>% 
-        ggplot(aes(y = reorder(Variable, -order))) +
-        geom_text(aes(x = 0, label = Variable), hjust = 0, fontface = "bold")+
-        geom_text(aes(x = 1, label = estimate_lab),
-        hjust = 0,
-        fontface = ifelse(FP_dep$estimate_lab == "Odds Ratio (95% CI)", "bold","plain")) +
-        theme_void() +
-        coord_cartesian(ylim = c(1,length(FP_dep$Variable)), xlim = c(0, 4))
-
-FP_dep_L
-
-FP_dep_R <-  
-      FP_dep |>
-      ggplot() +
-        geom_text(aes(x = 0, y = reorder(Variable, -order), label = p.adjusted_fig), hjust = 0,
-        fontface = ifelse(FP_dep$p.adjusted_fig == "p value", "bold", "plain")) +
-        theme_void() +
-        coord_cartesian(ylim = c(1,length(FP_dep$Variable)))
-        
-FP_dep
-
-library("patchwork")
-
-layout <- c(
-  patchwork::area(t = 0, l = 0, b = 30, r = 30),
-  patchwork::area(t = 0, l = 15, b = 30, r = 25),
-  patchwork::area(t = 0, l = 22, b = 30, r = 30) 
-  )
-
-FP_dep_L + FP_dep_m + FP_dep_R + plot_layout(design = layout)
+# #Create order varaible in dataset to keep it the same as the regression
+# 
+# 
+# 
+# FP_dep <- read_csv("~/Downloads/FP.min.dep")
+# 
+# #rename the variables for the figure
+# 
+# # FP_dep$Variable = c(
+# #                      "Days Not Attended",
+# #                     "Post Coping", 
+# #                     "Post PMH", "Post Functioning", "Post Wellbeing")
+# 
+# 
+# FP_dep$order = c(seq(from=2, to=length(FP_dep$Variable) + 1,1))
+# 
+# FP_dep <- FP_dep |>
+#   mutate(
+#     sig = ifelse(p.adjusted <= 0.05, 16,1)
+#   )
+# 
+# FP_dep_m <- FP_dep |>
+#   ggplot(aes(y = reorder(Variable, -order), color =as.factor(sig))) +
+#   #take away background
+#   theme_classic() +
+#   #make the forrest plot
+#   geom_point(aes(x=OR), shape= FP_dep$sig,
+#                # ifelse(FP_dep$p.adjusted <= 0.05, 
+#                #                        16, # colored ones for significant varaibles
+#                #                        1), # uncolored ones for insignificant varaibles
+#              size=4,show.legend = FALSE) +
+#   geom_linerange(aes(xmin=OR_low, xmax=OR_high),size = .4, show.legend = FALSE) +
+#   geom_errorbar(aes(xmin=OR_low, xmax=OR_high),width =.35, show.legend = FALSE)+
+#   scale_color_manual(values = c("darkgrey","blue"))+
+#   #change x axis name
+#   labs(
+#     x="Odds Ratio") +
+#     # title = "Odds of Anxiety Treatment Non-Response",
+#     # subtitle = "Based on Pre/Post CUXOS Scores in PHP program") +
+#   #adjust the dimentions. 
+#   coord_cartesian(ylim = c(1,length(FP_dep$Variable) + 1),
+#                   xlim = c(.25,3.0)) +
+#   #add a line at 1 for reference 
+#    geom_vline(xintercept = 1, linetype="dashed", alpha = .5) +
+#   #add anotations to help suggests what each side means.
+#   annotate("text", x = .5, y = length(FP_dep$Variable) + 1, label = "Less Likely", size= 4) +
+#   annotate("text", x = 1.5, y = length(FP_dep$Variable) + 1, label = "More Likely",size= 4) +
+#   #Git rid of the Y - Axis
+#     theme(axis.line.y = element_blank(),
+#         axis.ticks.y= element_blank(),
+#         axis.text.y= element_blank(),
+#         axis.title.y= element_blank())
+# 
+# FP_dep_m
+# 
+# FP_dep <- FP_dep |>
+#   # round estimates and 95% CIs to 2 decimal places for journal specifications
+#   mutate(across(
+#     c(OR, OR_low, OR_high),
+#     ~ str_pad(
+#       round(.x, 2),
+#       width = 4,
+#       pad = "0",
+#       side = "right"
+#     )
+#   ),
+#   # add an "-" between HR estimate confidence intervals
+#   estimate_lab = paste0(OR, " (", OR_low, "-", OR_high, ")")) |>
+#   # round p-values to two decimal places, except in cases where p < .001
+#   mutate(p.adjusted_fig = case_when(
+#     p.adjusted < .001 ~ "<0.001",
+#     round(p.adjusted, 2) == .05 ~ as.character(round(p.adjusted,3)),
+#     p.adjusted < .01 ~ str_pad( # if less than .01, go one more decimal place
+#       as.character(round(p.adjusted, 3)),
+#       width = 4,
+#       pad = "0",
+#       side = "right"
+#     ),
+#     TRUE ~ str_pad( # otherwise just round to 2 decimal places and pad string so that .2 reads as 0.20
+#       as.character(round(p.adjusted, 2)),
+#       width = 4,
+#       pad = "0",
+#       side = "right"
+#     )
+#   )) |>
+#   # add a row of data that are actually column names which will be shown on the plot in the next step
+#   bind_rows(
+#     data.frame(
+#       Variable = "Variable",
+#       estimate_lab = "Odds Ratio (95% CI)",
+#       OR_low = "",
+#       OR_high = "",
+#       p.adjusted_fig = "p value"
+#     )
+#   ) 
+# 
+# FP_dep[length(FP_dep$Variable),8] = 1
+# FP_dep
+# 
+# #arange the labels on top
+#       FP_dep<-mutate(FP_dep, top_row = 0)
+#       FP_dep[length(FP_dep$Variable),12] = 1
+#       FP_dep <- arrange(FP_dep,order)
+# FP_dep
+#     # plot the left side of the plot 
+#       FP_dep_L <- FP_dep %>% 
+#         ggplot(aes(y = reorder(Variable, -order))) +
+#         geom_text(aes(x = 0, label = Variable), hjust = 0, fontface = "bold")+
+#         geom_text(aes(x = 1, label = estimate_lab),
+#         hjust = 0,
+#         fontface = ifelse(FP_dep$estimate_lab == "Odds Ratio (95% CI)", "bold","plain")) +
+#         theme_void() +
+#         coord_cartesian(ylim = c(1,length(FP_dep$Variable)), xlim = c(0, 4))
+# 
+# FP_dep_L
+# 
+# FP_dep_R <-  
+#       FP_dep |>
+#       ggplot() +
+#         geom_text(aes(x = 0, y = reorder(Variable, -order), label = p.adjusted_fig), hjust = 0,
+#         fontface = ifelse(FP_dep$p.adjusted_fig == "p value", "bold", "plain")) +
+#         theme_void() +
+#         coord_cartesian(ylim = c(1,length(FP_dep$Variable)))
+#         
+# FP_dep
+# 
+# library("patchwork")
+# 
+# layout <- c(
+#   patchwork::area(t = 0, l = 0, b = 30, r = 30),
+#   patchwork::area(t = 0, l = 15, b = 30, r = 25),
+#   patchwork::area(t = 0, l = 22, b = 30, r = 30) 
+#   )
+# 
+# FP_dep_L + FP_dep_m + FP_dep_R + plot_layout(design = layout)
 ```
 
 
